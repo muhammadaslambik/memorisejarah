@@ -2,5 +2,8 @@ node_modules
 .next
 .vercel
 .wrangler
+.dev.vars
 .env*
 !.env.example
+*.pem
+.DS_Store

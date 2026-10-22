@@ -1,5 +1,4 @@
 import { login } from "@/lib/actions";
-export const runtime = "edge";
 
 export default async function Login({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const { error } = await searchParams;

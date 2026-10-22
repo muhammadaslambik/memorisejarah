@@ -3,7 +3,6 @@ import { db, posts, categories } from "@/db";
 import { savePost } from "@/lib/actions";
 import { Editor } from "@/components/Editor";
 
-export const runtime = "edge";
 export const dynamic = "force-dynamic";
 
 export default async function EditPost({ params }: { params: Promise<{ id: string }> }) {

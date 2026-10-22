@@ -3,7 +3,6 @@ import { and, eq, ne } from "drizzle-orm";
 import { db, posts } from "@/db";
 import { PostCard } from "@/components/PostCard";
 
-export const runtime = "edge";
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {

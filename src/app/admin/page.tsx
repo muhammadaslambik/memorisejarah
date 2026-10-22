@@ -3,7 +3,6 @@ import { desc } from "drizzle-orm";
 import { db, posts } from "@/db";
 import { deletePost, logout } from "@/lib/actions";
 
-export const runtime = "edge";
 export const dynamic = "force-dynamic";
 
 export default async function Dashboard() {

@@ -3,7 +3,6 @@ import { desc, eq, and } from "drizzle-orm";
 import { db, posts, categories } from "@/db";
 import { PostCard } from "@/components/PostCard";
 
-export const runtime = "edge";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {

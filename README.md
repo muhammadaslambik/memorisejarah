@@ -1,27 +1,73 @@
-# Memori Sejarah — Next.js + Neon + Cloudflare Pages (semua gratis, tanpa kartu)
+# Memori Sejarah
 
-## A. Setup lokal
-1. Install Node 20+. Di folder proyek: `npm install`
-2. Buat akun **Neon** (neon.tech, login GitHub/Google, tanpa kartu) → buat project → salin *connection string*.
-3. `cp .env.example .env.local`, isi `DATABASE_URL`, `SESSION_SECRET` (acak ≥32 karakter), `ADMIN_EMAIL`, `ADMIN_PASSWORD`.
-4. `npm run db:push` (membuat tabel) lalu `npm run db:seed` (admin + kategori).
-5. `npm run dev` → buka http://localhost:3000, login di `/admin/login`.
+An Indonesian-language history article website with a custom-built CMS. It runs entirely on free tiers, with no credit card required.
 
-## B. Deploy ke Cloudflare Pages
-1. Push proyek ke GitHub (`.env.local` jangan ikut).
-2. Cloudflare Dashboard → Workers & Pages → Create → Pages → Connect to Git → pilih repo.
-3. Framework preset: *None*. Build command: `npx @cloudflare/next-on-pages`. Output directory: `.vercel/output/static`.
-4. Settings → Variables: isi `DATABASE_URL`, `SESSION_SECRET`, `NODE_VERSION=20`.
-5. Settings → Functions → Compatibility flags: tambah `nodejs_compat` (Production & Preview), lalu redeploy.
+**Live site:** https://memorisejarah.eu.org
 
-## C. Domain memorisejarah.eu.org
-1. Pages project → Custom domains → Set up → `memorisejarah.eu.org`.
-2. Domain eu.org tidak bisa memakai CNAME di apex. Cara termudah: tambahkan domain ke Cloudflare (Add a site, plan Free), lalu di panel eu.org ganti Nameserver ke NS yang diberikan Cloudflare.
-3. Tunggu propagasi (bisa beberapa jam–hari), lalu SSL aktif otomatis.
+## Features
 
-## D. Gambar
-Cloudflare R2 mewajibkan kartu, jadi tidak dipakai. Pakai Supabase Storage / Cloudinary (free tier, tanpa kartu) lalu tempel URL gambar di kolom "URL gambar sampul" atau editor.
+**Public site**
+- Homepage with a hero section for the featured article, plus a "Latest" list with pagination
+- Article pages with category-based "Read more" suggestions
+- Share buttons for WhatsApp, Facebook, and X
+- Responsive layout
 
-## E. Catatan
-- `next-on-pages` sedang digantikan oleh OpenNext (`@opennextjs/cloudflare`); keduanya valid untuk saat ini.
-- Konten disimpan sebagai HTML dari TipTap dan hanya bisa ditulis admin. Jika kelak ada penulis lain, tambahkan sanitasi HTML.
+**Admin CMS**
+- Login with custom authentication (PBKDF2 password hashing, JWT session cookie)
+- Create, edit, and delete articles (with delete confirmation)
+- Rich-text editor (TipTap): bold, italic, headings, lists, blockquotes
+- Categories, draft/published status, featured flag, cover image by URL
+- Editable article slug; the original publish date is preserved on later edits
+
+## Tech Stack
+
+| Area | Technology |
+|---|---|
+| Framework | Next.js 15 (App Router), React 19, TypeScript |
+| Styling | Tailwind CSS, @tailwindcss/typography |
+| Database | Neon Postgres via Drizzle ORM (neon-http driver) |
+| Editor | TipTap |
+| Auth | PBKDF2 + JWT (jose), protected `/admin` via middleware |
+| Hosting | Cloudflare Workers via OpenNext (@opennextjs/cloudflare) |
+
+## Local Setup
+
+1. Install Node.js 20 or newer, then run `npm install` in the project folder.
+2. Create a free [Neon](https://neon.tech) project and copy its connection string.
+3. Copy `.env.example` to `.env.local` and fill in:
+   - `DATABASE_URL`: the Neon connection string (ending in `sslmode=require`)
+   - `SESSION_SECRET`: a random string of at least 32 characters
+   - `ADMIN_EMAIL` and `ADMIN_PASSWORD`: the first admin account (used by the seed script)
+4. Create the tables and seed the admin and categories:
+   ```bash
+   npm run db:push
+   npm run db:seed
+   ```
+5. Start the dev server and open http://localhost:3000. Log in at `/admin/login`.
+   ```bash
+   npm run dev
+   ```
+
+## Deployment (Cloudflare Workers)
+
+1. Push the repository to GitHub. Never commit `.env.local`.
+2. In the Cloudflare dashboard, create a Worker from the GitHub repository (Workers Builds) and set:
+   - Build command: `npx opennextjs-cloudflare build`
+   - Deploy command: `npx opennextjs-cloudflare deploy`
+3. Under Settings → Variables and Secrets, add `DATABASE_URL` and `SESSION_SECRET` as **Secrets**.
+   `wrangler.jsonc` sets `keep_vars: true` so these values survive automatic deployments.
+4. Custom domain: Settings → Domains & Routes → Add → Custom Domain. For `.eu.org` domains, first add the domain to Cloudflare (Free plan) and point its nameservers there from nic.eu.org.
+
+## Roadmap
+
+- Media library and image hosting on a free storage provider
+- Tags, category pages, full-text search
+- SEO: sitemap, robots.txt, Open Graph, JSON-LD
+- Login rate limiting, multiple admin accounts, Google sign-in
+- HTML sanitization for imported content
+- WordPress content import
+
+## Notes
+
+- Article content is stored as HTML from the TipTap editor and can currently only be written by admins. HTML sanitization is planned before accepting content from other sources.
+- Images are referenced by URL for now.

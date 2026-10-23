@@ -1,12 +1,13 @@
 "use server";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { db, users, posts } from "@/db";
 import { createSession, getSession, verifyPassword } from "./auth";
 
 const slugify = (s: string) =>
-  s.toLowerCase().normalize("NFKD").replace(/[^\w\s-]/g, "").trim().replace(/\s+/g, "-").slice(0, 80);
+  s.toLowerCase().normalize("NFKD").replace(/[^\w\s-]/g, "").trim()
+    .replace(/[\s_]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
 
 async function requireAdmin() {
   const s = await getSession();
@@ -29,11 +30,23 @@ export async function logout() {
 // Create & Update artikel
 export async function savePost(fd: FormData) {
   const s = await requireAdmin();
+  const d = db();
   const id = Number(fd.get("id")) || null;
   const title = String(fd.get("title"));
   const published = fd.get("status") === "published";
+
+  // Ambil data lama agar tanggal terbit asli tidak tertimpa
+  const [old] = id ? await d.select().from(posts).where(eq(posts.id, id)).limit(1) : [];
+
+  // Slug: pakai isian pengguna; kalau kosong, buat dari judul (atau pertahankan slug lama)
+  let slug = slugify(String(fd.get("slug") ?? "")) || old?.slug || slugify(title) || "artikel";
+  const [dup] = await d.select({ id: posts.id }).from(posts)
+    .where(id ? and(eq(posts.slug, slug), ne(posts.id, id)) : eq(posts.slug, slug)).limit(1);
+  if (dup) slug = `${slug}-${Date.now().toString(36)}`;
+
   const data = {
     title,
+    slug,
     excerpt: String(fd.get("excerpt") ?? ""),
     content: String(fd.get("content") ?? ""),
     coverUrl: String(fd.get("coverUrl") || "") || null,
@@ -41,10 +54,11 @@ export async function savePost(fd: FormData) {
     status: (published ? "published" : "draft") as "published" | "draft",
     categoryId: Number(fd.get("categoryId")) || null,
     updatedAt: new Date(),
-    ...(published ? { publishedAt: new Date() } : {}),
+    // Tanggal terbit hanya diisi sekali (saat pertama terbit); selanjutnya dipertahankan
+    ...(published && !old?.publishedAt ? { publishedAt: new Date() } : {}),
   };
-  if (id) await db().update(posts).set(data).where(eq(posts.id, id));
-  else await db().insert(posts).values({ ...data, slug: `${slugify(title)}-${Date.now().toString(36)}`, authorId: s.uid });
+  if (id) await d.update(posts).set(data).where(eq(posts.id, id));
+  else await d.insert(posts).values({ ...data, authorId: s.uid });
   redirect("/admin");
 }
 

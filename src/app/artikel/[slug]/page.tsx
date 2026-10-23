@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const [p] = await db().select().from(posts).where(eq(posts.slug, slug)).limit(1);
+  const [p] = await db().select().from(posts).where(and(eq(posts.slug, slug), eq(posts.status, "published"))).limit(1);
   return { title: p?.title, description: p?.excerpt };
 }
 

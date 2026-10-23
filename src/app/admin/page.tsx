@@ -2,6 +2,7 @@ import Link from "next/link";
 import { desc } from "drizzle-orm";
 import { db, posts } from "@/db";
 import { deletePost, logout } from "@/lib/actions";
+import { DeleteButton } from "@/components/DeleteButton";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +26,7 @@ export default async function Dashboard() {
             </div>
             <form action={deletePost}>
               <input type="hidden" name="id" value={p.id} />
-              <button className="text-sm text-red-700">Hapus</button>
+              <DeleteButton title={p.title} />
             </form>
           </li>
         ))}

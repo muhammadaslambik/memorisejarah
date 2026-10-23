@@ -15,6 +15,7 @@ export default async function EditPost({ params }: { params: Promise<{ id: strin
       <h1 className="font-serif text-3xl">{isNew ? "Artikel Baru" : "Edit Artikel"}</h1>
       {p && <input type="hidden" name="id" value={p.id} />}
       <input name="title" defaultValue={p?.title} placeholder="Judul" required className="w-full rounded border p-3 font-serif text-2xl" />
+      <input name="slug" defaultValue={p?.slug} placeholder="Slug URL (kosongkan = otomatis dari judul)" className="w-full rounded border p-3 text-sm" />
       <textarea name="excerpt" defaultValue={p?.excerpt} placeholder="Ringkasan singkat" rows={2} className="w-full rounded border p-3" />
       <input name="coverUrl" defaultValue={p?.coverUrl ?? ""} placeholder="URL gambar sampul (https://...)" className="w-full rounded border p-3" />
       <Editor initial={p?.content ?? ""} />

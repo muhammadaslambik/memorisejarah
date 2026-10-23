@@ -14,15 +14,15 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="id" className={`${serif.variable} ${sans.variable}`}>
-      <body>
+      <body className="flex min-h-screen flex-col" suppressHydrationWarning>
         <header className="bg-charcoal text-cream">
           <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5">
             <Link href="/" className="font-serif text-2xl tracking-wide text-gold">Memori Sejarah</Link>
             <nav className="flex gap-6 text-sm"><Link href="/">Beranda</Link><Link href="/admin">Admin</Link></nav>
           </div>
         </header>
-        <main>{children}</main>
-        <footer className="mt-20 bg-charcoal py-8 text-center text-sm text-cream/60">
+        <main className="flex-1 pb-16">{children}</main>
+        <footer className="bg-charcoal py-8 text-center text-sm text-cream/60">
           © {new Date().getFullYear()} Memori Sejarah
         </footer>
       </body>

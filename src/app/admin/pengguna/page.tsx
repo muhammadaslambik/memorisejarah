@@ -3,7 +3,7 @@ import { asc } from "drizzle-orm";
 import { db, users } from "@/db";
 import { requireAdmin } from "@/lib/auth";
 import { PasswordInput } from "@/components/PasswordInput";
-import { createUser, resetPassword, setUserActive, setUserRole } from "@/lib/user-actions";
+import { createUser, renameUser, resetPassword, setUserActive, setUserRole } from "@/lib/user-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +11,7 @@ const errors: Record<string, string> = {
   data: "Nama dan email harus diisi dengan benar.",
   pw: "Password minimal 12 karakter.",
   ada: "Email itu sudah terdaftar.",
+  nama: "Nama tidak boleh kosong (maksimal 100 karakter).",
   diri: "Anda tidak bisa mengubah peran atau menonaktifkan akun Anda sendiri.",
 };
 const oks: Record<string, string> = {
@@ -18,6 +19,7 @@ const oks: Record<string, string> = {
   peran: "Peran diperbarui.",
   status: "Status akun diperbarui.",
   password: "Password diganti.",
+  nama: "Nama diperbarui.",
 };
 
 export default async function Pengguna({ searchParams }: { searchParams: Promise<{ error?: string; ok?: string }> }) {
@@ -38,9 +40,10 @@ export default async function Pengguna({ searchParams }: { searchParams: Promise
         <input name="name" placeholder="Nama" autoComplete="off" required className={input} />
         <input name="email" type="email" placeholder="Email" autoComplete="off" required className={input} />
         <PasswordInput name="password" placeholder="Password (min. 12 karakter)" minLength={12} autoComplete="new-password" className={input} />
-        <select name="role" defaultValue="editor" className={input}>
-          <option value="editor">Editor (menulis artikel)</option>
-          <option value="admin">Admin (kelola pengguna)</option>
+        <select name="role" defaultValue="penulis" className={input}>
+          <option value="penulis">Penulis (menulis dan mengedit artikelnya sendiri)</option>
+          <option value="editor">Editor (mengedit semua artikel)</option>
+          <option value="admin">Admin (akses penuh, kelola pengguna)</option>
         </select>
         <button className="rounded bg-gold px-4 py-2 text-white">+ Tambah</button>
       </form>
@@ -56,11 +59,16 @@ export default async function Pengguna({ searchParams }: { searchParams: Promise
               {u.id === me.id && <span className="text-xs text-charcoal/50">(Anda)</span>}
             </div>
             <div className="flex flex-wrap items-center gap-3">
+              <form action={renameUser} className="flex gap-2">
+                <input type="hidden" name="id" value={u.id} />
+                <input name="name" defaultValue={u.name} required maxLength={100} autoComplete="off" placeholder="Nama" className={input} />
+                <button className="rounded border px-3 py-1 text-sm">Ganti nama</button>
+              </form>
               {u.id !== me.id && (<>
                 <form action={setUserRole} className="flex gap-2">
                   <input type="hidden" name="id" value={u.id} />
                   <select name="role" defaultValue={u.role} className={input}>
-                    <option value="editor">editor</option><option value="admin">admin</option>
+                    <option value="penulis">penulis</option><option value="editor">editor</option><option value="admin">admin</option>
                   </select>
                   <button className="rounded border px-3 py-1 text-sm">Ubah peran</button>
                 </form>
@@ -70,11 +78,15 @@ export default async function Pengguna({ searchParams }: { searchParams: Promise
                   <button className="rounded border px-3 py-1 text-sm">{u.active ? "Nonaktifkan" : "Aktifkan"}</button>
                 </form>
               </>)}
+              {u.id === me.id ? (
+                <Link href="/admin/akun" className="rounded border px-3 py-1 text-sm">Ganti password Anda di Akun Saya</Link>
+              ) : (
               <form action={resetPassword} className="flex gap-2">
                 <input type="hidden" name="id" value={u.id} />
                 <PasswordInput name="password" placeholder="Password baru (min. 12)" minLength={12} autoComplete="new-password" className={input} />
                 <button className="rounded border px-3 py-1 text-sm">Ganti password</button>
               </form>
+              )}
             </div>
           </li>
         ))}

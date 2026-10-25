@@ -5,7 +5,8 @@ import { db, users } from "@/db";
 import { hashPassword, requireAdmin } from "./auth";
 
 const MIN_PW = 12;
-const roleOf = (v: FormDataEntryValue | null) => (v === "admin" ? "admin" : "editor") as "admin" | "editor";
+const roleOf = (v: FormDataEntryValue | null) =>
+  (v === "admin" ? "admin" : v === "editor" ? "editor" : "penulis") as "admin" | "editor" | "penulis";
 const back = (q: string): never => redirect(`/admin/pengguna?${q}`);
 
 export async function createUser(fd: FormData) {
@@ -44,4 +45,14 @@ export async function resetPassword(fd: FormData) {
   if (password.length < MIN_PW) back("error=pw");
   await db().update(users).set({ passwordHash: await hashPassword(password) }).where(eq(users.id, id));
   back("ok=password");
+}
+
+// Admin mengganti nama akun siapa pun
+export async function renameUser(fd: FormData) {
+  await requireAdmin();
+  const id = Number(fd.get("id"));
+  const name = String(fd.get("name") ?? "").trim();
+  if (!name || name.length > 100) back("error=nama");
+  await db().update(users).set({ name }).where(eq(users.id, id));
+  back("ok=nama");
 }

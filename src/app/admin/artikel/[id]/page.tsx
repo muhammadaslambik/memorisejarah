@@ -1,16 +1,18 @@
 import { eq } from "drizzle-orm";
 import { db, posts, categories } from "@/db";
 import { savePost } from "@/lib/actions";
-import { requireUser } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { canEditPost, requireUser } from "@/lib/auth";
 import { Editor } from "@/components/Editor";
 
 export const dynamic = "force-dynamic";
 
 export default async function EditPost({ params }: { params: Promise<{ id: string }> }) {
-  await requireUser();
+  const me = await requireUser();
   const { id } = await params;
   const isNew = id === "baru";
   const [p] = isNew ? [] : await db().select().from(posts).where(eq(posts.id, Number(id))).limit(1);
+  if (!isNew && (!p || !canEditPost(me, p))) redirect("/admin");
   const cats = await db().select().from(categories);
   return (
     <form action={savePost} className="mx-auto max-w-4xl space-y-4 px-5 py-10">

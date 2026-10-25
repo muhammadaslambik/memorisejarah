@@ -7,7 +7,7 @@ export const users = pgTable("users", {
   passwordHash: text("password_hash").notNull(), // PBKDF2, lihat lib/auth.ts
   // Default "admin" hanya agar akun admin yang sudah ada tetap admin saat db:push.
   // Akun baru dibuat lewat halaman Pengguna dan SELALU menyebut peran secara eksplisit.
-  role: text("role", { enum: ["admin", "editor"] }).default("admin").notNull(),
+  role: text("role", { enum: ["admin", "editor", "penulis"] }).default("admin").notNull(),
   active: boolean("active").default(true).notNull(), // nonaktif = tidak bisa masuk (artikelnya tetap aman)
 });
 

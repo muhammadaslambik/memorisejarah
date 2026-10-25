@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { and, eq, ne, sql } from "drizzle-orm";
 import { db, users, posts } from "@/db";
-import { createSession, requireUser, verifyPassword } from "./auth";
+import { canDeletePost, canEditPost, createSession, requireUser, verifyPassword } from "./auth";
 import { clearFailures, clientIp, isLocked, recordFailure } from "./ratelimit";
 
 const slugify = (s: string) =>
@@ -44,6 +44,8 @@ export async function savePost(fd: FormData) {
 
   // Ambil data lama agar tanggal terbit asli tidak tertimpa
   const [old] = id ? await d.select().from(posts).where(eq(posts.id, id)).limit(1) : [];
+  // Mengedit artikel yang tidak ada, atau milik orang lain (khusus penulis), ditolak
+  if (id && (!old || !canEditPost(s, old))) redirect("/admin");
 
   // Slug: pakai isian pengguna; kalau kosong, buat dari judul (atau pertahankan slug lama)
   let slug = slugify(String(fd.get("slug") ?? "")) || old?.slug || slugify(title) || "artikel";
@@ -72,8 +74,7 @@ export async function savePost(fd: FormData) {
 export async function deletePost(fd: FormData) {
   const u = await requireUser();
   const id = Number(fd.get("id"));
-  // Admin boleh menghapus semua artikel; editor hanya artikel miliknya sendiri
-  const where = u.role === "admin" ? eq(posts.id, id) : and(eq(posts.id, id), eq(posts.authorId, u.id));
-  await db().delete(posts).where(where);
+  const [p] = await db().select({ authorId: posts.authorId }).from(posts).where(eq(posts.id, id)).limit(1);
+  if (p && canDeletePost(u, p)) await db().delete(posts).where(eq(posts.id, id));
   redirect("/admin");
 }

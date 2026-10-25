@@ -40,3 +40,17 @@ export async function requireAdmin() {
   if (u.role !== "admin") redirect("/admin");
   return u;
 }
+
+export type Role = "admin" | "editor" | "penulis";
+export const ROLE_LABEL: Record<Role, string> = { admin: "Admin", editor: "Editor", penulis: "Penulis" };
+
+// Aturan akses artikel:
+// - admin dan editor boleh mengedit semua artikel
+// - penulis hanya boleh mengedit artikel yang ia tulis sendiri
+export function canEditPost(u: { id: number; role: string }, post: { authorId: number | null }) {
+  return u.role === "admin" || u.role === "editor" || post.authorId === u.id;
+}
+// Hapus: admin boleh semua; editor dan penulis hanya artikel miliknya sendiri
+export function canDeletePost(u: { id: number; role: string }, post: { authorId: number | null }) {
+  return u.role === "admin" || post.authorId === u.id;
+}

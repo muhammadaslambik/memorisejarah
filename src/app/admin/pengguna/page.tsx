@@ -2,6 +2,7 @@ import Link from "next/link";
 import { asc } from "drizzle-orm";
 import { db, users } from "@/db";
 import { requireAdmin } from "@/lib/auth";
+import { PasswordInput } from "@/components/PasswordInput";
 import { createUser, resetPassword, setUserActive, setUserRole } from "@/lib/user-actions";
 
 export const dynamic = "force-dynamic";
@@ -34,9 +35,9 @@ export default async function Pengguna({ searchParams }: { searchParams: Promise
       {ok && <p className="mt-4 rounded bg-green-50 p-3 text-sm text-green-800">{oks[ok] ?? "Berhasil."}</p>}
 
       <form action={createUser} className="mt-6 grid gap-3 rounded bg-white/70 p-5 md:grid-cols-5">
-        <input name="name" placeholder="Nama" required className={input} />
-        <input name="email" type="email" placeholder="Email" required className={input} />
-        <input name="password" type="password" placeholder="Password (min. 12 karakter)" minLength={12} required className={input} />
+        <input name="name" placeholder="Nama" autoComplete="off" required className={input} />
+        <input name="email" type="email" placeholder="Email" autoComplete="off" required className={input} />
+        <PasswordInput name="password" placeholder="Password (min. 12 karakter)" minLength={12} autoComplete="new-password" className={input} />
         <select name="role" defaultValue="editor" className={input}>
           <option value="editor">Editor (menulis artikel)</option>
           <option value="admin">Admin (kelola pengguna)</option>
@@ -71,7 +72,7 @@ export default async function Pengguna({ searchParams }: { searchParams: Promise
               </>)}
               <form action={resetPassword} className="flex gap-2">
                 <input type="hidden" name="id" value={u.id} />
-                <input name="password" type="password" placeholder="Password baru (min. 12)" minLength={12} required className={input} />
+                <PasswordInput name="password" placeholder="Password baru (min. 12)" minLength={12} autoComplete="new-password" className={input} />
                 <button className="rounded border px-3 py-1 text-sm">Ganti password</button>
               </form>
             </div>

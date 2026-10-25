@@ -1,5 +1,8 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { eq } from "drizzle-orm";
+import { db, users } from "@/db";
 
 export { hashPassword, verifyPassword } from "./password";
 
@@ -15,4 +18,25 @@ export async function getSession() {
   const token = (await cookies()).get("session")?.value;
   if (!token) return null;
   try { return (await jwtVerify(token, key())).payload as { uid: number }; } catch { return null; }
+}
+
+// Pengguna saat ini dari database (supaya peran dan status nonaktif selalu terbaru)
+export async function getCurrentUser() {
+  const s = await getSession();
+  if (!s) return null;
+  const [u] = await db().select({ id: users.id, email: users.email, name: users.name, role: users.role, active: users.active })
+    .from(users).where(eq(users.id, s.uid)).limit(1);
+  return u && u.active ? u : null;
+}
+
+export async function requireUser() {
+  const u = await getCurrentUser();
+  if (!u) redirect("/admin/login");
+  return u;
+}
+
+export async function requireAdmin() {
+  const u = await requireUser();
+  if (u.role !== "admin") redirect("/admin");
+  return u;
 }

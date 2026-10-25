@@ -1,11 +1,13 @@
 import { eq } from "drizzle-orm";
 import { db, posts, categories } from "@/db";
 import { savePost } from "@/lib/actions";
+import { requireUser } from "@/lib/auth";
 import { Editor } from "@/components/Editor";
 
 export const dynamic = "force-dynamic";
 
 export default async function EditPost({ params }: { params: Promise<{ id: string }> }) {
+  await requireUser();
   const { id } = await params;
   const isNew = id === "baru";
   const [p] = isNew ? [] : await db().select().from(posts).where(eq(posts.id, Number(id))).limit(1);
@@ -27,7 +29,7 @@ export default async function EditPost({ params }: { params: Promise<{ id: strin
         <select name="status" defaultValue={p?.status ?? "draft"} className="rounded border p-2">
           <option value="draft">Draft</option><option value="published">Terbit</option>
         </select>
-        <label className="flex items-center gap-2"><input type="checkbox" name="featured" defaultChecked={p?.featured} /> Pilihan</label>
+        <label className="flex items-center gap-2"><input type="checkbox" name="featured" defaultChecked={p?.featured} /> Pilihan (tampil di hero)</label>
         <button className="ml-auto rounded bg-charcoal px-6 py-2 text-cream hover:bg-gold-dark">Simpan</button>
       </div>
     </form>

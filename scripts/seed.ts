@@ -5,7 +5,7 @@ import { hashPassword } from "../src/lib/password";
 async function main() {
   const d = db();
   await d.insert(users).values({
-    email: process.env.ADMIN_EMAIL!, name: "Admin",
+    email: process.env.ADMIN_EMAIL!, name: "Admin", role: "admin",
     passwordHash: await hashPassword(process.env.ADMIN_PASSWORD!),
   }).onConflictDoNothing();
   await d.insert(categories).values([

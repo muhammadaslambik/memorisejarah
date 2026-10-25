@@ -1,23 +1,30 @@
 "use server";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { and, eq, ne } from "drizzle-orm";
+import { and, eq, ne, sql } from "drizzle-orm";
 import { db, users, posts } from "@/db";
-import { createSession, getSession, verifyPassword } from "./auth";
+import { createSession, requireUser, verifyPassword } from "./auth";
+import { clearFailures, clientIp, isLocked, recordFailure } from "./ratelimit";
 
 const slugify = (s: string) =>
   s.toLowerCase().normalize("NFKD").replace(/[^\w\s-]/g, "").trim()
     .replace(/[\s_]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
 
-async function requireAdmin() {
-  const s = await getSession();
-  if (!s) redirect("/admin/login");
-  return s;
-}
-
 export async function login(fd: FormData) {
-  const [u] = await db().select().from(users).where(eq(users.email, String(fd.get("email")))).limit(1);
-  if (!u || !(await verifyPassword(String(fd.get("password")), u.passwordHash))) redirect("/admin/login?error=1");
+  const email = String(fd.get("email") ?? "").trim().toLowerCase();
+  const password = String(fd.get("password") ?? "");
+  const ip = await clientIp();
+
+  // Terlalu banyak percobaan gagal: tolak tanpa memeriksa password
+  if (await isLocked(email, ip)) redirect("/admin/login?error=locked");
+
+  const [u] = await db().select().from(users).where(sql`lower(${users.email}) = ${email}`).limit(1);
+  const ok = !!u && u.active && (await verifyPassword(password, u.passwordHash));
+  if (!u || !ok) {
+    await recordFailure(email, ip);
+    redirect("/admin/login?error=1");
+  }
+  await clearFailures(email);
   await createSession(u.id);
   redirect("/admin");
 }
@@ -29,7 +36,7 @@ export async function logout() {
 
 // Create & Update artikel
 export async function savePost(fd: FormData) {
-  const s = await requireAdmin();
+  const s = await requireUser();
   const d = db();
   const id = Number(fd.get("id")) || null;
   const title = String(fd.get("title"));
@@ -58,12 +65,15 @@ export async function savePost(fd: FormData) {
     ...(published && !old?.publishedAt ? { publishedAt: new Date() } : {}),
   };
   if (id) await d.update(posts).set(data).where(eq(posts.id, id));
-  else await d.insert(posts).values({ ...data, authorId: s.uid });
+  else await d.insert(posts).values({ ...data, authorId: s.id });
   redirect("/admin");
 }
 
 export async function deletePost(fd: FormData) {
-  await requireAdmin();
-  await db().delete(posts).where(eq(posts.id, Number(fd.get("id"))));
+  const u = await requireUser();
+  const id = Number(fd.get("id"));
+  // Admin boleh menghapus semua artikel; editor hanya artikel miliknya sendiri
+  const where = u.role === "admin" ? eq(posts.id, id) : and(eq(posts.id, id), eq(posts.authorId, u.id));
+  await db().delete(posts).where(where);
   redirect("/admin");
 }

@@ -11,12 +11,14 @@ const errors: Record<string, string> = {
   data: "Nama dan email harus diisi dengan benar.",
   pw: "Password minimal 12 karakter.",
   ada: "Email itu sudah terdaftar.",
+  captcha: "Verifikasi gagal. Muat ulang halaman lalu coba lagi.",
 };
 
 export default async function Daftar({ searchParams }: { searchParams: Promise<{ error?: string; ok?: string }> }) {
   const { error, ok } = await searchParams;
   const open = await registrationOpen();
   const input = "w-full rounded border p-2";
+  const siteKey = process.env.TURNSTILE_SITE_KEY; // kunci situs Turnstile (publik); kosong = tanpa verifikasi
   return (
     <div className="mx-auto mt-16 max-w-sm space-y-4 rounded-lg bg-white/70 p-8 shadow">
       <h1 className="font-serif text-2xl">Daftar</h1>
@@ -38,6 +40,12 @@ export default async function Daftar({ searchParams }: { searchParams: Promise<{
             <option value="editor">Editor (perlu persetujuan admin)</option>
             <option value="admin">Admin (perlu persetujuan admin)</option>
           </select>
+          {siteKey && (
+            <>
+              <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer />
+              <div className="cf-turnstile" data-sitekey={siteKey} />
+            </>
+          )}
           <input name="alamat_web" tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" />
           <button className="w-full rounded bg-charcoal py-2 text-cream hover:bg-gold-dark">Daftar</button>
         </form>

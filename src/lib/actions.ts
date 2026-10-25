@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { and, eq, ne, sql } from "drizzle-orm";
 import { db, users, posts } from "@/db";
 import { canDeletePost, canEditPost, createSession, isReviewer, needsApproval, requireUser, verifyPassword } from "./auth";
+import { safeCoverUrl, sanitizeHtml } from "./sanitize";
 import { clearFailures, clientIp, isLocked, recordFailure } from "./ratelimit";
 
 const slugify = (s: string) =>
@@ -70,11 +71,13 @@ export async function savePost(fd: FormData) {
     title,
     slug,
     excerpt: String(fd.get("excerpt") ?? ""),
-    content: String(fd.get("content") ?? ""),
-    coverUrl: String(fd.get("coverUrl") || "") || null,
+    content: sanitizeHtml(String(fd.get("content") ?? "")),
+    coverUrl: safeCoverUrl(String(fd.get("coverUrl") ?? "")),
     // Hanya admin/editor yang boleh mengatur artikel Pilihan (hero)
     featured: isReviewer(s.role) ? fd.get("featured") === "on" : (old?.featured ?? false),
     status,
+    // Catatan penolakan dipertahankan selama artikel masih draft; dihapus saat diajukan ulang/terbit
+    reviewNote: status === "draft" ? (old?.reviewNote ?? null) : null,
     categoryId: Number(fd.get("categoryId")) || null,
     updatedAt: new Date(),
     // Tanggal terbit hanya diisi sekali (saat pertama terbit); selanjutnya dipertahankan

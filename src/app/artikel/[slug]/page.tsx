@@ -1,3 +1,4 @@
+import { sanitizeHtml } from "@/lib/sanitize";
 import { notFound } from "next/navigation";
 import { and, eq, ne } from "drizzle-orm";
 import { db, posts } from "@/db";
@@ -35,7 +36,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
       <p className="mt-3 text-sm text-gold-dark">{p.publishedAt?.toLocaleDateString("id-ID", { dateStyle: "long" })}</p>
       {p.coverUrl && <img src={p.coverUrl} alt="" className="mt-8 w-full rounded-lg" />}
       <div className="prose prose-lg prose-stone mt-8 max-w-none prose-headings:font-serif prose-a:text-gold-dark"
-        dangerouslySetInnerHTML={{ __html: p.content }} />
+        dangerouslySetInnerHTML={{ __html: sanitizeHtml(p.content) }} />
       <div className="mt-10 flex gap-3 border-t border-cream-dark pt-6 text-sm">
         <span>Bagikan:</span>
         {share.map(([n, h]) => <a key={n} href={h} target="_blank" rel="noopener" className="text-gold-dark underline">{n}</a>)}

@@ -39,6 +39,7 @@ export default async function Dashboard() {
             <div>
               <Link href={`/admin/artikel/${p.id}`} className="font-medium hover:text-gold-dark">{p.title}</Link>
               <span className="ml-2 rounded bg-cream-dark px-2 py-0.5 text-xs">{p.status === "pending" ? "menunggu persetujuan" : p.status}</span>
+              {p.status === "draft" && p.reviewNote && <span className="ml-2 rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-800">ada catatan editor</span>}
               {me.role !== "penulis" && author && <span className="ml-2 text-xs text-charcoal/50">oleh {author}</span>}
             </div>
             {canDeletePost(me, p) && (

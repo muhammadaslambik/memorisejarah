@@ -19,6 +19,11 @@ export default async function EditPost({ params }: { params: Promise<{ id: strin
     <form action={savePost} className="mx-auto max-w-4xl space-y-4 px-5 py-10">
       <h1 className="font-serif text-3xl">{isNew ? "Artikel Baru" : "Edit Artikel"}</h1>
       {p && <input type="hidden" name="id" value={p.id} />}
+      {p?.reviewNote && p.status === "draft" && (
+        <p className="rounded border border-amber-300 bg-amber-50 p-3 text-sm">
+          <strong>Catatan dari editor:</strong> {p.reviewNote}
+        </p>
+      )}
       {approval && (
         <p className="rounded bg-cream-dark p-3 text-sm">
           Artikel Anda akan terbit setelah disetujui admin atau editor.

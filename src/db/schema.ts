@@ -46,6 +46,7 @@ export const posts = pgTable("posts", {
   status: text("status", { enum: ["draft", "pending", "published"] }).default("draft").notNull(),
   categoryId: integer("category_id").references(() => categories.id, { onDelete: "set null" }),
   authorId: integer("author_id").references(() => users.id),
+  reviewNote: text("review_note"), // catatan editor saat mengembalikan artikel ke draft
   publishedAt: timestamp("published_at"),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

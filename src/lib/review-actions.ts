@@ -14,13 +14,15 @@ export async function reviewPosts(fd: FormData) {
   if (!ids.length) back("error=kosong");
   const pending = and(inArray(posts.id, ids), eq(posts.status, "pending"));
   if (act === "reject") {
-    await db().update(posts).set({ status: "draft", updatedAt: new Date() }).where(pending);
+    const note = String(fd.get("note") ?? "").trim().slice(0, 1000) || null;
+    await db().update(posts).set({ status: "draft", reviewNote: note, updatedAt: new Date() }).where(pending);
     back("ok=ditolak");
   }
   if (act === "approve" || act === "approve_trust") {
     const rows = await db().select({ authorId: posts.authorId }).from(posts).where(pending);
     await db().update(posts).set({
       status: "published",
+      reviewNote: null,
       publishedAt: sql`coalesce(${posts.publishedAt}, now())`,
       updatedAt: new Date(),
     }).where(pending);

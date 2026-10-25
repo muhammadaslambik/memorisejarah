@@ -5,6 +5,7 @@ import { db, users } from "@/db";
 import { hashPassword } from "./auth";
 import { clientIp, recordRegistration, registrationLimited } from "./ratelimit";
 import { registrationOpen } from "./settings";
+import { verifyTurnstile } from "./turnstile";
 
 const MIN_PW = 12;
 const back = (q: string): never => redirect(`/daftar?${q}`);
@@ -15,6 +16,7 @@ export async function register(fd: FormData) {
   if (String(fd.get("alamat_web") ?? "") !== "") back("ok=menunggu");
   const ip = await clientIp();
   if (await registrationLimited(ip)) back("error=batas");
+  if (!(await verifyTurnstile(String(fd.get("cf-turnstile-response") ?? ""), ip))) back("error=captcha");
 
   const name = String(fd.get("name") ?? "").trim();
   const email = String(fd.get("email") ?? "").trim().toLowerCase();

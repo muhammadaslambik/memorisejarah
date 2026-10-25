@@ -46,7 +46,10 @@ export default async function Persetujuan({ searchParams }: { searchParams: Prom
               </li>
             ))}
           </ul>
-          <div className="flex flex-wrap gap-3 border-t border-cream-dark p-4">
+          <div className="border-t border-cream-dark p-4 pb-0">
+            <input name="note" maxLength={1000} placeholder="Catatan untuk penulis (opsional, dipakai saat dikembalikan ke draft)" className="w-full rounded border p-2 text-sm" />
+          </div>
+          <div className="flex flex-wrap gap-3 p-4">
             <button name="do" value="approve" className="rounded bg-gold px-4 py-2 text-sm text-white">Setujui yang dipilih</button>
             <button name="do" value="approve_trust" className="rounded border px-4 py-2 text-sm">Setujui + percayai penulisnya</button>
             <button name="do" value="reject" className="rounded border px-4 py-2 text-sm">Kembalikan ke draft</button>

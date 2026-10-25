@@ -31,3 +31,16 @@ export async function recordFailure(email: string, ip: string) {
 export async function clearFailures(email: string) {
   await db().delete(loginAttempts).where(eq(loginAttempts.email, email));
 }
+
+// Pembatasan pendaftaran: maksimal 5 pendaftaran per IP per jam
+const REG_WINDOW_MS = 60 * 60 * 1000;
+const MAX_REG_PER_IP = 5;
+export async function registrationLimited(ip: string) {
+  const since = new Date(Date.now() - REG_WINDOW_MS);
+  const [r] = await db().select({ n: count() }).from(loginAttempts)
+    .where(and(eq(loginAttempts.email, `daftar:${ip}`), gt(loginAttempts.createdAt, since)));
+  return r.n >= MAX_REG_PER_IP;
+}
+export async function recordRegistration(ip: string) {
+  await db().insert(loginAttempts).values({ email: `daftar:${ip}`, ip });
+}

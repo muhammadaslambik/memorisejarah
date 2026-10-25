@@ -24,7 +24,7 @@ export async function getSession() {
 export async function getCurrentUser() {
   const s = await getSession();
   if (!s) return null;
-  const [u] = await db().select({ id: users.id, email: users.email, name: users.name, role: users.role, active: users.active })
+  const [u] = await db().select({ id: users.id, email: users.email, name: users.name, role: users.role, active: users.active, trusted: users.trusted })
     .from(users).where(eq(users.id, s.uid)).limit(1);
   return u && u.active ? u : null;
 }
@@ -54,3 +54,13 @@ export function canEditPost(u: { id: number; role: string }, post: { authorId: n
 export function canDeletePost(u: { id: number; role: string }, post: { authorId: number | null }) {
   return u.role === "admin" || post.authorId === u.id;
 }
+
+// Admin dan editor boleh memberi persetujuan artikel penulis
+export const isReviewer = (role: string) => role === "admin" || role === "editor";
+export async function requireReviewer() {
+  const u = await requireUser();
+  if (!isReviewer(u.role)) redirect("/admin");
+  return u;
+}
+// Penulis yang belum tepercaya harus meminta persetujuan sebelum artikelnya terbit
+export const needsApproval = (u: { role: string; trusted: boolean }) => u.role === "penulis" && !u.trusted;

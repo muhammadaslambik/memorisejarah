@@ -9,6 +9,10 @@ export const users = pgTable("users", {
   // Akun baru dibuat lewat halaman Pengguna dan SELALU menyebut peran secara eksplisit.
   role: text("role", { enum: ["admin", "editor", "penulis"] }).default("admin").notNull(),
   active: boolean("active").default(true).notNull(), // nonaktif = tidak bisa masuk (artikelnya tetap aman)
+  // Penulis tepercaya: boleh langsung menerbitkan tanpa persetujuan (hanya berlaku untuk peran penulis)
+  trusted: boolean("trusted").default(false).notNull(),
+  // Peran yang diminta saat mendaftar sebagai admin/editor; terisi = menunggu persetujuan admin
+  pendingRole: text("pending_role", { enum: ["admin", "editor"] }),
 });
 
 // Catatan percobaan login yang gagal (untuk pembatasan)
@@ -39,7 +43,7 @@ export const posts = pgTable("posts", {
   content: text("content").default("").notNull(), // HTML dari TipTap
   coverUrl: text("cover_url"),
   featured: boolean("featured").default(false).notNull(),
-  status: text("status", { enum: ["draft", "published"] }).default("draft").notNull(),
+  status: text("status", { enum: ["draft", "pending", "published"] }).default("draft").notNull(),
   categoryId: integer("category_id").references(() => categories.id, { onDelete: "set null" }),
   authorId: integer("author_id").references(() => users.id),
   publishedAt: timestamp("published_at"),

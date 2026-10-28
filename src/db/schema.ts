@@ -61,3 +61,31 @@ export const settings = pgTable("settings", {
   key: text("key").primaryKey(),
   value: text("value").notNull(),
 });
+
+// Video (YouTube). Hanya ID video yang disimpan, bukan berkasnya.
+export const videos = pgTable("videos", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  slug: text("slug").notNull().unique(),
+  youtubeId: text("youtube_id").notNull(),
+  description: text("description").default("").notNull(),
+  featured: boolean("featured").default(false).notNull(),
+  status: text("status", { enum: ["draft", "published"] }).default("draft").notNull(),
+  categoryId: integer("category_id").references(() => categories.id, { onDelete: "set null" }),
+  publishedAt: timestamp("published_at"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Gambar (foto, lukisan, arsip). Yang disimpan alamat berkasnya.
+export const images = pgTable("images", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  slug: text("slug").notNull().unique(),
+  url: text("url").notNull(),
+  caption: text("caption").default("").notNull(),
+  credit: text("credit").default("").notNull(), // sumber atau pemilik gambar
+  status: text("status", { enum: ["draft", "published"] }).default("draft").notNull(),
+  categoryId: integer("category_id").references(() => categories.id, { onDelete: "set null" }),
+  publishedAt: timestamp("published_at"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});

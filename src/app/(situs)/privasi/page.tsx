@@ -5,10 +5,10 @@ export const metadata = {
 
 export default function Privasi() {
   return (
-    <article className="mx-auto max-w-3xl px-5 pt-12">
+    <div className="-mb-16 min-h-[70vh] bg-ms-bg pb-24 text-ms-cream"><article className="mx-auto max-w-3xl px-5 pt-12">
       <h1 className="font-serif text-4xl leading-tight md:text-5xl">Kebijakan Privasi</h1>
-      <p className="mt-3 text-sm text-gold-dark">Diperbarui 26 Oktober 2026</p>
-      <div className="prose prose-lg prose-stone mt-8 max-w-none prose-headings:font-serif prose-a:text-gold-dark">
+      <p className="mt-3 text-sm text-ms-gold">Diperbarui 26 Oktober 2026</p>
+      <div className="prose prose-lg prose-invert mt-8 max-w-none prose-headings:font-serif prose-a:text-ms-gold">
         <p>
           Memori Sejarah (memorisejarah.eu.org) adalah situs artikel sejarah. Halaman ini menjelaskan data apa yang
           dikumpulkan dan untuk apa data itu dipakai.
@@ -56,6 +56,6 @@ export default function Privasi() {
           <a href="mailto:admin@memorisejarah.eu.org">admin@memorisejarah.eu.org</a>.
         </p>
       </div>
-    </article>
+    </article></div>
   );
 }

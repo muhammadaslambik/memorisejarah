@@ -1,57 +1,54 @@
+// PAKET-2A
 import Link from "next/link";
 import { desc, eq } from "drizzle-orm";
-import { db, posts, categories } from "@/db";
+import { db, posts, categories, users } from "@/db";
 import { PostCard, tanggal } from "@/components/content/PostCard";
+import { PostCardMini } from "@/components/content/PostCardMini";
+import { HeroCarousel } from "@/components/home/HeroCarousel";
 
 export const dynamic = "force-dynamic";
 
 const label = "inline-flex items-center rounded-full bg-gradient-to-r from-red-900 to-amber-700 px-4 py-2 text-sm font-semibold text-white";
 const badge = "rounded-full bg-ms-gold px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-ms-bg";
 const tombol = "inline-flex items-center gap-2 rounded-full border border-ms-line px-5 py-2.5 text-sm text-ms-cream/80 transition hover:border-ms-gold hover:text-ms-gold";
+const wadah = "mx-auto max-w-[90rem] px-6 md:px-10 lg:px-16";
 
 export default async function Home() {
   const d = db();
-  const [rows, cats] = await Promise.all([
-    d.select().from(posts).where(eq(posts.status, "published")).orderBy(desc(posts.publishedAt)).limit(12),
+  const [hasil, cats] = await Promise.all([
+    d.select({ p: posts, penulis: users.name }).from(posts).leftJoin(users, eq(posts.authorId, users.id))
+      .where(eq(posts.status, "published")).orderBy(desc(posts.publishedAt)).limit(13),
     d.select().from(categories),
   ]);
+  const rows = hasil.map((r) => ({ ...r.p, penulis: r.penulis ?? "" }));
   const namaKat = new Map(cats.map((c) => [c.id, c.name]));
   const kat = (id: number | null) => (id ? namaKat.get(id) ?? "" : "");
   // Pilihan = artikel bertanda featured; kalau kurang dari 4, dilengkapi artikel terbaru
   const pilihan = [...rows.filter((p) => p.featured), ...rows.filter((p) => !p.featured)].slice(0, 4);
   const utama = pilihan[0];
   const samping = pilihan.slice(1, 4);
-  const terbaru = rows.slice(0, 9);
+  const terbaru = rows;
+  const baris1 = terbaru.slice(0, 3);
+  const baris2 = terbaru.slice(3, 8);
+  const baris3 = terbaru.slice(8, 13);
 
   if (!utama) {
     return <div className="-mb-16 min-h-[60vh] bg-ms-bg px-5 py-24 text-center text-ms-cream/70">Belum ada artikel.</div>;
   }
 
+  const slides = pilihan.map((p) => ({
+    slug: p.slug, title: p.title, coverUrl: p.coverUrl, kategori: kat(p.categoryId),
+    tanggal: tanggal(p.publishedAt), penulis: p.penulis,
+  }));
+  const grid5 = "mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5";
+
   return (
     <div className="-mb-16 min-h-[70vh] bg-ms-bg pb-24 text-ms-cream">
-      <section className="mx-auto max-w-6xl px-5 pt-6">
-        <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto rounded-3xl [scrollbar-width:none]">
-          {pilihan.map((p) => (
-            <Link
-              key={p.id}
-              href={`/artikel/${p.slug}`}
-              className="group relative aspect-[4/3] min-w-full snap-center overflow-hidden rounded-3xl border border-ms-line bg-ms-surface md:aspect-[16/8]"
-            >
-              {p.coverUrl && <img src={p.coverUrl} alt="" className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" />}
-              <div className="absolute inset-0 bg-gradient-to-t from-ms-bg via-ms-bg/50 to-transparent" />
-              <div className="absolute inset-x-0 bottom-0 p-6 md:p-10">
-                <div className="flex items-center gap-3 text-xs text-ms-cream/80">
-                  {kat(p.categoryId) && <span className={badge}>{kat(p.categoryId)}</span>}
-                  <span>{tanggal(p.publishedAt)}</span>
-                </div>
-                <h2 className="mt-3 max-w-3xl font-serif text-2xl font-bold leading-tight md:text-4xl">{p.title}</h2>
-              </div>
-            </Link>
-          ))}
-        </div>
+      <section className={`${wadah} pt-6`}>
+        <HeroCarousel slides={slides} />
       </section>
 
-      <section className="mx-auto max-w-6xl px-5 pt-14">
+      <section className={`${wadah} pt-14`}>
         <h2 className={label}>&#9733; Artikel Pilihan</h2>
         <div className="mt-6 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
           <Link href={`/artikel/${utama.slug}`} className="group grid overflow-hidden rounded-3xl border border-ms-line bg-ms-surface md:grid-cols-2">
@@ -83,11 +80,17 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-5 pt-14">
+      <section className={`${wadah} pt-14`}>
         <h2 className={label}>Artikel Terbaru</h2>
         <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {terbaru.map((p) => <PostCard key={p.id} p={p} kategori={kat(p.categoryId)} />)}
+          {baris1.map((p) => <PostCard key={p.id} p={p} kategori={kat(p.categoryId)} />)}
         </div>
+        {baris2.length > 0 && (
+          <div className={grid5}>{baris2.map((p) => <PostCardMini key={p.id} p={p} kategori={kat(p.categoryId)} />)}</div>
+        )}
+        {baris3.length > 0 && (
+          <div className={grid5}>{baris3.map((p) => <PostCardMini key={p.id} p={p} kategori={kat(p.categoryId)} />)}</div>
+        )}
         <div className="mt-8 flex justify-end">
           <Link href="/artikel" className={tombol}>Artikel Lainnya &rarr;</Link>
         </div>

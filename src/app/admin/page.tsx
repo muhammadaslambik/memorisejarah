@@ -28,6 +28,7 @@ export default async function Dashboard() {
               Persetujuan{pendingCount > 0 ? ` (${pendingCount})` : ""}
             </Link>
           )}
+          {isReviewer(me.role) && <Link href="/admin/video" className="rounded border px-4 py-2">Video</Link>}
           {me.role === "admin" && <Link href="/admin/pengguna" className="rounded border px-4 py-2">Pengguna</Link>}
           <Link href="/admin/akun" className="rounded border px-4 py-2">Akun Saya</Link>
           <form action={logout}><button className="rounded border px-4 py-2">Keluar</button></form>

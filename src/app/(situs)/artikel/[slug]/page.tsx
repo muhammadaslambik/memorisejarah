@@ -31,7 +31,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
   ];
 
   return (
-    <div className="-mb-16 min-h-[70vh] bg-ms-bg pb-24 text-ms-cream"><article className="mx-auto max-w-3xl px-5 pt-12">
+    <div className="-mb-16 min-h-[70vh] bg-ms-bg pb-24 text-ms-cream"><article className="mx-auto max-w-4xl px-5 pt-12">
       <h1 className="font-serif text-4xl leading-tight md:text-5xl">{p.title}</h1>
       <p className="mt-3 text-sm text-ms-gold">{p.publishedAt?.toLocaleDateString("id-ID", { dateStyle: "long" })}</p>
       {p.coverUrl && <img src={p.coverUrl} alt="" className="mt-8 w-full rounded-lg" />}

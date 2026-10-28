@@ -13,7 +13,7 @@ export async function Footer() {
   const cats = (await ambilKategori()).slice(0, 8);
   return (
     <footer className="border-t border-ms-line bg-ms-bg text-ms-cream">
-      <div className="mx-auto grid max-w-6xl gap-10 px-5 py-12 md:grid-cols-[1.6fr_1fr_1fr_1fr]">
+      <div className="mx-auto grid max-w-[90rem] gap-10 px-6 md:px-10 lg:px-16 py-12 md:grid-cols-[1.6fr_1fr_1fr_1fr]">
         <div>
           <Logo />
           <p className="mt-4 max-w-sm text-sm text-ms-gold">

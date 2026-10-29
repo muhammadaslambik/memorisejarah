@@ -1,8 +1,9 @@
+// PAKET-3C1: daftar artikel dengan ringkasan; tombol-tombol pindah ke navigasi samping
 import Link from "next/link";
 import { desc, eq } from "drizzle-orm";
 import { db, posts, users } from "@/db";
-import { deletePost, logout } from "@/lib/actions";
-import { canDeletePost, isReviewer, requireUser, ROLE_LABEL, type Role } from "@/lib/auth";
+import { deletePost } from "@/lib/actions";
+import { canDeletePost, requireUser, ROLE_LABEL, type Role } from "@/lib/auth";
 import { DeleteButton } from "@/components/DeleteButton";
 
 export const dynamic = "force-dynamic";
@@ -13,28 +14,31 @@ export default async function Dashboard() {
   const rows = await db().select({ post: posts, author: users.name }).from(posts)
     .leftJoin(users, eq(posts.authorId, users.id)).orderBy(desc(posts.updatedAt));
   const list = rows.filter((r) => me.role !== "penulis" || r.post.authorId === me.id);
-  const pendingCount = list.filter((r) => r.post.status === "pending").length;
+  const n = (s: string) => list.filter((r) => r.post.status === s).length;
+  const ringkas = [
+    ["Semua", list.length],
+    ["Terbit", n("published")],
+    ["Menunggu", n("pending")],
+    ["Draft", n("draft")],
+  ] as const;
   return (
-    <div className="mx-auto max-w-5xl px-5 py-10">
+    <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-serif text-3xl">Artikel</h1>
-          <p className="text-sm text-charcoal/60">{me.name} · {ROLE_LABEL[me.role as Role]}</p>
+          <p className="text-sm text-charcoal/60">{me.name} &middot; {ROLE_LABEL[me.role as Role]}</p>
         </div>
-        <div className="flex gap-3">
-          <Link href="/admin/artikel/baru" className="rounded bg-gold px-4 py-2 text-white">+ Artikel Baru</Link>
-          {isReviewer(me.role) && (
-            <Link href="/admin/persetujuan" className="rounded border px-4 py-2">
-              Persetujuan{pendingCount > 0 ? ` (${pendingCount})` : ""}
-            </Link>
-          )}
-          {isReviewer(me.role) && <Link href="/admin/video" className="rounded border px-4 py-2">Video</Link>}
-          {me.role === "admin" && <Link href="/admin/pengguna" className="rounded border px-4 py-2">Pengguna</Link>}
-          <Link href="/admin/akun" className="rounded border px-4 py-2">Akun Saya</Link>
-          <form action={logout}><button className="rounded border px-4 py-2">Keluar</button></form>
-        </div>
+        <Link href="/admin/artikel/baru" className="rounded-lg bg-gold px-4 py-2 text-white">+ Artikel Baru</Link>
       </div>
-      <ul className="mt-6 divide-y divide-cream-dark rounded bg-white/70">
+      <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {ringkas.map(([label, jumlah]) => (
+          <div key={label} className="rounded-xl bg-white/70 p-4">
+            <p className="text-xs uppercase tracking-wider text-charcoal/50">{label}</p>
+            <p className="mt-1 font-serif text-2xl">{jumlah}</p>
+          </div>
+        ))}
+      </div>
+      <ul className="mt-6 divide-y divide-cream-dark rounded-xl bg-white/70">
         {list.map(({ post: p, author }) => (
           <li key={p.id} className="flex items-center justify-between gap-3 p-4">
             <div>

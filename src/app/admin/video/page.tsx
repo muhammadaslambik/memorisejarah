@@ -1,9 +1,10 @@
-// PAKET-1B: kelola video (admin dan editor)
+// PAKET-3A: kelola video (admin dan editor)
 import Link from "next/link";
 import { desc, eq } from "drizzle-orm";
 import { db, videos, categories } from "@/db";
 import { requireReviewer } from "@/lib/auth";
 import { saveVideo, deleteVideo } from "@/lib/video-actions";
+import { AGENDA } from "@/lib/agenda";
 import { ConfirmButton } from "@/components/ConfirmButton";
 
 export const dynamic = "force-dynamic";
@@ -67,6 +68,16 @@ export default async function AdminVideo({ searchParams }: { searchParams: Promi
             <input type="checkbox" name="featured" defaultChecked={v?.featured} /> Video pilihan
           </label>
         </div>
+        <fieldset className="text-sm">
+          <legend>Program (video tampil di bagian program pada halaman Video dan Agenda)</legend>
+          <div className="mt-2 flex flex-wrap gap-4">
+            {AGENDA.map((p) => (
+              <label key={p.slug} className="flex items-center gap-2">
+                <input type="checkbox" name="programs" value={p.slug} defaultChecked={v?.programs.includes(p.slug)} /> {p.nama}
+              </label>
+            ))}
+          </div>
+        </fieldset>
         <div className="flex gap-3">
           <button className="rounded bg-gold px-4 py-2 text-white">{v ? "Simpan perubahan" : "Tambah video"}</button>
           {v && <Link href="/admin/video" className="rounded border px-4 py-2">Batal</Link>}

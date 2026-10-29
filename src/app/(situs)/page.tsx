@@ -1,24 +1,29 @@
-// PAKET-2A
+// PAKET-2D
 import Link from "next/link";
 import { desc, eq } from "drizzle-orm";
-import { db, posts, categories, users } from "@/db";
+import { db, posts, categories, users, videos } from "@/db";
 import { PostCard, tanggal } from "@/components/content/PostCard";
 import { PostCardMini } from "@/components/content/PostCardMini";
 import { HeroCarousel } from "@/components/home/HeroCarousel";
+import { SectionTitle } from "@/components/home/SectionTitle";
+import { InformasiBlok } from "@/components/home/InformasiBlok";
+import { AgendaKartu } from "@/components/home/AgendaKartu";
+import { VideoStrip } from "@/components/home/VideoStrip";
+import { VideoCard } from "@/components/content/VideoCard";
 
 export const dynamic = "force-dynamic";
 
-const label = "inline-flex items-center rounded-full bg-gradient-to-r from-red-900 to-amber-700 px-4 py-2 text-sm font-semibold text-white";
 const badge = "rounded-full bg-ms-gold px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-ms-bg";
 const tombol = "inline-flex items-center gap-2 rounded-full border border-ms-line px-5 py-2.5 text-sm text-ms-cream/80 transition hover:border-ms-gold hover:text-ms-gold";
 const wadah = "mx-auto max-w-[90rem] px-6 md:px-10 lg:px-16";
 
 export default async function Home() {
   const d = db();
-  const [hasil, cats] = await Promise.all([
+  const [hasil, cats, vids] = await Promise.all([
     d.select({ p: posts, penulis: users.name }).from(posts).leftJoin(users, eq(posts.authorId, users.id))
       .where(eq(posts.status, "published")).orderBy(desc(posts.publishedAt)).limit(13),
     d.select().from(categories),
+    d.select().from(videos).where(eq(videos.status, "published")).orderBy(desc(videos.featured), desc(videos.publishedAt)).limit(15),
   ]);
   const rows = hasil.map((r) => ({ ...r.p, penulis: r.penulis ?? "" }));
   const namaKat = new Map(cats.map((c) => [c.id, c.name]));
@@ -40,6 +45,8 @@ export default async function Home() {
     slug: p.slug, title: p.title, coverUrl: p.coverUrl, kategori: kat(p.categoryId),
     tanggal: tanggal(p.publishedAt), penulis: p.penulis,
   }));
+  const vidAtas = vids.slice(0, 3);
+  const vidStrip = vids.slice(3);
   const grid5 = "mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5";
 
   return (
@@ -49,7 +56,7 @@ export default async function Home() {
       </section>
 
       <section className={`${wadah} pt-14`}>
-        <h2 className={label}>&#9733; Artikel Pilihan</h2>
+        <SectionTitle>&#9733; Artikel Pilihan</SectionTitle>
         <div className="mt-6 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
           <Link href={`/artikel/${utama.slug}`} className="group grid overflow-hidden rounded-3xl border border-ms-line bg-ms-surface md:grid-cols-2">
             <div className="relative min-h-60 bg-ms-bg">
@@ -81,7 +88,7 @@ export default async function Home() {
       </section>
 
       <section className={`${wadah} pt-14`}>
-        <h2 className={label}>Artikel Terbaru</h2>
+        <SectionTitle>Artikel Terbaru</SectionTitle>
         <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {baris1.map((p) => <PostCard key={p.id} p={p} kategori={kat(p.categoryId)} />)}
         </div>
@@ -95,6 +102,37 @@ export default async function Home() {
           <Link href="/artikel" className={tombol}>Artikel Lainnya &rarr;</Link>
         </div>
       </section>
+
+      <section className={`${wadah} pt-14`}>
+        <SectionTitle>Informasi Terbaru</SectionTitle>
+        <InformasiBlok />
+        <div className="mt-8 flex justify-end">
+          <Link href="/informasi" className={tombol}>Informasi Lainnya &rarr;</Link>
+        </div>
+      </section>
+
+      <section className={`${wadah} pt-14`}>
+        <SectionTitle>Agenda Kegiatan</SectionTitle>
+        <AgendaKartu />
+        <div className="mt-8 flex justify-end">
+          <Link href="/agenda" className={tombol}>Agenda Kegiatan Lainnya &rarr;</Link>
+        </div>
+      </section>
+
+      {vids.length > 0 && (
+        <section className={`${wadah} pt-14`}>
+          <SectionTitle>Video Pilihan</SectionTitle>
+          <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {vidAtas.map((v) => <VideoCard key={v.id} v={v} />)}
+          </div>
+          {vidStrip.length > 0 && (
+            <div className="mt-6"><VideoStrip items={vidStrip.map((v) => ({ slug: v.slug, title: v.title, youtubeId: v.youtubeId }))} /></div>
+          )}
+          <div className="mt-8 flex justify-end">
+            <Link href="/video" className={tombol}>Video Lainnya &rarr;</Link>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

@@ -1,9 +1,10 @@
-// PAKET-1B: aksi server untuk video (hanya admin dan editor)
+// PAKET-3A: aksi server untuk video (hanya admin dan editor)
 "use server";
 import { redirect } from "next/navigation";
 import { and, eq, ne } from "drizzle-orm";
 import { db, videos } from "@/db";
 import { requireReviewer } from "./auth";
+import { AGENDA } from "./agenda";
 
 const slugify = (s: string) =>
   s.toLowerCase().normalize("NFKD").replace(/[^\w\s-]/g, "").trim()
@@ -47,11 +48,13 @@ export async function saveVideo(fd: FormData) {
     .where(id ? and(eq(videos.slug, slug), ne(videos.id, id)) : eq(videos.slug, slug)).limit(1);
   if (dup) slug = `${slug}-${Date.now().toString(36)}`;
 
+  const programs = fd.getAll("programs").map(String).filter((p) => AGENDA.some((a) => a.slug === p));
   const status = String(fd.get("status")) === "published" ? "published" : "draft";
   const data = {
     title,
     slug,
     youtubeId,
+    programs,
     description: String(fd.get("description") ?? "").slice(0, 5000),
     featured: fd.get("featured") === "on",
     status,

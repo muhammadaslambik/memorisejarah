@@ -1,8 +1,9 @@
-// PAKET-1B
+// PAKET-3A
 import Link from "next/link";
 import { desc, eq } from "drizzle-orm";
 import { db, videos } from "@/db";
 import { VideoCard } from "@/components/content/VideoCard";
+import { ProgramBlok } from "@/components/home/ProgramBlok";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Video" };
@@ -18,7 +19,7 @@ export default async function Video({ searchParams }: { searchParams: Promise<{ 
   const tombol = "inline-flex items-center gap-2 rounded-full border border-ms-line px-5 py-2.5 text-sm text-ms-cream/80 transition hover:border-ms-gold hover:text-ms-gold";
   return (
     <div className="-mb-16 min-h-[70vh] bg-ms-bg pb-24 text-ms-cream">
-      <section className="mx-auto max-w-[90rem] px-6 md:px-10 lg:px-16 pt-12">
+      <section className="mx-auto max-w-[90rem] px-6 pt-12 md:px-10 lg:px-16">
         <h1 className="font-serif text-4xl font-bold md:text-5xl">Video</h1>
         <p className="mt-3 max-w-2xl text-ms-cream/70">Diskusi, dokumenter, dan kisah sejarah dalam bentuk video.</p>
         {tampil.length > 0 ? (
@@ -34,6 +35,7 @@ export default async function Video({ searchParams }: { searchParams: Promise<{ 
             {hasNext && <Link href={href(page + 1)} className={tombol}>Berikutnya &rarr;</Link>}
           </div>
         )}
+        <div className="mt-16"><ProgramBlok /></div>
       </section>
     </div>
   );

@@ -1,7 +1,7 @@
-// PAKET-2A2
+// PAKET-3C2
 import Link from "next/link";
 import { db, categories } from "@/db";
-import { PUSTAKA } from "@/lib/pustaka";
+import { getPustaka } from "@/lib/pengaturan";
 import { Logo } from "./Logo";
 import { NavDropdown } from "./NavDropdown";
 import { NavScroll } from "./NavScroll";
@@ -15,11 +15,11 @@ const biasa = `${navItem} shrink-0 whitespace-nowrap`;
 
 export async function Header() {
   const cats = await ambilKategori();
+  const pustaka = await getPustaka();
   return (
     <header className="sticky top-0 z-40 border-b border-ms-line bg-ms-bg">
       <div className="mx-auto flex max-w-[90rem] items-center gap-3 px-6 py-3 md:px-10 lg:px-16">
         <Link href="/" aria-label="Memori Sejarah, beranda" className="shrink-0"><Logo /></Link>
-        {/* Beranda tetap di tempat; menu lain di sebelahnya bisa digeser kanan-kiri */}
         <Link href="/" className={`${biasa} hidden lg:block`}>Beranda</Link>
         <NavScroll>
           <NavDropdown label="Artikel" href="/artikel">
@@ -28,17 +28,15 @@ export async function Header() {
           </NavDropdown>
           <NavDropdown label="Pustaka" href="/pustaka">
             <Link href="/pustaka" className={navSub}>Semua Pustaka</Link>
-            {PUSTAKA.map((p) => (
-              <a key={p.nama} href={p.url} target="_blank" rel="noopener noreferrer" className={navSub}>{p.nama}</a>
-            ))}
+            {pustaka.map((p) => <Link key={p.kunci} href={`/pustaka?f=${p.kunci}`} className={navSub}>{p.nama}</Link>)}
             <Link href="/gambar" className={navSub}>Galeri Gambar</Link>
           </NavDropdown>
           <Link href="/gambar" className={biasa}>Gambar</Link>
           <Link href="/video" className={biasa}>Video</Link>
-          <Link href="/informasi" className={biasa}>Informasi</Link>
-          <Link href="/agenda" className={biasa}>Agenda Kegiatan</Link>
-          <NavDropdown label="Tentang" href="/tentang">
-            <Link href="/tentang" className={navSub}>Memori Sejarah</Link>
+          <NavDropdown label="Lainnya">
+            <Link href="/informasi" className={navSub}>Informasi</Link>
+            <Link href="/agenda" className={navSub}>Agenda Kegiatan</Link>
+            <Link href="/tentang" className={navSub}>Tentang</Link>
             <Link href="/tentang/redaksi" className={navSub}>Redaksi</Link>
           </NavDropdown>
         </NavScroll>

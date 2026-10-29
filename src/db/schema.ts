@@ -68,6 +68,7 @@ export const videos = pgTable("videos", {
   title: text("title").notNull(),
   slug: text("slug").notNull().unique(),
   youtubeId: text("youtube_id").notNull(),
+  programs: text("programs").array().notNull().default([]),
   description: text("description").default("").notNull(),
   featured: boolean("featured").default(false).notNull(),
   status: text("status", { enum: ["draft", "published"] }).default("draft").notNull(),
@@ -87,5 +88,12 @@ export const images = pgTable("images", {
   status: text("status", { enum: ["draft", "published"] }).default("draft").notNull(),
   categoryId: integer("category_id").references(() => categories.id, { onDelete: "set null" }),
   publishedAt: timestamp("published_at"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Pengaturan tampilan situs yang diubah lewat CMS (nilai disimpan sebagai JSON teks)
+export const siteSettings = pgTable("site_settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

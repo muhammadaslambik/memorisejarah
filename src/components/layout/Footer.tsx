@@ -3,7 +3,7 @@ import { db, categories } from "@/db";
 import { Logo } from "./Logo";
 
 async function ambilKategori() {
-  try { return await db().select().from(categories).orderBy(categories.name); } catch { return []; }
+  try { const k = await db().select().from(categories).orderBy(categories.name); const p = new Set(k.map((c) => c.parentId)); return k.filter((c) => !p.has(c.id)); } catch { return []; }
 }
 
 const tautan = "text-sm text-ms-cream/70 hover:text-ms-gold";

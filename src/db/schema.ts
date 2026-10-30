@@ -24,6 +24,7 @@ export const loginAttempts = pgTable("login_attempts", {
 });
 
 export const categories = pgTable("categories", {
+  parentId: integer("parent_id"), // induk (dua tingkat); kolom dibuat lewat scripts/kategori-wordpress.ts
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   slug: text("slug").notNull().unique(),

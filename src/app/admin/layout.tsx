@@ -27,7 +27,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         { label: "Artikel", href: "/admin" },
         ...(rev ? [{ label: "Persetujuan", href: "/admin/persetujuan", badge: menunggu }] : []),
         ...(rev ? [{ label: "Video", href: "/admin/video" }] : []),
-        ...(rev ? [{ label: "Gambar", segera: true }, { label: "Kategori", segera: true }] : []),
+        ...(rev ? [{ label: "Gambar", href: "/admin/gambar" }, { label: "Kategori", segera: true }] : []),
       ],
     },
     ...(rev

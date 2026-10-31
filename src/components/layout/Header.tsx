@@ -1,6 +1,6 @@
 // PAKET-3C2
 import Link from "next/link";
-import { db, categories } from "@/db";
+import { ambilKategoriCache } from "@/lib/data-situs";
 import { getPustaka } from "@/lib/pengaturan";
 import { Logo } from "./Logo";
 import { NavDropdown } from "./NavDropdown";
@@ -8,14 +8,14 @@ import { NavScroll } from "./NavScroll";
 import { navItem, navSub } from "./nav-style";
 
 async function ambilKategori() {
-  try { const k = await db().select().from(categories).orderBy(categories.name); const p = new Set(k.map((c) => c.parentId)); return k.filter((c) => !p.has(c.id)); } catch { return []; }
+  return ambilKategoriCache();
 }
 
 const biasa = `${navItem} shrink-0 whitespace-nowrap`;
 
 export async function Header() {
-  const cats = await ambilKategori();
-  const pustaka = await getPustaka();
+  const [cats, pustaka] = await Promise.all([ambilKategori(), getPustaka()]);
+  // pustaka dimuat bersamaan dengan kategori
   return (
     <header className="sticky top-0 z-40 border-b border-ms-line bg-ms-bg">
       <div className="mx-auto flex max-w-[90rem] items-center gap-3 px-6 py-3 md:px-10 lg:px-16">

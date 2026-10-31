@@ -35,7 +35,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
       <h1 className="font-serif text-4xl leading-tight md:text-5xl">{p.title}</h1>
       <p className="mt-3 text-sm text-ms-gold">{p.publishedAt?.toLocaleDateString("id-ID", { dateStyle: "long" })}</p>
       {p.coverUrl && <img src={p.coverUrl} alt="" className="mt-8 w-full rounded-lg" />}
-      <div className="prose prose-lg prose-invert mt-8 max-w-none prose-headings:font-serif prose-a:text-ms-gold"
+      <div className="prose prose-lg prose-invert mt-8 max-w-none prose-headings:font-serif prose-a:text-ms-gold prose-img:rounded-xl prose-figcaption:text-center prose-figcaption:text-ms-cream/60"
         dangerouslySetInnerHTML={{ __html: sanitizeHtml(p.content) }} />
       <div className="mt-10 flex gap-3 border-t border-ms-line pt-6 text-sm">
         <span>Bagikan:</span>

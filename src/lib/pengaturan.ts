@@ -3,11 +3,12 @@ import { eq } from "drizzle-orm";
 import { db, siteSettings } from "@/db";
 import { AGENDA, type Program } from "./agenda";
 import { PUSTAKA } from "./pustaka";
+import { semuaPengaturan } from "./data-situs";
 
 export async function getSetting<T>(key: string, def: T): Promise<T> {
   try {
-    const [r] = await db().select().from(siteSettings).where(eq(siteSettings.key, key)).limit(1);
-    return r ? (JSON.parse(r.value) as T) : def;
+    const v = (await semuaPengaturan()).get(key);
+    return v !== undefined ? (JSON.parse(v) as T) : def;
   } catch {
     return def;
   }

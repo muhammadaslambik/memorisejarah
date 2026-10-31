@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { db, categories } from "@/db";
+import { ambilKategoriCache } from "@/lib/data-situs";
 import { Logo } from "./Logo";
 
 async function ambilKategori() {
-  try { const k = await db().select().from(categories).orderBy(categories.name); const p = new Set(k.map((c) => c.parentId)); return k.filter((c) => !p.has(c.id)); } catch { return []; }
+  return ambilKategoriCache();
 }
 
 const tautan = "text-sm text-ms-cream/70 hover:text-ms-gold";

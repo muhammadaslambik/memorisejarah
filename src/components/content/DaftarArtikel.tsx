@@ -2,7 +2,7 @@ import Link from "next/link";
 import { PostCard } from "./PostCard";
 
 type Item = { id: number; slug: string; title: string; excerpt: string; coverUrl: string | null; publishedAt: Date | null; categoryId: number | null };
-type Kat = { id: number; name: string; slug: string };
+type Kat = { id: number; name: string; slug: string; parentId?: number | null };
 
 export function DaftarArtikel(props: {
   judul: string; deskripsi?: string; rows: Item[]; cats: Kat[];
@@ -21,7 +21,7 @@ export function DaftarArtikel(props: {
         {deskripsi && <p className="mt-3 max-w-2xl text-ms-cream/70">{deskripsi}</p>}
         <div className="mt-6 flex flex-wrap gap-2">
           <Link href="/artikel" className={chip(!aktif)}>Semua</Link>
-          {cats.map((c) => <Link key={c.id} href={`/kategori/${c.slug}`} className={chip(aktif === c.slug)}>{c.name}</Link>)}
+          {cats.filter((c) => !cats.some((x) => x.parentId === c.id)).map((c) => <Link key={c.id} href={`/kategori/${c.slug}`} className={chip(aktif === c.slug)}>{c.name}</Link>)}
         </div>
         {rows.length > 0 ? (
           <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

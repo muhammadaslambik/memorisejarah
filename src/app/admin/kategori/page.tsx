@@ -1,7 +1,7 @@
 // PAKET-5A: kelola kategori (admin dan editor)
 import Link from "next/link";
 import { eq, sql } from "drizzle-orm";
-import { db, categories, posts } from "@/db";
+import { db, categories, postCategories } from "@/db";
 import { requireReviewer } from "@/lib/auth";
 import { saveKategori, deleteKategori } from "@/lib/kategori-actions";
 import { ConfirmButton } from "@/components/ConfirmButton";
@@ -23,7 +23,7 @@ export default async function AdminKategori({ searchParams }: { searchParams: Pr
   const d = db();
   const [semua, jumlah] = await Promise.all([
     d.select().from(categories).orderBy(categories.name),
-    d.select({ id: posts.categoryId, n: sql<number>`count(*)::int` }).from(posts).groupBy(posts.categoryId),
+    d.select({ id: postCategories.categoryId, n: sql<number>`count(*)::int` }).from(postCategories).groupBy(postCategories.categoryId),
   ]);
   const hitung = new Map(jumlah.map((j) => [j.id, j.n]));
   const g = editId ? semua.find((c) => c.id === editId) : undefined;

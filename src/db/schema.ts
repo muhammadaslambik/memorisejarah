@@ -98,3 +98,9 @@ export const siteSettings = pgTable("site_settings", {
   value: text("value").notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+// Kategori artikel (banyak-ke-banyak). posts.category_id tetap sebagai kategori utama untuk lencana.
+export const postCategories = pgTable("post_categories", {
+  postId: integer("post_id").references(() => posts.id, { onDelete: "cascade" }).notNull(),
+  categoryId: integer("category_id").references(() => categories.id, { onDelete: "cascade" }).notNull(),
+}, (t) => [primaryKey({ columns: [t.postId, t.categoryId] })]);

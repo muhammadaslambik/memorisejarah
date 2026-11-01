@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const tanggal = (d: Date | null) =>
-  d ? d.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "";
+  d ? d.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Jakarta" }) : "";
 
 type P = { slug: string; title: string; excerpt: string; coverUrl: string | null; publishedAt: Date | null };
 

@@ -104,3 +104,32 @@ export const postCategories = pgTable("post_categories", {
   postId: integer("post_id").references(() => posts.id, { onDelete: "cascade" }).notNull(),
   categoryId: integer("category_id").references(() => categories.id, { onDelete: "cascade" }).notNull(),
 }, (t) => [primaryKey({ columns: [t.postId, t.categoryId] })]);
+
+// Redaksi: profil anggota dan keanggotaan tim (dikelola lewat /admin/redaksi)
+export const redaksi = pgTable("redaksi", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  name: text("name").notNull(),
+  peran: text("peran").default("").notNull(),
+  pemimpin: boolean("pemimpin").default(false).notNull(),
+  urutan: integer("urutan").default(0).notNull(),
+  bidang: text("bidang").default("").notNull(),
+  bio: text("bio").default("").notNull(),
+  fotoUrl: text("foto_url"),
+  domisili: text("domisili").default("").notNull(),
+  email: text("email").default("").notNull(),
+  whatsapp: text("whatsapp").default("").notNull(),
+  instagram: text("instagram").default("").notNull(),
+  linkedin: text("linkedin").default("").notNull(),
+  facebook: text("facebook").default("").notNull(),
+  website: text("website").default("").notNull(),
+  userId: integer("user_id").references(() => users.id, { onDelete: "set null" }),
+  aktif: boolean("aktif").default(true).notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const redaksiTim = pgTable("redaksi_tim", {
+  memberId: integer("member_id").references(() => redaksi.id, { onDelete: "cascade" }).notNull(),
+  tim: text("tim").notNull(),
+  catatan: text("catatan").default("").notNull(),
+}, (t) => [primaryKey({ columns: [t.memberId, t.tim] })]);

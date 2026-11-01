@@ -4,3 +4,29 @@
 body { @apply bg-cream text-charcoal font-sans antialiased; }
 
 html { scroll-padding-top: 6rem; }
+
+/* PAKET-9D: tampilan CMS (hanya di dalam .adm, tanpa JavaScript) */
+@layer components {
+  .adm main input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]),
+  .adm main select,
+  .adm main textarea {
+    @apply rounded-lg border border-charcoal/15 bg-white px-3 py-2 text-sm shadow-sm outline-none transition;
+  }
+  .adm main input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):focus,
+  .adm main select:focus,
+  .adm main textarea:focus {
+    @apply border-gold ring-2 ring-gold/30;
+  }
+  .adm main .bg-white\/70 {
+    background: #fff;
+    border: 1px solid rgb(0 0 0 / 0.06);
+    border-radius: 0.9rem;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
+  }
+  .adm main ul.divide-y > li { transition: background-color 0.15s; }
+  .adm main ul.divide-y > li:hover { background-color: rgb(0 0 0 / 0.02); }
+  .adm main fieldset { border-radius: 0.75rem; }
+  .adm main h1 { letter-spacing: -0.01em; }
+  .adm main button, .adm main a { transition: color 0.15s, background-color 0.15s, border-color 0.15s, box-shadow 0.15s; }
+  .adm main .bg-gold:hover { filter: brightness(0.94); }
+}

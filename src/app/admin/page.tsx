@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { desc, eq } from "drizzle-orm";
 import { db, posts, users } from "@/db";
+import { kolomKartu } from "@/lib/kolom";
 import { deletePost } from "@/lib/actions";
 import { canDeletePost, requireUser, ROLE_LABEL, type Role } from "@/lib/auth";
 import { DeleteButton } from "@/components/DeleteButton";
@@ -11,7 +12,7 @@ export const dynamic = "force-dynamic";
 export default async function Dashboard() {
   const me = await requireUser();
   // Penulis hanya melihat artikelnya sendiri; admin dan editor melihat semua
-  const rows = await db().select({ post: posts, author: users.name }).from(posts)
+  const rows = await db().select({ post: kolomKartu, author: users.name }).from(posts)
     .leftJoin(users, eq(posts.authorId, users.id)).orderBy(desc(posts.updatedAt));
   const list = rows.filter((r) => me.role !== "penulis" || r.post.authorId === me.id);
   const n = (s: string) => list.filter((r) => r.post.status === s).length;

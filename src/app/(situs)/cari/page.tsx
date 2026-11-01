@@ -2,11 +2,12 @@
 import Link from "next/link";
 import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
 import { db, posts, categories } from "@/db";
-import { PostCard } from "@/components/content/PostCard";
+import { kolomKartu } from "@/lib/kolom";
+import { PostCardMini } from "@/components/content/PostCardMini";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Pencarian" };
-const PER_PAGE = 12;
+const PER_PAGE = 15;
 
 export default async function Cari({ searchParams }: { searchParams: Promise<{ q?: string; page?: string }> }) {
   const sp = await searchParams;
@@ -14,12 +15,12 @@ export default async function Cari({ searchParams }: { searchParams: Promise<{ q
   const page = Math.max(1, Number(sp.page) || 1);
   const d = db();
 
-  let rows: (typeof posts.$inferSelect)[] = [];
+  let rows: Omit<typeof posts.$inferSelect, "content">[] = [];
   let nama = new Map<number, string>();
   if (q.length >= 2) {
     const pola = `%${q.replace(/[\\%_]/g, "\\$&")}%`;
     const [hasil, cats] = await Promise.all([
-      d.select().from(posts)
+      d.select(kolomKartu).from(posts)
         .where(and(
           eq(posts.status, "published"),
           or(ilike(posts.title, pola), ilike(posts.excerpt, pola), ilike(posts.content, pola)),
@@ -56,8 +57,8 @@ export default async function Cari({ searchParams }: { searchParams: Promise<{ q
         {tampil.length > 0 && (
           <>
             <p className="mt-8 text-sm text-ms-cream/60">Hasil untuk &ldquo;{q}&rdquo;{page > 1 ? ` (halaman ${page})` : ""}</p>
-            <div className="mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {tampil.map((p) => <PostCard key={p.id} p={p} kategori={p.categoryId ? nama.get(p.categoryId) : undefined} />)}
+            <div className="mt-4 grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-5">
+              {tampil.map((p) => <PostCardMini key={p.id} p={p} kategori={p.categoryId ? nama.get(p.categoryId) : undefined} />)}
             </div>
           </>
         )}

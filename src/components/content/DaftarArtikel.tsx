@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PostCard } from "./PostCard";
+import { PostCardMini } from "./PostCardMini";
 
 type Item = { id: number; slug: string; title: string; excerpt: string; coverUrl: string | null; publishedAt: Date | null; categoryId: number | null };
 type Kat = { id: number; name: string; slug: string; parentId?: number | null };
@@ -24,8 +24,8 @@ export function DaftarArtikel(props: {
           {cats.filter((c) => !cats.some((x) => x.parentId === c.id)).map((c) => <Link key={c.id} href={`/kategori/${c.slug}`} className={chip(aktif === c.slug)}>{c.name}</Link>)}
         </div>
         {rows.length > 0 ? (
-          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {rows.map((p) => <PostCard key={p.id} p={p} kategori={p.categoryId ? nama.get(p.categoryId) : undefined} />)}
+          <div className="mt-8 grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-5">
+            {rows.map((p) => <PostCardMini key={p.id} p={p} kategori={p.categoryId ? nama.get(p.categoryId) : undefined} />)}
           </div>
         ) : (
           <p className="mt-10 text-ms-cream/60">Belum ada artikel.</p>

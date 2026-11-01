@@ -1,10 +1,11 @@
 import { notFound } from "next/navigation";
 import { and, desc, eq, inArray, or } from "drizzle-orm";
 import { db, posts, categories, postCategories } from "@/db";
+import { kolomKartu } from "@/lib/kolom";
 import { DaftarArtikel } from "@/components/content/DaftarArtikel";
 
 export const dynamic = "force-dynamic";
-const PER_PAGE = 12;
+const PER_PAGE = 15;
 
 export default async function Kategori({
   params, searchParams,
@@ -15,7 +16,7 @@ export default async function Kategori({
   const [kat] = await d.select().from(categories).where(eq(categories.slug, slug)).limit(1);
   if (!kat) notFound();
   const [rows, cats] = await Promise.all([
-    d.select().from(posts).where(and(eq(posts.status, "published"), inArray(posts.id, d.select({ id: postCategories.postId }).from(postCategories).where(inArray(postCategories.categoryId, d.select({ id: categories.id }).from(categories).where(or(eq(categories.id, kat.id), eq(categories.parentId, kat.id))))))))
+    d.select(kolomKartu).from(posts).where(and(eq(posts.status, "published"), inArray(posts.id, d.select({ id: postCategories.postId }).from(postCategories).where(inArray(postCategories.categoryId, d.select({ id: categories.id }).from(categories).where(or(eq(categories.id, kat.id), eq(categories.parentId, kat.id))))))))
       .orderBy(desc(posts.publishedAt)).limit(PER_PAGE + 1).offset((page - 1) * PER_PAGE),
     d.select().from(categories).orderBy(categories.name),
   ]);

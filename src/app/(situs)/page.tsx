@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { desc, eq } from "drizzle-orm";
 import { db, posts, categories, users, videos } from "@/db";
+import { kolomKartu } from "@/lib/kolom";
 import { PostCard, tanggal } from "@/components/content/PostCard";
 import { PostCardMini } from "@/components/content/PostCardMini";
 import { HeroCarousel } from "@/components/home/HeroCarousel";
@@ -20,7 +21,7 @@ const wadah = "mx-auto max-w-[90rem] px-6 md:px-10 lg:px-16";
 export default async function Home() {
   const d = db();
   const [hasil, cats, vids] = await Promise.all([
-    d.select({ p: posts, penulis: users.name }).from(posts).leftJoin(users, eq(posts.authorId, users.id))
+    d.select({ p: kolomKartu, penulis: users.name }).from(posts).leftJoin(users, eq(posts.authorId, users.id))
       .where(eq(posts.status, "published")).orderBy(desc(posts.publishedAt)).limit(13),
     d.select().from(categories),
     d.select().from(videos).where(eq(videos.status, "published")).orderBy(desc(videos.featured), desc(videos.publishedAt)).limit(15),

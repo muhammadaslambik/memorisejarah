@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { and, asc, eq } from "drizzle-orm";
 import { db, posts, users } from "@/db";
+import { kolomKartu } from "@/lib/kolom";
 import { requireReviewer } from "@/lib/auth";
 import { reviewPosts, setTrusted } from "@/lib/review-actions";
 
@@ -18,7 +19,7 @@ const oks: Record<string, string> = {
 export default async function Persetujuan({ searchParams }: { searchParams: Promise<{ error?: string; ok?: string }> }) {
   await requireReviewer();
   const { error, ok } = await searchParams;
-  const pending = await db().select({ post: posts, author: users.name }).from(posts)
+  const pending = await db().select({ post: kolomKartu, author: users.name }).from(posts)
     .leftJoin(users, eq(posts.authorId, users.id)).where(eq(posts.status, "pending")).orderBy(asc(posts.updatedAt));
   const writers = await db().select().from(users).where(and(eq(users.role, "penulis"), eq(users.active, true))).orderBy(asc(users.name));
   return (

@@ -6,7 +6,7 @@ import { GambarCard } from "@/components/content/GambarCard";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Gambar" };
-const PER_PAGE = 12;
+const PER_PAGE = 15;
 
 export default async function Gambar({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
   const page = Math.max(1, Number((await searchParams).page) || 1);
@@ -22,7 +22,7 @@ export default async function Gambar({ searchParams }: { searchParams: Promise<{
         <h1 className="font-serif text-4xl font-bold md:text-5xl">Gambar</h1>
         <p className="mt-3 max-w-2xl text-ms-cream/70">Foto, lukisan, dan arsip visual dari perjalanan sejarah.</p>
         {tampil.length > 0 ? (
-          <div className="mt-8 grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-4">
+          <div className="mt-8 grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-5">
             {tampil.map((g) => <GambarCard key={g.id} g={g} />)}
           </div>
         ) : (

@@ -2,6 +2,7 @@ import { sanitizeHtml } from "@/lib/sanitize";
 import { notFound } from "next/navigation";
 import { and, eq, ne } from "drizzle-orm";
 import { db, posts } from "@/db";
+import { kolomKartu } from "@/lib/kolom";
 import { PostCard } from "@/components/content/PostCard";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +20,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
 
   // Artikel terkait: kategori yang sama
   const related = p.categoryId
-    ? await db().select().from(posts)
+    ? await db().select(kolomKartu).from(posts)
         .where(and(eq(posts.categoryId, p.categoryId), eq(posts.status, "published"), ne(posts.id, p.id))).limit(3)
     : [];
 

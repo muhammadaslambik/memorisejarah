@@ -2,6 +2,7 @@ import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
+import { cache } from "react";
 import { db, users } from "@/db";
 
 export { hashPassword, verifyPassword } from "./password";
@@ -21,7 +22,8 @@ export async function getSession() {
 }
 
 // Pengguna saat ini dari database (supaya peran dan status nonaktif selalu terbaru)
-export async function getCurrentUser() {
+export const getCurrentUser = cache(ambilPenggunaSaatIni);
+async function ambilPenggunaSaatIni() {
   const s = await getSession();
   if (!s) return null;
   const [u] = await db().select({ id: users.id, email: users.email, name: users.name, role: users.role, active: users.active, trusted: users.trusted })

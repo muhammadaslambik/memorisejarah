@@ -40,6 +40,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             { label: "Informasi", href: "/admin/informasi", ikon: "informasi" },
             { label: "Pustaka", href: "/admin/pustaka", ikon: "pustaka" },
             { label: "Redaksi", href: "/admin/redaksi", ikon: "redaksi" },
+            { label: "Halaman Tentang", href: "/admin/tentang", ikon: "tentang" },
+            { label: "Pengaturan Situs", href: "/admin/situs", ikon: "pengaturan" },
           ],
         }]
       : []),

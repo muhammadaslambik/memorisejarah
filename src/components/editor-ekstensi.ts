@@ -1,7 +1,9 @@
-// PAKET-6A: ekstensi TipTap bersama (dipakai Editor dan pengujian)
+// PAKET-10A: ekstensi TipTap bersama (dipakai Editor dan pengujian)
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
+import Underline from "@tiptap/extension-underline";
+import TextAlign from "@tiptap/extension-text-align";
 import { Node, mergeAttributes } from "@tiptap/core";
 
 // <figure><img><figcaption>: gambar dengan keterangan (bentuk yang dipakai WordPress)
@@ -37,4 +39,12 @@ export const Tautan = Link.extend({
   },
 }).configure({ openOnClick: false, autolink: false, HTMLAttributes: { target: null, rel: null } });
 
-export const ekstensiEditor = [StarterKit, Image, Figure, Figcaption, Tautan];
+export const ekstensiEditor = [
+  StarterKit,
+  Underline,
+  TextAlign.configure({ types: ["heading", "paragraph"] }),
+  Image,
+  Figure,
+  Figcaption,
+  Tautan,
+];

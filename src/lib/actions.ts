@@ -86,7 +86,7 @@ export async function savePost(fd: FormData) {
   };
   if (id) { await d.update(posts).set(data).where(eq(posts.id, id)); await simpanKategori(d, id, fd); }
   else { const [baru] = await d.insert(posts).values({ ...data, authorId: s.id }).returning({ id: posts.id }); await simpanKategori(d, baru.id, fd); }
-  redirect("/admin");
+  redirect("/admin/artikel");
 }
 
 export async function deletePost(fd: FormData) {
@@ -94,5 +94,5 @@ export async function deletePost(fd: FormData) {
   const id = Number(fd.get("id"));
   const [p] = await db().select({ authorId: posts.authorId }).from(posts).where(eq(posts.id, id)).limit(1);
   if (p && canDeletePost(u, p)) await db().delete(posts).where(eq(posts.id, id));
-  redirect("/admin");
+  redirect("/admin/artikel");
 }

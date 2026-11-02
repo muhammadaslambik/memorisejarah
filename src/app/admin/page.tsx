@@ -1,127 +1,143 @@
-// PAKET-9D: daftar artikel dengan pencarian, filter status, dan tombol cepat "Pilihan"
+// PAKET-10B: dashboard CMS (ringkasan, aksi cepat, artikel terbaru, kategori terbanyak)
 import Link from "next/link";
-import { and, count, desc, eq, ilike } from "drizzle-orm";
-import { db, posts, users, categories } from "@/db";
+import { count, desc, eq, sql } from "drizzle-orm";
+import { db, posts, categories, postCategories, videos, images, redaksi, users } from "@/db";
 import { kolomKartu } from "@/lib/kolom";
-import { deletePost } from "@/lib/actions";
-import { toggleFeatured } from "@/lib/artikel-cepat-actions";
-import { canDeletePost, isReviewer, requireUser, ROLE_LABEL, type Role } from "@/lib/auth";
-import { DeleteButton } from "@/components/DeleteButton";
+import { kecil } from "@/lib/gambar-url";
+import { isReviewer, requireUser, ROLE_LABEL, type Role } from "@/lib/auth";
+import { IkonAdmin } from "@/components/admin/ikon-admin";
+import { PageHeader } from "@/components/admin/PageHeader";
 
 export const dynamic = "force-dynamic";
-const PER_HALAMAN = 20;
-type Status = "published" | "pending" | "draft";
-const LABEL: Record<Status, string> = { published: "Terbit", pending: "Menunggu", draft: "Draft" };
-const WARNA: Record<Status, string> = { published: "bg-green-100 text-green-800", pending: "bg-amber-100 text-amber-800", draft: "bg-stone-200 text-stone-700" };
 
-export default async function Dashboard({ searchParams }: { searchParams: Promise<{ q?: string; s?: string; hal?: string }> }) {
+const LABEL = { published: "Terbit", pending: "Menunggu", draft: "Draft" } as const;
+const CHIP = { published: "a-chip-hijau", pending: "a-chip-kuning", draft: "a-chip-abu" } as const;
+const aman = async <T,>(p: PromiseLike<T>, bawaan: T): Promise<T> => { try { return await p; } catch { return bawaan; } };
+const tgl = (d: Date) => d.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Jakarta" });
+
+export default async function Dashboard() {
   const me = await requireUser();
-  const sp = await searchParams;
-  const q = (sp.q ?? "").trim().slice(0, 100);
-  const status = (["published", "pending", "draft"] as const).find((x) => x === sp.s);
-  const hal = Math.max(1, Number(sp.hal) || 1);
   const rev = isReviewer(me.role);
-
-  const milik = me.role === "penulis" ? eq(posts.authorId, me.id) : undefined;
-  const cocok = q ? ilike(posts.title, `%${q.replace(/[\\%_]/g, "\\$&")}%`) : undefined;
   const d = db();
-  const [rows, hitung, kats] = await Promise.all([
-    d.select({ post: kolomKartu, author: users.name }).from(posts)
-      .leftJoin(users, eq(posts.authorId, users.id))
-      .where(and(milik, cocok, status ? eq(posts.status, status) : undefined))
-      .orderBy(desc(posts.updatedAt)).limit(PER_HALAMAN + 1).offset((hal - 1) * PER_HALAMAN),
-    d.select({ status: posts.status, n: count() }).from(posts).where(milik).groupBy(posts.status),
-    d.select({ id: categories.id, name: categories.name }).from(categories),
-  ]);
-  const tampil = rows.slice(0, PER_HALAMAN);
-  const adaLagi = rows.length > PER_HALAMAN;
-  const nama = new Map(kats.map((k) => [k.id, k.name]));
-  const jml = (s: Status) => Number(hitung.find((h) => h.status === s)?.n ?? 0);
-  const semua = jml("published") + jml("pending") + jml("draft");
+  const milik = me.role === "penulis" ? eq(posts.authorId, me.id) : undefined;
 
-  const href = (o: { s?: string; hal?: number }) => {
-    const p = new URLSearchParams();
-    if (q) p.set("q", q);
-    const s = "s" in o ? o.s : status;
-    if (s) p.set("s", s);
-    if (o.hal && o.hal > 1) p.set("hal", String(o.hal));
-    const str = p.toString();
-    return "/admin" + (str ? `?${str}` : "");
-  };
-  const kartu = [["Semua", semua, undefined, ""], ["Terbit", jml("published"), "published", ""], ["Menunggu", jml("pending"), "pending", ""], ["Draft", jml("draft"), "draft", ""]] as const;
-  const kembali = href({ hal });
+  const [perStatus, terbaru, menunggu, nVideo, nGambar, nRedaksi, nPengguna, perKategori] = await Promise.all([
+    d.select({ status: posts.status, n: count() }).from(posts).where(milik).groupBy(posts.status),
+    d.select(kolomKartu).from(posts).where(milik).orderBy(desc(posts.updatedAt)).limit(6),
+    rev ? d.select(kolomKartu).from(posts).where(eq(posts.status, "pending")).orderBy(desc(posts.updatedAt)).limit(5) : Promise.resolve([]),
+    aman(d.select({ n: count() }).from(videos), [{ n: 0 }]),
+    aman(d.select({ n: count() }).from(images), [{ n: 0 }]),
+    aman(d.select({ n: count() }).from(redaksi), [{ n: 0 }]),
+    me.role === "admin" ? aman(d.select({ n: count() }).from(users), [{ n: 0 }]) : Promise.resolve([{ n: 0 }]),
+    aman(
+      d.select({ nama: categories.name, n: sql<number>`count(*)::int` }).from(postCategories)
+        .innerJoin(categories, eq(categories.id, postCategories.categoryId)).groupBy(categories.name).orderBy(desc(sql`count(*)`)).limit(6),
+      [] as { nama: string; n: number }[],
+    ),
+  ]);
+  const jml = (s: keyof typeof LABEL) => Number(perStatus.find((x) => x.status === s)?.n ?? 0);
+  const total = jml("published") + jml("pending") + jml("draft");
+  const maks = Math.max(1, ...perKategori.map((k) => k.n));
+  const hariIni = new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Jakarta" });
+
+  const kartu: { label: string; nilai: number; ikon: string; warna: string; href: string; ket: string }[] = [
+    { label: "Artikel terbit", nilai: jml("published"), ikon: "artikel", warna: "#d9a441", href: "/admin/artikel?s=published", ket: `dari ${total} artikel` },
+    { label: "Menunggu", nilai: jml("pending"), ikon: "persetujuan", warna: "#e8a13a", href: rev ? "/admin/persetujuan" : "/admin/artikel?s=pending", ket: "perlu ditinjau" },
+    { label: "Draft", nilai: jml("draft"), ikon: "gambar", warna: "#8aa0b8", href: "/admin/artikel?s=draft", ket: "belum diterbitkan" },
+    ...(rev ? [
+      { label: "Video", nilai: Number(nVideo[0]?.n ?? 0), ikon: "video", warna: "#e0705a", href: "/admin/video", ket: "dalam pustaka" },
+      { label: "Gambar", nilai: Number(nGambar[0]?.n ?? 0), ikon: "gambar", warna: "#5bb48a", href: "/admin/gambar", ket: "dalam galeri" },
+      { label: "Anggota redaksi", nilai: Number(nRedaksi[0]?.n ?? 0), ikon: "redaksi", warna: "#a78bda", href: "/admin/redaksi", ket: "profil publik" },
+    ] : []),
+  ];
+  const aksi: [string, string, string][] = [
+    ["Tulis artikel baru", "/admin/artikel/baru", "artikel"],
+    ...(rev ? [["Unggah gambar", "/admin/gambar", "gambar"], ["Tambah video", "/admin/video", "video"], ["Atur redaksi", "/admin/redaksi", "redaksi"], ["Pengaturan situs", "/admin/situs", "pengaturan"]] as [string, string, string][] : []),
+  ];
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="font-serif text-3xl">Artikel</h1>
-          <p className="text-sm text-charcoal/60">{me.name} &middot; {ROLE_LABEL[me.role as Role]}</p>
-        </div>
-        <Link href="/admin/artikel/baru" className="rounded-lg bg-gold px-4 py-2 text-white">+ Artikel Baru</Link>
-      </div>
+      <PageHeader
+        ikon="dashboard"
+        judul={`Selamat datang, ${me.name.split(" ")[0]}`}
+        deskripsi={`${hariIni} \u2022 ${ROLE_LABEL[me.role as Role]}`}
+        aksi={<Link href="/admin/artikel/baru" className="a-btn"><IkonAdmin nama="tambah" className="h-4 w-4" /> Artikel Baru</Link>}
+      />
 
-      <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {kartu.map(([label, jumlah, s]) => (
-          <Link key={label} href={href({ s: s ?? "" })} className={`rounded-xl bg-white/70 p-4 transition hover:shadow ${status === s ? "ring-2 ring-gold" : ""}`}>
-            <p className="text-xs uppercase tracking-wider text-charcoal/50">{label}</p>
-            <p className="mt-1 font-serif text-2xl">{jumlah}</p>
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
+        {kartu.map((k) => (
+          <Link key={k.label} href={k.href} className="a-card a-card-hover flex flex-col gap-3 p-4">
+            <span className="a-ico h-10 w-10 rounded-xl" style={{ ["--c" as string]: k.warna }}><IkonAdmin nama={k.ikon} className="h-5 w-5" /></span>
+            <span>
+              <span className="block font-serif text-3xl font-bold leading-none">{k.nilai}</span>
+              <span className="mt-1.5 block text-sm font-medium">{k.label}</span>
+              <span className="a-muted block text-xs">{k.ket}</span>
+            </span>
           </Link>
         ))}
       </div>
 
-      <form action="/admin" className="mt-5 flex gap-2">
-        {status && <input type="hidden" name="s" value={status} />}
-        <input name="q" defaultValue={q} placeholder="Cari judul artikel..." className="min-w-0 flex-1" />
-        <button className="rounded-lg bg-charcoal px-4 py-2 text-sm text-cream">Cari</button>
-        {(q || status) && <Link href="/admin" className="rounded-lg border px-4 py-2 text-sm">Reset</Link>}
-      </form>
+      <div className="mt-6 grid gap-6 xl:grid-cols-3">
+        <section className="a-card p-5 xl:col-span-2">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="font-serif text-lg font-bold">Artikel terbaru</h2>
+            <Link href="/admin/artikel" className="a-link text-sm">Lihat semua &rarr;</Link>
+          </div>
+          {terbaru.length === 0 ? <p className="a-muted text-sm">Belum ada artikel.</p> : (
+            <ul className="a-daftar">
+              {terbaru.map((p) => (
+                <li key={p.id}>
+                  <Link href={`/admin/artikel/${p.id}`} className="flex items-center gap-3 py-3">
+                    {p.coverUrl ? <img src={kecil(p.coverUrl, 120)} alt="" loading="lazy" referrerPolicy="no-referrer" className="h-12 w-16 shrink-0 rounded-lg object-cover" /> : <span className="a-ico h-12 w-16 shrink-0 rounded-lg" style={{ ["--c" as string]: "var(--a-accent)" }}><IkonAdmin nama="artikel" /></span>}
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-semibold">{p.title}</span>
+                      <span className="a-muted mt-0.5 block text-xs">{tgl(p.updatedAt)}</span>
+                    </span>
+                    <span className={`a-chip ${CHIP[p.status]}`}>{LABEL[p.status]}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
 
-      {tampil.length === 0 ? (
-        <p className="mt-6 rounded-xl bg-white/70 p-6 text-center text-sm text-charcoal/60">Tidak ada artikel yang cocok.</p>
-      ) : (
-        <ul className="mt-4 divide-y divide-cream-dark rounded-xl bg-white/70">
-          {tampil.map(({ post: p, author }) => (
-            <li key={p.id} className="flex items-center justify-between gap-3 p-4">
-              <div className="min-w-0">
-                <Link href={`/admin/artikel/${p.id}`} className="font-medium hover:text-gold-dark">{p.title}</Link>
-                <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-charcoal/55">
-                  <span className={`rounded px-2 py-0.5 ${WARNA[p.status]}`}>{LABEL[p.status]}</span>
-                  {p.categoryId && nama.get(p.categoryId) && <span>{nama.get(p.categoryId)}</span>}
-                  {me.role !== "penulis" && author && <span>oleh {author}</span>}
-                  <span>{p.updatedAt.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Jakarta" })}</span>
-                  {p.status === "draft" && p.reviewNote && <span className="rounded bg-amber-100 px-2 py-0.5 text-amber-800">ada catatan editor</span>}
-                </div>
-              </div>
-              <div className="flex shrink-0 items-center gap-3">
-                {p.status === "published" && <Link href={`/artikel/${p.slug}`} target="_blank" className="text-sm text-charcoal/60 hover:text-gold-dark">Lihat</Link>}
-                {rev && (
-                  <form action={toggleFeatured}>
-                    <input type="hidden" name="id" value={p.id} />
-                    <input type="hidden" name="kembali" value={kembali} />
-                    <button title={p.featured ? "Hapus dari Artikel Pilihan" : "Jadikan Artikel Pilihan"} aria-label="Artikel Pilihan" className={`text-xl leading-none ${p.featured ? "text-gold" : "text-charcoal/25 hover:text-gold"}`}>
-                      {p.featured ? "\u2605" : "\u2606"}
-                    </button>
-                  </form>
-                )}
-                {canDeletePost(me, p) && (
-                  <form action={deletePost}>
-                    <input type="hidden" name="id" value={p.id} />
-                    <DeleteButton title={p.title} />
-                  </form>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {(hal > 1 || adaLagi) && (
-        <div className="mt-5 flex items-center justify-between text-sm">
-          {hal > 1 ? <Link href={href({ hal: hal - 1 })} className="rounded-lg border px-4 py-2">&larr; Sebelumnya</Link> : <span />}
-          <span className="text-charcoal/50">Halaman {hal}</span>
-          {adaLagi ? <Link href={href({ hal: hal + 1 })} className="rounded-lg border px-4 py-2">Berikutnya &rarr;</Link> : <span />}
+        <div className="space-y-6">
+          <section className="a-card p-5">
+            <h2 className="mb-3 font-serif text-lg font-bold">Aksi cepat</h2>
+            <div className="grid grid-cols-1 gap-2">
+              {aksi.map(([label, href, ikon]) => (
+                <Link key={href} href={href} className="a-aksi"><IkonAdmin nama={ikon} /> <span className="flex-1">{label}</span> <span aria-hidden="true">&rarr;</span></Link>
+              ))}
+            </div>
+          </section>
+          {perKategori.length > 0 && (
+            <section className="a-card p-5">
+              <h2 className="mb-3 font-serif text-lg font-bold">Kategori terbanyak</h2>
+              <ul className="space-y-3">
+                {perKategori.map((k) => (
+                  <li key={k.nama}>
+                    <div className="mb-1 flex justify-between text-xs"><span className="truncate pr-2">{k.nama}</span><span className="a-muted">{k.n}</span></div>
+                    <div className="a-bar"><span style={{ width: `${Math.max(6, (k.n / maks) * 100)}%` }} /></div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
         </div>
+      </div>
+
+      {rev && menunggu.length > 0 && (
+        <section className="a-card mt-6 p-5">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="font-serif text-lg font-bold">Menunggu persetujuan</h2>
+            <Link href="/admin/persetujuan" className="a-link text-sm">Tinjau &rarr;</Link>
+          </div>
+          <ul className="a-daftar">
+            {menunggu.map((p) => (
+              <li key={p.id}><Link href={`/admin/artikel/${p.id}`} className="flex items-center justify-between gap-3 py-2.5 text-sm"><span className="truncate font-medium">{p.title}</span><span className="a-muted shrink-0 text-xs">{tgl(p.updatedAt)}</span></Link></li>
+            ))}
+          </ul>
+        </section>
       )}
     </div>
   );

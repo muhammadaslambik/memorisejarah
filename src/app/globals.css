@@ -4,29 +4,132 @@
 body { @apply bg-cream text-charcoal font-sans antialiased; }
 
 html { scroll-padding-top: 6rem; }
-
-/* PAKET-9D: tampilan CMS (hanya di dalam .adm, tanpa JavaScript) */
+/* PAKET-10B: tema CMS coklat (gelap/terang). Hanya berlaku di dalam .adm */
 @layer components {
+  .adm {
+    --a-bg: #f5eee3; --a-card: #ffffff; --a-card2: #faf4ea; --a-line: rgb(74 48 22 / 0.12);
+    --a-text: #2c1d10; --a-muted: #7d6b58; --a-accent: #b9822a; --a-accent2: #8f5f1a; --a-input: #ffffff;
+    --a-shadow: 0 1px 2px rgb(60 36 12 / 0.06), 0 10px 28px -14px rgb(60 36 12 / 0.22);
+    background: var(--a-bg); color: var(--a-text); color-scheme: light;
+  }
+  .adm.tema-gelap {
+    --a-bg: #15100b; --a-card: #1f1710; --a-card2: #2a1e14; --a-line: rgb(255 228 184 / 0.09);
+    --a-text: #f2e7d5; --a-muted: #a99a85; --a-accent: #dcab4f; --a-accent2: #b98a35; --a-input: #17100a;
+    --a-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 12px 32px -16px rgb(0 0 0 / 0.65);
+    color-scheme: dark;
+  }
+  body:has(.adm.tema-gelap) { background: #15100b; }
+  body:has(.adm.tema-terang) { background: #f5eee3; }
+
+  /* Bingkai */
+  .adm .a-side { background: linear-gradient(180deg, #27180d 0%, #170e07 100%); color: #ecdcc4; border-right: 1px solid rgb(255 228 184 / 0.06); }
+  .adm .a-scroll { scrollbar-width: thin; scrollbar-color: rgb(255 228 184 / 0.2) transparent; }
+  .adm .a-scrim { position: fixed; inset: 0; z-index: 35; background: rgb(0 0 0 / 0.55); opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+  @media (min-width: 1024px) { .adm .a-scrim { display: none; } }
+  .adm .a-nav-judul { font-size: 0.65rem; letter-spacing: 0.16em; text-transform: uppercase; color: #8f7b5f; padding: 0 0.75rem 0.35rem; font-weight: 600; }
+  .adm .a-nav { display: flex; align-items: center; gap: 0.75rem; padding: 0.55rem 0.75rem; border-radius: 0.75rem; font-size: 0.875rem; color: #cdb99b; transition: background-color 0.15s, color 0.15s, transform 0.15s; }
+  .adm a.a-nav:hover { background: rgb(255 228 184 / 0.08); color: #f6ead6; }
+  .adm .a-nav[aria-current="page"] { background: linear-gradient(135deg, #e0ae52, #b97b1f); color: #1b1108; font-weight: 600; box-shadow: 0 8px 20px -10px rgb(224 174 82 / 0.8); }
+  .adm .a-badge { background: #e11d48; color: #fff; font-size: 0.68rem; font-weight: 700; border-radius: 999px; padding: 0.05rem 0.45rem; }
+  .adm .a-nav[aria-current="page"] .a-badge { background: #1b1108; color: #f3e3c3; }
+  .adm .a-top { background: color-mix(in srgb, var(--a-bg) 88%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--a-line); }
+  .adm .a-search { align-items: center; gap: 0.5rem; background: var(--a-card); border: 1px solid var(--a-line); border-radius: 999px; padding: 0 0.9rem; max-width: 26rem; transition: box-shadow 0.15s, border-color 0.15s; }
+  .adm .a-search:focus-within { border-color: var(--a-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--a-accent) 22%, transparent); }
+  .adm .a-search input { flex: 1; min-width: 0; background: transparent !important; border: 0 !important; box-shadow: none !important; padding: 0.55rem 0 !important; outline: none; font-size: 0.875rem; }
+  .adm .a-ikon-btn { display: inline-grid; place-items: center; width: 2.4rem; height: 2.4rem; border-radius: 999px; color: var(--a-text); background: transparent; border: 0; transition: background-color 0.15s, color 0.15s, transform 0.15s; cursor: pointer; }
+  .adm .a-ikon-btn:hover { background: color-mix(in srgb, var(--a-text) 9%, transparent); color: var(--a-accent); }
+  .adm .a-ikon-btn[aria-label^="Menu akun"] { display: inline-flex; align-items: center; }
+  .adm .a-bintang-aktif { color: var(--a-accent); }
+  .adm .a-ikon-matahari { display: none; }
+  .adm.tema-gelap .a-ikon-matahari { display: block; }
+  .adm.tema-gelap .a-ikon-bulan { display: none; }
+  .adm .a-menu[open] > summary { background: color-mix(in srgb, var(--a-text) 9%, transparent); }
+  .adm .a-menu-item { display: block; border-radius: 0.6rem; padding: 0.5rem 0.75rem; font-size: 0.875rem; }
+  .adm .a-menu-item:hover { background: color-mix(in srgb, var(--a-text) 9%, transparent); }
+
+  /* Komponen */
+  .adm .a-card { background: var(--a-card); border: 1px solid var(--a-line); border-radius: 1.1rem; box-shadow: var(--a-shadow); }
+  .adm .a-card-hover { transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s; }
+  .adm .a-card-hover:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--a-accent) 45%, var(--a-line)); }
+  .adm .a-muted { color: var(--a-muted); }
+  .adm .a-link { color: var(--a-accent); font-weight: 500; }
+  .adm .a-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .adm .a-ico { display: inline-grid; place-items: center; background: color-mix(in srgb, var(--c, var(--a-accent)) 17%, transparent); color: var(--c, var(--a-accent)); }
+  .adm .a-btn { display: inline-flex; align-items: center; gap: 0.45rem; border-radius: 0.8rem; padding: 0.6rem 1.05rem; font-size: 0.875rem; font-weight: 600; color: #1b1108; background: linear-gradient(135deg, #e6b45a, #c48a2a); box-shadow: 0 8px 20px -10px rgb(201 146 47 / 0.9); transition: transform 0.15s, filter 0.15s; }
+  .adm .a-btn:hover { filter: brightness(1.06); transform: translateY(-1px); }
+  .adm .a-btn-soft { display: inline-flex; align-items: center; gap: 0.4rem; border: 1px solid var(--a-line); border-radius: 0.8rem; padding: 0.5rem 0.9rem; font-size: 0.85rem; background: var(--a-card); transition: border-color 0.15s, color 0.15s; }
+  .adm .a-btn-soft:hover { border-color: var(--a-accent); color: var(--a-accent); }
+  .adm .a-chip { display: inline-block; border-radius: 999px; padding: 0.1rem 0.6rem; font-size: 0.7rem; font-weight: 600; }
+  .adm .a-chip-hijau { background: rgb(34 197 94 / 0.15); color: #15803d; }
+  .adm .a-chip-kuning { background: rgb(245 158 11 / 0.17); color: #b45309; }
+  .adm .a-chip-abu { background: color-mix(in srgb, var(--a-text) 10%, transparent); color: var(--a-muted); }
+  .adm.tema-gelap .a-chip-hijau { color: #86efac; }
+  .adm.tema-gelap .a-chip-kuning { color: #fcd34d; }
+  .adm .a-daftar > li + li { border-top: 1px solid var(--a-line); }
+  .adm .a-daftar > li { transition: background-color 0.15s; }
+  .adm .a-aksi { display: flex; align-items: center; gap: 0.7rem; border: 1px solid var(--a-line); border-radius: 0.8rem; padding: 0.65rem 0.85rem; font-size: 0.875rem; background: var(--a-card2); transition: border-color 0.15s, transform 0.15s; }
+  .adm .a-aksi:hover { border-color: var(--a-accent); transform: translateX(2px); }
+  .adm .a-bar { height: 0.45rem; border-radius: 999px; background: color-mix(in srgb, var(--a-text) 9%, transparent); overflow: hidden; }
+  .adm .a-bar > span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--a-accent2), var(--a-accent)); }
+  .adm .a-tab-baris { display: inline-flex; gap: 0.25rem; padding: 0.25rem; border-radius: 0.9rem; background: var(--a-card2); border: 1px solid var(--a-line); }
+  .adm .a-tab { display: inline-flex; align-items: center; gap: 0.4rem; border-radius: 0.65rem; padding: 0.4rem 0.8rem; font-size: 0.85rem; color: var(--a-muted); transition: background-color 0.15s, color 0.15s; }
+  .adm .a-tab:hover { color: var(--a-text); }
+  .adm .a-tab[aria-current="page"] { background: var(--a-card); color: var(--a-text); font-weight: 600; box-shadow: var(--a-shadow); }
+  .adm .a-tab-n { font-size: 0.7rem; border-radius: 999px; padding: 0 0.4rem; background: color-mix(in srgb, var(--a-accent) 20%, transparent); color: var(--a-accent); }
+
+  /* Menyesuaikan kelas Tailwind yang dipakai halaman CMS lama ke tema */
+  .adm .text-charcoal { color: var(--a-text); }
+  .adm .text-charcoal\/80, .adm .text-charcoal\/75 { color: color-mix(in srgb, var(--a-text) 85%, transparent); }
+  .adm .text-charcoal\/60, .adm .text-charcoal\/55, .adm .text-charcoal\/50 { color: var(--a-muted); }
+  .adm .text-charcoal\/45, .adm .text-charcoal\/35, .adm .text-charcoal\/25 { color: color-mix(in srgb, var(--a-muted) 70%, transparent); }
+  .adm main .bg-white\/70 { background: var(--a-card); border: 1px solid var(--a-line); border-radius: 1.1rem; box-shadow: var(--a-shadow); }
+  .adm .bg-white\/60 { background: var(--a-card); }
+  .adm .bg-cream-dark { background: var(--a-card2); }
+  .adm .bg-cream { background: var(--a-bg); }
+  .adm .bg-black\/10 { background: color-mix(in srgb, var(--a-text) 12%, transparent); }
+  .adm .border, .adm .border-cream-dark { border-color: var(--a-line); }
+  .adm .divide-cream-dark > :not([hidden]) ~ :not([hidden]) { border-color: var(--a-line); }
+  .adm main .bg-gold { background-image: linear-gradient(135deg, #e6b45a, #c48a2a); color: #1b1108; font-weight: 600; border-radius: 0.8rem; }
+  .adm main .bg-gold.text-white { color: #1b1108; }
+  .adm main .bg-charcoal { background: var(--a-text); }
+  .adm main .bg-charcoal.text-cream { color: var(--a-bg); }
+  .adm .text-gold-dark, .adm .hover\:text-gold-dark:hover { color: var(--a-accent); }
+  .adm .ring-gold { --tw-ring-color: var(--a-accent); }
+  .adm.tema-gelap .bg-green-50, .adm.tema-gelap .bg-green-100 { background: rgb(34 197 94 / 0.14); }
+  .adm.tema-gelap .text-green-800 { color: #86efac; }
+  .adm.tema-gelap .bg-red-50, .adm.tema-gelap .bg-red-100 { background: rgb(239 68 68 / 0.14); }
+  .adm.tema-gelap .text-red-700 { color: #fca5a5; }
+  .adm.tema-gelap .bg-amber-50, .adm.tema-gelap .bg-amber-100 { background: rgb(245 158 11 / 0.14); }
+  .adm.tema-gelap .text-amber-800, .adm.tema-gelap .text-amber-900 { color: #fcd34d; }
+  .adm.tema-gelap .border-amber-300 { border-color: rgb(245 158 11 / 0.4); }
+  .adm.tema-gelap .bg-stone-200 { background: rgb(255 255 255 / 0.1); }
+  .adm.tema-gelap .text-stone-700 { color: var(--a-muted); }
+
+  /* Isian formulir */
   .adm main input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]),
-  .adm main select,
-  .adm main textarea {
-    @apply rounded-lg border border-charcoal/15 bg-white px-3 py-2 text-sm shadow-sm outline-none transition;
+  .adm main select, .adm main textarea {
+    background: var(--a-input); color: var(--a-text); border: 1px solid var(--a-line); border-radius: 0.7rem;
+    padding: 0.55rem 0.8rem; font-size: 0.875rem; outline: none; transition: border-color 0.15s, box-shadow 0.15s;
   }
   .adm main input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):focus,
-  .adm main select:focus,
-  .adm main textarea:focus {
-    @apply border-gold ring-2 ring-gold/30;
+  .adm main select:focus, .adm main textarea:focus {
+    border-color: var(--a-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--a-accent) 24%, transparent);
   }
-  .adm main .bg-white\/70 {
-    background: #fff;
-    border: 1px solid rgb(0 0 0 / 0.06);
-    border-radius: 0.9rem;
-    box-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
-  }
-  .adm main ul.divide-y > li { transition: background-color 0.15s; }
-  .adm main ul.divide-y > li:hover { background-color: rgb(0 0 0 / 0.02); }
-  .adm main fieldset { border-radius: 0.75rem; }
+  .adm main ::placeholder { color: color-mix(in srgb, var(--a-muted) 75%, transparent); }
+  .adm main input[type="file"] { font-size: 0.85rem; }
+  .adm main input[type="checkbox"], .adm main input[type="radio"] { accent-color: var(--a-accent); }
+  .adm main fieldset { border-color: var(--a-line); border-radius: 1rem; }
+  .adm main legend { font-weight: 600; }
   .adm main h1 { letter-spacing: -0.01em; }
-  .adm main button, .adm main a { transition: color 0.15s, background-color 0.15s, border-color 0.15s, box-shadow 0.15s; }
-  .adm main .bg-gold:hover { filter: brightness(0.94); }
+  .adm main button, .adm main a { transition: color 0.15s, background-color 0.15s, border-color 0.15s, box-shadow 0.15s, filter 0.15s; }
+  .adm main details > summary { cursor: pointer; }
+
+  /* Editor teks */
+  .adm .editor-kaya select { padding: 0 0.5rem; border-radius: 0.5rem; height: 2rem; }
+  .adm .editor-kaya .ProseMirror { background: var(--a-input); color: var(--a-text); border-color: var(--a-line); }
+  .adm .editor-kaya .prose {
+    --tw-prose-body: var(--a-text); --tw-prose-headings: var(--a-text); --tw-prose-bold: var(--a-text);
+    --tw-prose-links: var(--a-accent); --tw-prose-quotes: var(--a-text); --tw-prose-quote-borders: var(--a-accent);
+    --tw-prose-bullets: var(--a-muted); --tw-prose-counters: var(--a-muted); --tw-prose-hr: var(--a-line); --tw-prose-captions: var(--a-muted);
+  }
 }

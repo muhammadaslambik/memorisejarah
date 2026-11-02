@@ -4,6 +4,7 @@ import { savePost } from "@/lib/actions";
 import { redirect } from "next/navigation";
 import { canEditPost, isReviewer, needsApproval, requireUser } from "@/lib/auth";
 import { Editor } from "@/components/Editor";
+import { TombolKembali } from "@/components/admin/TombolKembali";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,7 @@ export default async function EditPost({ params }: { params: Promise<{ id: strin
   const terpilih = new Set(isNew ? [] : (await db().select({ id: postCategories.categoryId }).from(postCategories).where(eq(postCategories.postId, Number(id)))).map((r) => r.id));
   return (
     <form action={savePost} className="mx-auto max-w-4xl space-y-4 px-5 py-10">
+      <div className="mb-3"><TombolKembali /></div>
       <h1 className="font-serif text-3xl">{isNew ? "Artikel Baru" : "Edit Artikel"}</h1>
       {p && <input type="hidden" name="id" value={p.id} />}
       {p?.reviewNote && p.status === "draft" && (
@@ -35,7 +37,7 @@ export default async function EditPost({ params }: { params: Promise<{ id: strin
       <input name="slug" defaultValue={p?.slug} placeholder="Slug URL (kosongkan = otomatis dari judul)" className="w-full rounded border p-3 text-sm" />
       <textarea name="excerpt" defaultValue={p?.excerpt} placeholder="Ringkasan singkat" rows={2} className="w-full rounded border p-3" />
       <input name="coverUrl" defaultValue={p?.coverUrl ?? ""} placeholder="URL gambar sampul (https://...)" className="w-full rounded border p-3" />
-      <Editor initial={p?.content ?? ""} />
+      <Editor initial={p?.content ?? ""} catatanKaki />
       <div className="flex flex-wrap items-center gap-4">
         <fieldset className="w-full rounded border p-3 text-sm">
           <legend className="px-1">Kategori (boleh lebih dari satu)</legend>

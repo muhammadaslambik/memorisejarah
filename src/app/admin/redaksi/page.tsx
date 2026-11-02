@@ -24,7 +24,7 @@ const errors: Record<string, string> = {
 const oks: Record<string, string> = { simpan: "Anggota disimpan.", hapus: "Anggota dihapus." };
 
 export default async function AdminRedaksi({ searchParams }: { searchParams: Promise<{ edit?: string; error?: string; ok?: string }> }) {
-  await requireReviewer();
+  const me = await requireReviewer();
   const { edit, error, ok } = await searchParams;
   const editId = Number(edit) || null;
   const d = db();
@@ -149,10 +149,10 @@ export default async function AdminRedaksi({ searchParams }: { searchParams: Pro
               </div>
               <div className="flex shrink-0 items-center gap-4">
                 {x.aktif && <Link href={`/tentang/redaksi/${x.slug}`} className="text-sm text-charcoal/60 hover:text-gold-dark">Lihat</Link>}
-                <form action={deleteRedaksi}>
+                {me.role === "admin" && (<form action={deleteRedaksi}>
                   <input type="hidden" name="id" value={x.id} />
                   <ConfirmButton pesan={`Hapus anggota "${x.name}"?`} />
-                </form>
+                </form>)}
               </div>
             </li>
           ))}

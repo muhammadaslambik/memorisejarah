@@ -133,3 +133,9 @@ export const redaksiTim = pgTable("redaksi_tim", {
   tim: text("tim").notNull(),
   catatan: text("catatan").default("").notNull(),
 }, (t) => [primaryKey({ columns: [t.memberId, t.tim] })]);
+
+// Preferensi per akun (jumlah artikel per halaman di CMS; 0 = semua)
+export const userPrefs = pgTable("user_prefs", {
+  userId: integer("user_id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
+  perHalaman: integer("per_halaman").default(20).notNull(),
+});

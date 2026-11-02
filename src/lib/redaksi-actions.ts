@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { and, eq, ne } from "drizzle-orm";
 import { db, redaksi, redaksiTim } from "@/db";
-import { requireReviewer } from "./auth";
+import { requireAdmin, requireReviewer } from "./auth";
 import { unggahKeImageKit } from "./gambar-simpan";
 import { TIM, slugify, tautanHttps, tautanInstagram, waDigits } from "./redaksi";
 
@@ -80,7 +80,7 @@ export async function saveRedaksi(fd: FormData) {
 }
 
 export async function deleteRedaksi(fd: FormData) {
-  await requireReviewer();
+  await requireAdmin();
   const id = Number(fd.get("id"));
   if (id) await db().delete(redaksi).where(eq(redaksi.id, id));
   redirect("/admin/redaksi?ok=hapus");

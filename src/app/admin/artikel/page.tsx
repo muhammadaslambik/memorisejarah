@@ -1,7 +1,7 @@
-// PAKET-10B: daftar artikel dengan pencarian, tab status, dan tombol cepat "Pilihan"
+// PAKET-11A: daftar artikel: filter menempel saat digulir, jumlah per halaman per akun, mengingat posisi untuk tombol Kembali
 import Link from "next/link";
 import { and, count, desc, eq, ilike } from "drizzle-orm";
-import { db, posts, users, categories } from "@/db";
+import { db, posts, users, categories, userPrefs } from "@/db";
 import { kolomKartu } from "@/lib/kolom";
 import { kecil } from "@/lib/gambar-url";
 import { deletePost } from "@/lib/actions";
@@ -10,9 +10,11 @@ import { canDeletePost, isReviewer, requireUser } from "@/lib/auth";
 import { DeleteButton } from "@/components/DeleteButton";
 import { IkonAdmin } from "@/components/admin/ikon-admin";
 import { PageHeader } from "@/components/admin/PageHeader";
+import { PilihPerHalaman } from "@/components/admin/PilihPerHalaman";
+import { IngatDaftar } from "@/components/admin/IngatDaftar";
+import { simpanPerHalaman } from "@/lib/pref-actions";
 
 export const dynamic = "force-dynamic";
-const PER_HALAMAN = 20;
 const DASAR = "/admin/artikel";
 type Status = "published" | "pending" | "draft";
 const LABEL: Record<Status, string> = { published: "Terbit", pending: "Menunggu", draft: "Draft" };
@@ -29,16 +31,18 @@ export default async function DaftarArtikel({ searchParams }: { searchParams: Pr
   const milik = me.role === "penulis" ? eq(posts.authorId, me.id) : undefined;
   const cocok = q ? ilike(posts.title, `%${q.replace(/[\\%_]/g, "\\$&")}%`) : undefined;
   const d = db();
+  const pref = await d.select({ n: userPrefs.perHalaman }).from(userPrefs).where(eq(userPrefs.userId, me.id)).limit(1).then((r) => r[0]?.n ?? 20).catch(() => 20);
+  const perHalaman = pref === 0 ? 5000 : pref;
   const [rows, hitung, kats] = await Promise.all([
     d.select({ post: kolomKartu, author: users.name }).from(posts)
       .leftJoin(users, eq(posts.authorId, users.id))
       .where(and(milik, cocok, status ? eq(posts.status, status) : undefined))
-      .orderBy(desc(posts.updatedAt)).limit(PER_HALAMAN + 1).offset((hal - 1) * PER_HALAMAN),
+      .orderBy(desc(posts.updatedAt)).limit(perHalaman + 1).offset((hal - 1) * perHalaman),
     d.select({ status: posts.status, n: count() }).from(posts).where(milik).groupBy(posts.status),
     d.select({ id: categories.id, name: categories.name }).from(categories),
   ]);
-  const tampil = rows.slice(0, PER_HALAMAN);
-  const adaLagi = rows.length > PER_HALAMAN;
+  const tampil = rows.slice(0, perHalaman);
+  const adaLagi = rows.length > perHalaman;
   const nama = new Map(kats.map((k) => [k.id, k.name]));
   const jml = (s: Status) => Number(hitung.find((h) => h.status === s)?.n ?? 0);
   const semua = jml("published") + jml("pending") + jml("draft");
@@ -64,8 +68,9 @@ export default async function DaftarArtikel({ searchParams }: { searchParams: Pr
         aksi={<Link href="/admin/artikel/baru" className="a-btn"><IkonAdmin nama="tambah" className="h-4 w-4" /> Artikel Baru</Link>}
       />
 
-      <div className="a-card p-4 md:p-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+      <IngatDaftar />
+      <div className="a-sticky">
+        <div className="a-card flex flex-wrap items-center justify-between gap-3 p-3 md:px-4">
           <div className="a-tab-baris" role="tablist" aria-label="Filter status">
             {tab.map(([label, jumlah, s]) => (
               <Link key={label} href={href({ s })} className="a-tab" aria-current={(status ?? "") === s ? "page" : undefined}>
@@ -73,13 +78,18 @@ export default async function DaftarArtikel({ searchParams }: { searchParams: Pr
               </Link>
             ))}
           </div>
-          <form action={DASAR} className="a-search flex w-full sm:w-72">
-            <IkonAdmin nama="cari" className="h-4 w-4 opacity-60" />
-            {status && <input type="hidden" name="s" value={status} />}
-            <input name="q" type="search" defaultValue={q} placeholder="Cari judul artikel..." aria-label="Cari judul" autoComplete="off" />
-          </form>
+          <div className="flex flex-wrap items-center gap-3">
+            <PilihPerHalaman nilai={pref} kembali={href({})} aksi={simpanPerHalaman} />
+            <form action={DASAR} className="a-search flex w-full sm:w-64">
+              <IkonAdmin nama="cari" className="h-4 w-4 opacity-60" />
+              {status && <input type="hidden" name="s" value={status} />}
+              <input name="q" type="search" defaultValue={q} placeholder="Cari judul artikel..." aria-label="Cari judul" autoComplete="off" />
+            </form>
+          </div>
         </div>
+      </div>
 
+      <div className="a-card mt-3 p-4 md:p-5">
         {tampil.length === 0 ? (
           <p className="a-muted py-12 text-center text-sm">Tidak ada artikel yang cocok.{(q || status) && <> <Link href={DASAR} className="a-link">Reset pencarian</Link></>}</p>
         ) : (

@@ -4,13 +4,14 @@
 body { @apply bg-cream text-charcoal font-sans antialiased; }
 
 html { scroll-padding-top: 6rem; }
-/* PAKET-10B: tema CMS coklat (gelap/terang). Hanya berlaku di dalam .adm */
+/* PAKET-11A: tema CMS coklat (gelap/terang, terang dibuat lebih lembut). Hanya berlaku di dalam .adm */
 @layer components {
   .adm {
-    --a-bg: #f5eee3; --a-card: #ffffff; --a-card2: #faf4ea; --a-line: rgb(74 48 22 / 0.12);
-    --a-text: #2c1d10; --a-muted: #7d6b58; --a-accent: #b9822a; --a-accent2: #8f5f1a; --a-input: #ffffff;
-    --a-shadow: 0 1px 2px rgb(60 36 12 / 0.06), 0 10px 28px -14px rgb(60 36 12 / 0.22);
+    --a-bg: #e7ddcd; --a-card: #f4ede1; --a-card2: #ece2d1; --a-line: rgb(74 48 22 / 0.15);
+    --a-text: #2a1b0f; --a-muted: #735f4a; --a-accent: #99691b; --a-accent2: #7a5212; --a-input: #f8f3ea;
+    --a-shadow: 0 1px 2px rgb(60 36 12 / 0.07), 0 10px 28px -14px rgb(60 36 12 / 0.28);
     background: var(--a-bg); color: var(--a-text); color-scheme: light;
+    font-family: var(--font-cms), var(--font-sans), system-ui, sans-serif;
   }
   .adm.tema-gelap {
     --a-bg: #15100b; --a-card: #1f1710; --a-card2: #2a1e14; --a-line: rgb(255 228 184 / 0.09);
@@ -19,7 +20,7 @@ html { scroll-padding-top: 6rem; }
     color-scheme: dark;
   }
   body:has(.adm.tema-gelap) { background: #15100b; }
-  body:has(.adm.tema-terang) { background: #f5eee3; }
+  body:has(.adm.tema-terang) { background: #e7ddcd; }
 
   /* Bingkai */
   .adm .a-side { background: linear-gradient(180deg, #27180d 0%, #170e07 100%); color: #ecdcc4; border-right: 1px solid rgb(255 228 184 / 0.06); }
@@ -132,4 +133,14 @@ html { scroll-padding-top: 6rem; }
     --tw-prose-links: var(--a-accent); --tw-prose-quotes: var(--a-text); --tw-prose-quote-borders: var(--a-accent);
     --tw-prose-bullets: var(--a-muted); --tw-prose-counters: var(--a-muted); --tw-prose-hr: var(--a-line); --tw-prose-captions: var(--a-muted);
   }
+
+  /* Bilah filter yang menempel di bawah bilah atas saat halaman digulir */
+  .adm .a-sticky { position: sticky; top: 4rem; z-index: 20; margin: 0 -1rem; padding: 0.6rem 1rem; background: color-mix(in srgb, var(--a-bg) 90%, transparent); backdrop-filter: blur(8px); }
+  @media (min-width: 1024px) { .adm .a-sticky { margin: 0 -2rem; padding: 0.6rem 2rem; } }
+
+  /* Gambar dan keterangannya di editor */
+  .adm .editor-kaya figure { margin: 1.25rem 0; }
+  .adm .editor-kaya figure img { max-width: 100%; height: auto; border-radius: 0.75rem; }
+  .adm .editor-kaya figcaption { text-align: center; font-size: 0.85rem; color: var(--a-muted); }
+  .adm .editor-kaya figcaption:has(> br.ProseMirror-trailingBreak:only-child)::before { content: "Tulis keterangan gambar (boleh dikosongkan)"; font-style: italic; opacity: 0.7; position: absolute; }
 }

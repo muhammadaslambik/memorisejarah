@@ -35,7 +35,7 @@ const filter = new FilterXSS({
   },
 });
 
-export const sanitizeHtml = (html: string) => filter.process(html);
+export const sanitizeHtml = (html: string) => filter.process(html).replace(/<figcaption>(?:\s|<br\s*\/?>|&nbsp;)*<\/figcaption>/gi, "");
 
 // URL gambar sampul: hanya http(s)
 export const safeCoverUrl = (v: string) => (/^https?:\/\//i.test(v.trim()) ? v.trim() : null);

@@ -1,4 +1,4 @@
-// PAKET-10A: editor teks (WYSIWYG): yang Anda lihat adalah hasilnya, tanpa kode.
+// PAKET-11A: editor teks (WYSIWYG). Gambar dikecilkan di perangkat sebelum diunggah (lebih cepat), keterangan gambar diketik langsung.
 // Pintasan: Ctrl+B tebal, Ctrl+I miring, Ctrl+U garis bawah, Ctrl+K tautan, Ctrl+Z urungkan, Ctrl+Y ulangi.
 "use client";
 import { useRef, useState } from "react";
@@ -28,9 +28,32 @@ function Tombol(p: { judul: string; aktif?: boolean; disabled?: boolean; onClick
 }
 const Pemisah = () => <span className="mx-1 h-5 w-px bg-black/15" aria-hidden="true" />;
 
+// Mengecilkan gambar besar di perangkat pengguna (bukan di server): maksimal 2000 px, format WebP. GIF dibiarkan agar tetap bergerak.
+async function perkecil(file: File): Promise<File> {
+  if (!/^image\/(jpeg|png|webp)$/.test(file.type)) return file;
+  const bmp = await createImageBitmap(file).catch(() => null);
+  if (!bmp) return file;
+  const skala = Math.min(1, 2000 / Math.max(bmp.width, bmp.height));
+  if (skala === 1 && file.size < 900_000) { bmp.close(); return file; }
+  const w = Math.round(bmp.width * skala);
+  const h = Math.round(bmp.height * skala);
+  const kanvas = document.createElement("canvas");
+  kanvas.width = w;
+  kanvas.height = h;
+  const ctx = kanvas.getContext("2d");
+  if (!ctx) { bmp.close(); return file; }
+  ctx.drawImage(bmp, 0, 0, w, h);
+  bmp.close();
+  const blob = await new Promise<Blob | null>((r) => kanvas.toBlob(r, "image/webp", 0.82));
+  if (!blob || blob.type !== "image/webp" || blob.size >= file.size) return file;
+  return new File([blob], file.name.replace(/\.\w+$/, "") + ".webp", { type: "image/webp" });
+}
+const kb = (n: number) => (n > 1_000_000 ? `${(n / 1_000_000).toFixed(1)} MB` : `${Math.round(n / 1000)} KB`);
+
 export function Editor({ initial, name = "content", catatanKaki = false, tinggi = 300 }: Props) {
   const [html, setHtml] = useState(initial);
   const [pesan, setPesan] = useState("");
+  const [sibuk, setSibuk] = useState(false);
   const berkas = useRef<HTMLInputElement>(null);
   const aksiTautan = useRef<() => void>(() => {});
   const editor = useEditor({
@@ -50,18 +73,25 @@ export function Editor({ initial, name = "content", catatanKaki = false, tinggi 
   const ya = (nama: string, attrs?: Record<string, unknown>) => !!editor?.isActive(nama, attrs);
   const rata = (a: string) => !!editor?.isActive({ textAlign: a });
 
+  // Gambar disisipkan dengan kolom keterangan kosong di bawahnya: klik di sana untuk mengetik (kosong = tidak ditampilkan)
   const sisipGambar = (src: string) => {
-    const ket = (window.prompt("Keterangan gambar (boleh dikosongkan)") ?? "").trim();
-    const isi: object[] = [{ type: "image", attrs: { src, alt: ket } }];
-    if (ket) isi.push({ type: "figcaption", content: [{ type: "text", text: ket }] });
-    c()?.insertContent({ type: "figure", content: isi }).run();
+    c()?.insertContent({ type: "figure", content: [{ type: "image", attrs: { src, alt: "" } }, { type: "figcaption" }] }).run();
   };
   const unggah = async (f: File) => {
-    setPesan("Mengunggah gambar...");
-    const fd = new FormData();
-    fd.set("berkas", f);
-    const r = await unggahGambarArtikel(fd);
-    if ("url" in r) { setPesan(""); sisipGambar(r.url); } else setPesan(r.galat);
+    setSibuk(true);
+    try {
+      setPesan("Mengecilkan gambar...");
+      const kecil = await perkecil(f);
+      setPesan(`Mengunggah gambar (${kb(kecil.size)})...`);
+      const fd = new FormData();
+      fd.set("berkas", kecil);
+      const r = await unggahGambarArtikel(fd);
+      if ("url" in r) { setPesan(""); sisipGambar(r.url); } else setPesan(r.galat);
+    } catch {
+      setPesan("Unggah gagal. Periksa koneksi lalu coba lagi.");
+    } finally {
+      setSibuk(false);
+    }
   };
   const gambarUrl = () => {
     const url = window.prompt("Alamat gambar (https://...)");
@@ -95,7 +125,7 @@ export function Editor({ initial, name = "content", catatanKaki = false, tinggi 
 
   return (
     <div className="editor-kaya">
-      <div className="sticky top-14 z-10 flex flex-wrap items-center gap-0.5 rounded-t-lg border border-b-0 bg-cream-dark p-1.5" role="toolbar" aria-label="Pemformatan teks">
+      <div className="sticky top-16 z-10 flex flex-wrap items-center gap-0.5 rounded-t-lg border border-b-0 bg-cream-dark p-1.5" role="toolbar" aria-label="Pemformatan teks">
         <select
           aria-label="Gaya paragraf"
           value={gaya}
@@ -135,7 +165,7 @@ export function Editor({ initial, name = "content", catatanKaki = false, tinggi 
         </Tombol>
         <Pemisah />
         <Tombol judul="Tautan (Ctrl+K)" aktif={ya("link")} lebar onClick={() => aksiTautan.current()}>Tautan</Tombol>
-        <Tombol judul="Unggah gambar dari perangkat" lebar onClick={() => berkas.current?.click()}>Gambar</Tombol>
+        <Tombol judul="Unggah gambar dari perangkat (otomatis dikecilkan)" lebar disabled={sibuk} onClick={() => berkas.current?.click()}>{sibuk ? "Memproses..." : "Gambar"}</Tombol>
         <Tombol judul="Sisipkan gambar dari alamat https" lebar onClick={gambarUrl}>Gambar (URL)</Tombol>
         <Tombol judul="Garis pemisah" lebar onClick={() => c()?.setHorizontalRule().run()}>&mdash;</Tombol>
         {catatanKaki && <Tombol judul="Sisipkan catatan kaki" lebar onClick={sisipCatatanKaki}>Catatan kaki</Tombol>}
@@ -151,7 +181,7 @@ export function Editor({ initial, name = "content", catatanKaki = false, tinggi 
           onChange={(e) => { const f = e.target.files?.[0]; if (f) unggah(f); e.target.value = ""; }}
         />
       </div>
-      {pesan && <p className="border border-b-0 bg-amber-50 px-3 py-1.5 text-sm text-amber-900">{pesan}</p>}
+      {pesan && <p className="border border-b-0 bg-amber-50 px-3 py-1.5 text-sm text-amber-900" role="status">{pesan}</p>}
       <EditorContent editor={editor} />
       <input type="hidden" name={name} value={html} />
     </div>

@@ -1,4 +1,5 @@
 import { sanitizeHtml } from "@/lib/sanitize";
+import { optimalkanGambar } from "@/lib/gambar-optimal";
 import { notFound } from "next/navigation";
 import { and, eq, ne } from "drizzle-orm";
 import { db, posts } from "@/db";
@@ -37,7 +38,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
       <p className="mt-3 text-sm text-ms-gold">{p.publishedAt?.toLocaleDateString("id-ID", { dateStyle: "long", timeZone: "Asia/Jakarta" })}</p>
       {p.coverUrl && <img src={p.coverUrl} alt="" className="mt-8 w-full rounded-lg" />}
       <div className="prose prose-lg prose-invert mt-8 max-w-none prose-headings:font-serif prose-a:text-ms-gold prose-img:rounded-xl prose-figcaption:text-center prose-figcaption:text-ms-cream/60"
-        dangerouslySetInnerHTML={{ __html: sanitizeHtml(p.content) }} />
+        dangerouslySetInnerHTML={{ __html: optimalkanGambar(sanitizeHtml(p.content)) }} />
       <div className="mt-10 flex gap-3 border-t border-ms-line pt-6 text-sm">
         <span>Bagikan:</span>
         {share.map(([n, h]) => <a key={n} href={h} target="_blank" rel="noopener" className="text-ms-gold underline">{n}</a>)}

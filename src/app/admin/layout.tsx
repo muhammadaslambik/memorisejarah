@@ -2,6 +2,7 @@
 // Halaman masuk (belum login) tetap memakai bingkai lama.
 import Link from "next/link";
 import { cookies } from "next/headers";
+import { Manrope } from "next/font/google";
 import { count, eq } from "drizzle-orm";
 import { db, posts } from "@/db";
 import { getCurrentUser, isReviewer, ROLE_LABEL, type Role } from "@/lib/auth";
@@ -10,6 +11,8 @@ import { PanelShell } from "@/components/layout/PanelShell";
 import { AdminNav, type Grup } from "@/components/admin/AdminNav";
 import { IkonAdmin } from "@/components/admin/ikon-admin";
 import { TombolTema } from "@/components/admin/TombolTema";
+
+const cms = Manrope({ subsets: ["latin"], variable: "--font-cms" });
 
 const hitungMenunggu = async () => {
   try {
@@ -62,7 +65,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   ];
 
   return (
-    <div className={`adm ${tema} min-h-screen`}>
+    <div className={`adm ${cms.variable} ${tema} min-h-screen`}>
       <input type="checkbox" id="adm-menu" className="peer hidden" aria-hidden="true" />
       <label htmlFor="adm-menu" className="a-scrim peer-checked:opacity-100 peer-checked:pointer-events-auto" aria-hidden="true" />
 

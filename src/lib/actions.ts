@@ -7,6 +7,7 @@ import { canDeletePost, canEditPost, createSession, isReviewer, needsApproval, r
 import { safeCoverUrl, sanitizeHtml } from "./sanitize";
 import { kategoriUtama, simpanKategori } from "./post-kategori";
 import { clearFailures, clientIp, isLocked, recordFailure } from "./ratelimit";
+import { bersihkanYatim, urlIKDalam } from "./imagekit";
 
 const slugify = (s: string) =>
   s.toLowerCase().normalize("NFKD").replace(/[^\w\s-]/g, "").trim()
@@ -84,7 +85,14 @@ export async function savePost(fd: FormData) {
     // Tanggal terbit hanya diisi sekali (saat pertama terbit); selanjutnya dipertahankan
     ...(published && !old?.publishedAt ? { publishedAt: new Date() } : {}),
   };
-  if (id) { await d.update(posts).set(data).where(eq(posts.id, id)); await simpanKategori(d, id, fd); }
+  if (id) {
+    await d.update(posts).set(data).where(eq(posts.id, id)); await simpanKategori(d, id, fd);
+    // Gambar yang dibuang dari artikel/sampul dihapus dari ImageKit bila tidak dipakai di tempat lain
+    if (old) {
+      const dipakai = new Set([...urlIKDalam(data.content), data.coverUrl?.split("?")[0]]);
+      await bersihkanYatim([...urlIKDalam(old.content), old.coverUrl?.split("?")[0]].filter((u) => u && !dipakai.has(u)));
+    }
+  }
   else { const [baru] = await d.insert(posts).values({ ...data, authorId: s.id }).returning({ id: posts.id }); await simpanKategori(d, baru.id, fd); }
   redirect("/admin/artikel");
 }
@@ -92,7 +100,10 @@ export async function savePost(fd: FormData) {
 export async function deletePost(fd: FormData) {
   const u = await requireUser();
   const id = Number(fd.get("id"));
-  const [p] = await db().select({ authorId: posts.authorId }).from(posts).where(eq(posts.id, id)).limit(1);
-  if (p && canDeletePost(u, p)) await db().delete(posts).where(eq(posts.id, id));
+  const [p] = await db().select({ authorId: posts.authorId, content: posts.content, coverUrl: posts.coverUrl }).from(posts).where(eq(posts.id, id)).limit(1);
+  if (p && canDeletePost(u, p)) {
+    await db().delete(posts).where(eq(posts.id, id));
+    await bersihkanYatim([...urlIKDalam(p.content), p.coverUrl?.split("?")[0]]);
+  }
   redirect("/admin/artikel");
 }

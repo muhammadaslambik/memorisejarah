@@ -22,7 +22,7 @@ export function NavScroll({ children }: { children: React.ReactNode }) {
     <nav
       ref={ref}
       aria-label="Utama"
-      className="hidden min-w-0 flex-1 items-center gap-1 overflow-x-auto lg:flex [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      className="hidden min-w-0 flex-1 items-center gap-1 overflow-x-auto lg:flex [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&>:first-child]:ml-auto [&>:last-child]:mr-auto"
     >
       {children}
     </nav>

@@ -1,5 +1,6 @@
 // PAKET-3A
 import { notFound } from "next/navigation";
+import { tanggalLengkap } from "@/lib/tanggal";
 import { and, desc, eq, ne } from "drizzle-orm";
 import { db, videos } from "@/db";
 import { VideoStrip } from "@/components/home/VideoStrip";
@@ -26,7 +27,7 @@ export default async function VideoPage({ params }: { params: Promise<{ slug: st
     <div className="-mb-16 min-h-[70vh] bg-ms-bg pb-24 text-ms-cream">
       <article className="mx-auto max-w-5xl px-5 pt-12">
         <h1 className="font-serif text-3xl leading-tight md:text-4xl">{v.title}</h1>
-        <p className="mt-3 text-sm text-ms-gold">{v.publishedAt?.toLocaleDateString("id-ID", { dateStyle: "long", timeZone: "Asia/Jakarta" })}</p>
+        <p className="mt-3 text-sm text-ms-gold">{tanggalLengkap(v.publishedAt)}</p>
         <div className="mt-6 aspect-video overflow-hidden rounded-xl border border-ms-line bg-black">
           <iframe
             src={`https://www.youtube-nocookie.com/embed/${v.youtubeId}`}

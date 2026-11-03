@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { canEditPost, isReviewer, needsApproval, requireUser } from "@/lib/auth";
 import { Editor } from "@/components/Editor";
 import { TombolKembali } from "@/components/admin/TombolKembali";
+import { PilihSampul } from "@/components/admin/PilihSampul";
 
 export const dynamic = "force-dynamic";
 
@@ -36,7 +37,7 @@ export default async function EditPost({ params }: { params: Promise<{ id: strin
       <input name="title" defaultValue={p?.title} placeholder="Judul" required className="w-full rounded border p-3 font-serif text-2xl" />
       <input name="slug" defaultValue={p?.slug} placeholder="Slug URL (kosongkan = otomatis dari judul)" className="w-full rounded border p-3 text-sm" />
       <textarea name="excerpt" defaultValue={p?.excerpt} placeholder="Ringkasan singkat" rows={2} className="w-full rounded border p-3" />
-      <input name="coverUrl" defaultValue={p?.coverUrl ?? ""} placeholder="URL gambar sampul (https://...)" className="w-full rounded border p-3" />
+      <PilihSampul defaultUrl={p?.coverUrl ?? ""} />
       <Editor initial={p?.content ?? ""} catatanKaki />
       <div className="flex flex-wrap items-center gap-4">
         <fieldset className="w-full rounded border p-3 text-sm">

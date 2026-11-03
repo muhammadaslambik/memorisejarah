@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import typography from "@tailwindcss/typography";
 // Palet earth tone: charcoal, cream/sepia, gold/bronze
 export default {
   content: ["./src/**/*.{ts,tsx}"],
@@ -8,7 +9,7 @@ export default {
         charcoal: { DEFAULT: "#1f1c19", soft: "#2c2823" },
         cream: { DEFAULT: "#f5efe3", dark: "#e8dec9" },
         gold: { DEFAULT: "#b08d57", dark: "#8a6a3a" },
-        ms: { bg: "#140e08", surface: "#1d140b", line: "#3a2a18", gold: "#d9b26f", cream: "#f3e7d3" },
+        ms: { bg: "rgb(var(--ms-bg) / <alpha-value>)", surface: "rgb(var(--ms-surface) / <alpha-value>)", line: "rgb(var(--ms-line) / <alpha-value>)", gold: "rgb(var(--ms-gold) / <alpha-value>)", cream: "rgb(var(--ms-cream) / <alpha-value>)" },
       },
       fontFamily: {
         serif: ["var(--font-serif)", "Georgia", "serif"],
@@ -16,5 +17,5 @@ export default {
       },
     },
   },
-  plugins: [require("@tailwindcss/typography")],
+  plugins: [typography],
 } satisfies Config;

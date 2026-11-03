@@ -1,10 +1,11 @@
 // PAKET-11A: editor teks (WYSIWYG). Gambar dikecilkan di perangkat sebelum diunggah (lebih cepat), keterangan gambar diketik langsung.
 // Pintasan: Ctrl+B tebal, Ctrl+I miring, Ctrl+U garis bawah, Ctrl+K tautan, Ctrl+Z urungkan, Ctrl+Y ulangi.
 "use client";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import { ekstensiEditor } from "./editor-ekstensi";
 import { unggahGambarArtikel } from "@/lib/unggah-actions";
+import { posisiCatatan, sisipCatatanKaki as sisipNomorCatatan } from "@/lib/catatan-kaki";
 
 type Props = { initial: string; name?: string; catatanKaki?: boolean; tinggi?: number };
 
@@ -29,7 +30,7 @@ function Tombol(p: { judul: string; aktif?: boolean; disabled?: boolean; onClick
 const Pemisah = () => <span className="mx-1 h-5 w-px bg-black/15" aria-hidden="true" />;
 
 // Mengecilkan gambar besar di perangkat pengguna (bukan di server): maksimal 2000 px, format WebP. GIF dibiarkan agar tetap bergerak.
-async function perkecil(file: File): Promise<File> {
+export async function perkecil(file: File): Promise<File> {
   if (!/^image\/(jpeg|png|webp)$/.test(file.type)) return file;
   const bmp = await createImageBitmap(file).catch(() => null);
   if (!bmp) return file;
@@ -48,27 +49,35 @@ async function perkecil(file: File): Promise<File> {
   if (!blob || blob.type !== "image/webp" || blob.size >= file.size) return file;
   return new File([blob], file.name.replace(/\.\w+$/, "") + ".webp", { type: "image/webp" });
 }
-const kb = (n: number) => (n > 1_000_000 ? `${(n / 1_000_000).toFixed(1)} MB` : `${Math.round(n / 1000)} KB`);
+export const kb = (n: number) => (n > 1_000_000 ? `${(n / 1_000_000).toFixed(1)} MB` : `${Math.round(n / 1000)} KB`);
 
 export function Editor({ initial, name = "content", catatanKaki = false, tinggi = 300 }: Props) {
   const [html, setHtml] = useState(initial);
   const [pesan, setPesan] = useState("");
   const [sibuk, setSibuk] = useState(false);
+  const [ejaan, setEjaan] = useState(false);
   const berkas = useRef<HTMLInputElement>(null);
   const aksiTautan = useRef<() => void>(() => {});
+  const aksiCatatan = useRef<() => void>(() => {});
+  const [catatanBaru, setCatatanBaru] = useState<number | null>(null);
   const editor = useEditor({
     extensions: ekstensiEditor,
     content: initial,
     immediatelyRender: false,
     onUpdate: ({ editor }) => setHtml(editor.getHTML()),
     editorProps: {
-      attributes: { class: "prose prose-stone max-w-none rounded-b-lg border bg-white p-4 text-charcoal focus:outline-none", style: `min-height:${tinggi}px` },
+      attributes: { lang: "id", class: "prose prose-stone max-w-none rounded-b-lg border bg-white p-4 text-charcoal focus:outline-none", style: `min-height:${tinggi}px` },
       handleKeyDown: (_v, e) => {
+        if (catatanKaki && (e.ctrlKey || e.metaKey) && e.altKey && e.code === "KeyF") { e.preventDefault(); aksiCatatan.current(); return true; }
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); aksiTautan.current(); return true; }
         return false;
       },
     },
   });
+  // Garis merah ejaan mati secara bawaan; tombol "Ejaan" menyalakannya (mengikuti kamus bahasa di browser)
+  useEffect(() => {
+    try { editor?.view.dom.setAttribute("spellcheck", ejaan ? "true" : "false"); } catch { /* editor belum terpasang */ }
+  }, [editor, ejaan]);
   const c = () => editor?.chain().focus();
   const ya = (nama: string, attrs?: Record<string, unknown>) => !!editor?.isActive(nama, attrs);
   const rata = (a: string) => !!editor?.isActive({ textAlign: a });
@@ -107,25 +116,25 @@ export function Editor({ initial, name = "content", catatanKaki = false, tinggi 
   };
   const sisipCatatanKaki = () => {
     if (!editor) return;
-    const re = /id="_ftn(?:ref)?(\d+)"/g;
-    const src = editor.getHTML();
-    let n = 0;
-    let m: RegExpExecArray | null;
-    while ((m = re.exec(src))) n = Math.max(n, Number(m[1]));
-    n += 1;
-    editor.chain().focus().insertContent({ type: "text", text: `[${n}]`, marks: [{ type: "link", attrs: { href: `#_ftn${n}`, id: `_ftnref${n}` } }] }).run();
-    editor.chain().insertContentAt(editor.state.doc.content.size, {
-      type: "paragraph",
-      content: [{ type: "text", text: `[${n}]`, marks: [{ type: "link", attrs: { href: `#_ftnref${n}`, id: `_ftn${n}` } }] }, { type: "text", text: " " }],
-    }).run();
-    setPesan(`Catatan kaki [${n}] disisipkan. Isi teks catatannya pada baris [${n}] di akhir artikel.`);
+    const h = sisipNomorCatatan(editor.state);
+    if (!h) { setPesan("Letakkan kursor di dalam teks artikel dulu, lalu sisipkan catatan kaki."); return; }
+    editor.view.dispatch(h.tr);
+    editor.view.focus();
+    setPesan("");
+    setCatatanBaru(h.nomor);
+  };
+  aksiCatatan.current = sisipCatatanKaki;
+  const lompatCatatan = () => {
+    if (!editor || catatanBaru === null) return;
+    const pos = posisiCatatan(editor.state, catatanBaru);
+    if (pos !== null) editor.chain().focus().setTextSelection(pos).scrollIntoView().run();
   };
 
   const gaya = ya("heading", { level: 2 }) ? "2" : ya("heading", { level: 3 }) ? "3" : ya("heading", { level: 4 }) ? "4" : "p";
 
   return (
     <div className="editor-kaya">
-      <div className="sticky top-16 z-10 flex flex-wrap items-center gap-0.5 rounded-t-lg border border-b-0 bg-cream-dark p-1.5" role="toolbar" aria-label="Pemformatan teks">
+      <div className="sticky top-[var(--adm-lengket,4rem)] z-10 flex flex-wrap items-center gap-0.5 rounded-t-lg border border-b-0 bg-cream-dark p-1.5" role="toolbar" aria-label="Pemformatan teks">
         <select
           aria-label="Gaya paragraf"
           value={gaya}
@@ -168,11 +177,12 @@ export function Editor({ initial, name = "content", catatanKaki = false, tinggi 
         <Tombol judul="Unggah gambar dari perangkat (otomatis dikecilkan)" lebar disabled={sibuk} onClick={() => berkas.current?.click()}>{sibuk ? "Memproses..." : "Gambar"}</Tombol>
         <Tombol judul="Sisipkan gambar dari alamat https" lebar onClick={gambarUrl}>Gambar (URL)</Tombol>
         <Tombol judul="Garis pemisah" lebar onClick={() => c()?.setHorizontalRule().run()}>&mdash;</Tombol>
-        {catatanKaki && <Tombol judul="Sisipkan catatan kaki" lebar onClick={sisipCatatanKaki}>Catatan kaki</Tombol>}
+        {catatanKaki && <Tombol judul="Sisipkan catatan kaki (Ctrl+Alt+F)" lebar onClick={sisipCatatanKaki}>Catatan kaki</Tombol>}
         <Pemisah />
         <Tombol judul="Urungkan (Ctrl+Z)" disabled={!editor?.can().undo()} onClick={() => c()?.undo().run()}>&#8630;</Tombol>
         <Tombol judul="Ulangi (Ctrl+Y)" disabled={!editor?.can().redo()} onClick={() => c()?.redo().run()}>&#8631;</Tombol>
         <Tombol judul="Hapus semua pemformatan" lebar onClick={() => c()?.unsetAllMarks().clearNodes().run()}>Bersihkan</Tombol>
+        <Tombol judul="Nyalakan/matikan garis merah pemeriksa ejaan browser" aktif={ejaan} lebar onClick={() => setEjaan(!ejaan)}>Ejaan</Tombol>
         <input
           ref={berkas}
           type="file"
@@ -182,6 +192,13 @@ export function Editor({ initial, name = "content", catatanKaki = false, tinggi 
         />
       </div>
       {pesan && <p className="border border-b-0 bg-amber-50 px-3 py-1.5 text-sm text-amber-900" role="status">{pesan}</p>}
+      {catatanBaru !== null && (
+        <p className="border border-b-0 bg-amber-50 px-3 py-1.5 text-sm text-amber-900" role="status">
+          Catatan kaki [{catatanBaru}] disisipkan; nomor catatan lain sudah diurutkan ulang dari atas ke bawah.{" "}
+          <button type="button" onClick={lompatCatatan} className="font-semibold underline">Ke catatan [{catatanBaru}]</button>
+          <button type="button" onClick={() => setCatatanBaru(null)} className="ml-3 opacity-60">Tutup</button>
+        </p>
+      )}
       <EditorContent editor={editor} />
       <input type="hidden" name={name} value={html} />
     </div>

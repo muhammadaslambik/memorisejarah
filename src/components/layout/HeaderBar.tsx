@@ -4,6 +4,8 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { TombolTemaSitus } from "./TombolTemaSitus";
+import { TombolBahasa } from "./TombolBahasa";
 
 const tombolIkon =
   "grid h-10 w-10 shrink-0 place-items-center rounded-full text-ms-cream/80 transition hover:bg-white/5 hover:text-ms-gold focus-visible:outline focus-visible:outline-2 focus-visible:outline-ms-gold";
@@ -72,6 +74,8 @@ export function HeaderBar({ children }: { children: React.ReactNode }) {
         <button data-tombol-cari type="button" aria-label="Cari" aria-expanded={buka} onClick={() => setBuka(!buka)} className={tombolIkon}>
           <svg {...svg} className="h-5 w-5" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
         </button>
+        <TombolTemaSitus className={tombolIkon} />
+        <TombolBahasa className={tombolIkon} />
         <Link href="/admin" aria-label="Masuk" title="Masuk" className={tombolIkon}>
           <svg {...svg} className="h-5 w-5" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" /></svg>
         </Link>

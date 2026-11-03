@@ -5,6 +5,7 @@ import { and, eq, ne } from "drizzle-orm";
 import { db, images } from "@/db";
 import { requireReviewer } from "./auth";
 import { unggahKeImageKit } from "./gambar-simpan";
+import { bersihkanYatim } from "./imagekit";
 
 const slugify = (s: string) =>
   s.toLowerCase().normalize("NFKD").replace(/[^\w\s-]/g, "").trim()
@@ -67,12 +68,18 @@ export async function saveGambar(fd: FormData) {
   } as const;
   if (id) await d.update(images).set(data).where(eq(images.id, id));
   else await d.insert(images).values(data);
+  // Gambar diganti: berkas lama di ImageKit dihapus bila tidak dipakai di tempat lain
+  if (old && old.url !== url) await bersihkanYatim([old.url]);
   redirect("/admin/gambar?ok=simpan");
 }
 
 export async function deleteGambar(fd: FormData) {
   await requireReviewer();
   const id = Number(fd.get("id"));
-  if (id) await db().delete(images).where(eq(images.id, id));
+  if (id) {
+    const [g] = await db().select({ url: images.url }).from(images).where(eq(images.id, id)).limit(1);
+    await db().delete(images).where(eq(images.id, id));
+    if (g) await bersihkanYatim([g.url]);
+  }
   redirect("/admin/gambar?ok=hapus");
 }

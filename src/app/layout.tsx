@@ -10,9 +10,13 @@ export const metadata: Metadata = {
   description: "Menelusuri jejak masa lalu, merawat ingatan bangsa.",
 };
 
+// PAKET-12C: menerapkan pilihan mode gelap/terang sebelum halaman tampil (tanpa berkedip)
+const SKRIP_TEMA = `try{if(localStorage.getItem("ms-tema")==="terang")document.documentElement.dataset.tema="terang"}catch(e){}`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="id" className={`${serif.variable} ${sans.variable}`}>
+    <html lang="id" className={`${serif.variable} ${sans.variable}`} suppressHydrationWarning>
+      <head><script dangerouslySetInnerHTML={{ __html: SKRIP_TEMA }} /></head>
       <body suppressHydrationWarning>{children}</body>
     </html>
   );

@@ -17,8 +17,8 @@ export async function Header() {
       <div className="mx-auto flex max-w-[90rem] items-center gap-3 px-6 py-3 md:px-10 lg:px-16">
         <Link href="/" aria-label="Memori Sejarah, beranda" className="shrink-0"><Logo /></Link>
         <HeaderBar>
-          <Link href="/" className={`${biasa} hidden lg:block`}>Beranda</Link>
           <NavScroll>
+            <Link href="/" className={biasa}>Beranda</Link>
             <NavDropdown label="Artikel" href="/artikel">
               <Link href="/artikel" className={navSub}>Semua Artikel</Link>
               {cats.map((c) => <Link key={c.id} href={`/kategori/${c.slug}`} className={navSub}>{c.name}</Link>)}

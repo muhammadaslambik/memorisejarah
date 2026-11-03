@@ -144,3 +144,37 @@ html { scroll-padding-top: 6rem; }
   .adm .editor-kaya figcaption { text-align: center; font-size: 0.85rem; color: var(--a-muted); }
   .adm .editor-kaya figcaption:has(> br.ProseMirror-trailingBreak:only-child)::before { content: "Tulis keterangan gambar (boleh dikosongkan)"; font-style: italic; opacity: 0.7; position: absolute; }
 }
+
+/* PAKET-12C: palet situs publik lewat variabel warna (R G B) agar bisa gelap/terang.
+   Bawaan = gelap (sama seperti sebelumnya). Mode terang dibuat hangat dan redup (bukan putih murni) agar nyaman di mata. */
+:root {
+  --ms-bg: 20 14 8; --ms-surface: 29 20 11; --ms-line: 58 42 24; --ms-gold: 217 178 111; --ms-cream: 243 231 211;
+}
+html[data-tema="terang"] {
+  --ms-bg: 235 226 208; --ms-surface: 244 237 223; --ms-line: 205 189 159; --ms-gold: 138 90 18; --ms-cream: 43 29 16;
+  color-scheme: light;
+}
+/* Blok berlatar gradien berwarna tetap memakai palet gelap agar teksnya terbaca */
+html[data-tema="terang"] .bg-gradient-to-br,
+html[data-tema="terang"] .bg-gradient-to-r {
+  --ms-bg: 20 14 8; --ms-surface: 29 20 11; --ms-line: 58 42 24; --ms-gold: 217 178 111; --ms-cream: 243 231 211;
+  color: rgb(243 231 211);
+}
+html[data-tema="terang"] [class~="hover:bg-white/5"]:hover { background-color: rgb(0 0 0 / 0.06); }
+html[data-tema="terang"] .prose-invert {
+  --tw-prose-body: rgb(var(--ms-cream) / 0.88); --tw-prose-headings: rgb(var(--ms-cream)); --tw-prose-lead: rgb(var(--ms-cream) / 0.8);
+  --tw-prose-links: rgb(var(--ms-gold)); --tw-prose-bold: rgb(var(--ms-cream)); --tw-prose-counters: rgb(var(--ms-cream) / 0.6);
+  --tw-prose-bullets: rgb(var(--ms-cream) / 0.5); --tw-prose-hr: rgb(var(--ms-line)); --tw-prose-quotes: rgb(var(--ms-cream));
+  --tw-prose-quote-borders: rgb(var(--ms-gold)); --tw-prose-captions: rgb(var(--ms-cream) / 0.65); --tw-prose-code: rgb(var(--ms-cream));
+  --tw-prose-pre-code: rgb(var(--ms-cream)); --tw-prose-pre-bg: rgb(var(--ms-surface));
+  --tw-prose-th-borders: rgb(var(--ms-line)); --tw-prose-td-borders: rgb(var(--ms-line));
+}
+/* Ikon tombol tema: matahari di mode gelap, bulan di mode terang */
+.ms-ikon-bulan { display: none; }
+html[data-tema="terang"] .ms-ikon-matahari { display: none; }
+html[data-tema="terang"] .ms-ikon-bulan { display: block; }
+/* Google Translate: sembunyikan bilah dan tooltip bawaannya */
+body { top: 0 !important; }
+.goog-te-banner-frame, iframe.skiptranslate, .skiptranslate > iframe, iframe.VIpgJd-ZVi9od-ORHb-OEVmcd { display: none !important; }
+#goog-gt-tt, .goog-tooltip, .goog-te-balloon-frame { display: none !important; }
+.goog-text-highlight { background: none !important; box-shadow: none !important; }

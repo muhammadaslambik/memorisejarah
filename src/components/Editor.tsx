@@ -1,13 +1,13 @@
 // PAKET-11A: editor teks (WYSIWYG). Gambar dikecilkan di perangkat sebelum diunggah (lebih cepat), keterangan gambar diketik langsung.
 // Pintasan: Ctrl+B tebal, Ctrl+I miring, Ctrl+U garis bawah, Ctrl+K tautan, Ctrl+Z urungkan, Ctrl+Y ulangi.
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import { ekstensiEditor } from "./editor-ekstensi";
 import { unggahGambarArtikel } from "@/lib/unggah-actions";
 import { posisiCatatan, sisipCatatanKaki as sisipNomorCatatan } from "@/lib/catatan-kaki";
 
-type Props = { initial: string; name?: string; catatanKaki?: boolean; tinggi?: number };
+type Props = { initial: string; name?: string; catatanKaki?: boolean; tinggi?: number; awal?: ReactNode };
 
 const garis = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round" } as const;
 
@@ -51,7 +51,7 @@ export async function perkecil(file: File): Promise<File> {
 }
 export const kb = (n: number) => (n > 1_000_000 ? `${(n / 1_000_000).toFixed(1)} MB` : `${Math.round(n / 1000)} KB`);
 
-export function Editor({ initial, name = "content", catatanKaki = false, tinggi = 300 }: Props) {
+export function Editor({ initial, name = "content", catatanKaki = false, tinggi = 300, awal }: Props) {
   const [html, setHtml] = useState(initial);
   const [pesan, setPesan] = useState("");
   const [sibuk, setSibuk] = useState(false);
@@ -135,6 +135,8 @@ export function Editor({ initial, name = "content", catatanKaki = false, tinggi 
   return (
     <div className="editor-kaya">
       <div className="sticky top-[var(--adm-lengket,4rem)] z-10 flex flex-wrap items-center gap-0.5 rounded-t-lg border border-b-0 bg-cream-dark p-1.5" role="toolbar" aria-label="Pemformatan teks">
+        {awal}
+        {awal && <span className="mx-1 h-5 w-px bg-black/15" aria-hidden="true" />}
         <select
           aria-label="Gaya paragraf"
           value={gaya}

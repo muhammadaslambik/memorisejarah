@@ -8,6 +8,7 @@ import { TIM, namaTim } from "@/lib/redaksi";
 import { penyimpananSiap } from "@/lib/gambar-simpan";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { PilihSumberGambar } from "@/components/admin/PilihSumberGambar";
+import { Editor } from "@/components/Editor";
 import { Avatar } from "@/components/content/Avatar";
 
 export const dynamic = "force-dynamic";
@@ -63,6 +64,12 @@ export default async function AdminRedaksi({ searchParams }: { searchParams: Pro
 
         <PilihSumberGambar key={`foto-${m?.id ?? "baru"}`} defaultUrl={m?.fotoUrl ?? ""} baru={false} siap={penyimpananSiap()} />
         {m?.fotoUrl && <Avatar nama={m.name} url={m.fotoUrl} ukuran={96} />}
+
+        <div className="block text-sm">
+          <p>Biografi lengkap (tampil saat pengunjung menekan tombol "Lihat Biografi")</p>
+          <p className="mb-1 text-xs text-charcoal/60">Boleh berisi data umum, pendidikan, organisasi, karya, dan kontak. Tampilkan hanya data yang disetujui anggota yang bersangkutan.</p>
+          <Editor key={`biolengkap-${m?.id ?? "baru"}`} name="bioLengkap" initial={m?.bioLengkap ?? ""} tinggi={260} />
+        </div>
 
         <label className="block text-sm">Bidang penelitian atau keahlian
           <input name="bidang" maxLength={300} defaultValue={m?.bidang} className={input} />
@@ -148,7 +155,7 @@ export default async function AdminRedaksi({ searchParams }: { searchParams: Pro
                 </div>
               </div>
               <div className="flex shrink-0 items-center gap-4">
-                {x.aktif && <Link href={`/tentang/redaksi/${x.slug}`} className="text-sm text-charcoal/60 hover:text-gold-dark">Lihat</Link>}
+                {x.aktif && <Link href={`/${x.slug}`} className="text-sm text-charcoal/60 hover:text-gold-dark">Lihat</Link>}
                 {me.role === "admin" && (<form action={deleteRedaksi}>
                   <input type="hidden" name="id" value={x.id} />
                   <ConfirmButton pesan={`Hapus anggota "${x.name}"?`} />

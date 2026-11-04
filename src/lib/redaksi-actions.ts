@@ -5,6 +5,7 @@ import { and, eq, ne } from "drizzle-orm";
 import { db, redaksi, redaksiTim } from "@/db";
 import { requireAdmin, requireReviewer } from "./auth";
 import { unggahKeImageKit } from "./gambar-simpan";
+import { sanitizeHtml } from "./sanitize";
 import { TIM, slugify, tautanHttps, tautanInstagram, waDigits } from "./redaksi";
 
 export async function saveRedaksi(fd: FormData) {
@@ -54,6 +55,7 @@ export async function saveRedaksi(fd: FormData) {
     urutan: Math.max(0, Math.min(9999, Math.round(Number(fd.get("urutan")) || 0))),
     bidang: s("bidang", 300),
     bio: s("bio", 4000),
+    bioLengkap: ((h) => (h.replace(/<[^>]*>/g, "").trim() ? h : ""))(sanitizeHtml(String(fd.get("bioLengkap") ?? "").slice(0, 60000))),
     fotoUrl,
     domisili: s("domisili", 120),
     email,

@@ -115,6 +115,7 @@ export const redaksi = pgTable("redaksi", {
   urutan: integer("urutan").default(0).notNull(),
   bidang: text("bidang").default("").notNull(),
   bio: text("bio").default("").notNull(),
+  bioLengkap: text("bio_lengkap").default("").notNull(), // HTML biografi lengkap (tombol "Lihat Biografi")
   fotoUrl: text("foto_url"),
   domisili: text("domisili").default("").notNull(),
   email: text("email").default("").notNull(),

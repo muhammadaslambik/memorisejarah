@@ -23,7 +23,7 @@ export default async function Redaksi() {
   const sudahDiTim = new Set(relasi.map((r) => r.memberId));
   const lain = anggota.filter((a) => !a.pemimpin && !sudahDiTim.has(a.id));
   const nama = (a: { slug: string; name: string }) => (
-    <Link href={`/tentang/redaksi/${a.slug}`} className="underline-offset-4 hover:text-ms-gold hover:underline">{a.name}</Link>
+    <Link href={`/${a.slug}`} className="underline-offset-4 hover:text-ms-gold hover:underline">{a.name}</Link>
   );
 
   return (

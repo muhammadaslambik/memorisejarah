@@ -2,6 +2,7 @@
 // Hanya berkas di folder /memori-sejarah yang pernah disentuh; alamat gambar lain dibiarkan.
 import { sql } from "drizzle-orm";
 import { db } from "@/db";
+import { hapusCatatan, idBerkasDB } from "./galeri";
 
 const API = "https://api.imagekit.io/v1";
 const FOLDER = "/memori-sejarah";
@@ -84,9 +85,11 @@ export async function hapusBerkasIK(url: string): Promise<boolean> {
   const jalur = jalurIK(url);
   if (!a || !jalur) return false;
   try {
-    const id = await cariIdBerkas(a, jalur);
+    const id = (await idBerkasDB(url)) ?? (await cariIdBerkas(a, jalur));
     if (!id) return false;
-    return (await fetch(`${API}/files/${id}`, { method: "DELETE", headers: { Authorization: a } })).ok;
+    const ok = (await fetch(`${API}/files/${id}`, { method: "DELETE", headers: { Authorization: a } })).ok;
+    if (ok) await hapusCatatan(url);
+    return ok;
   } catch {
     return false;
   }
@@ -122,4 +125,32 @@ export async function bersihkanYatim(urls: (string | null | undefined)[]): Promi
       if (!(await masihDipakai(j))) await hapusBerkasIK(u);
     }
   } catch { /* abaikan */ }
+}
+
+// PAKET-13B: rincian pemakaian sebuah gambar (artikel lain yang memakainya) untuk dialog konfirmasi hapus
+export type Pemakaian = { url: string; nama: string; dipakaiDi: { id: number; title: string }[]; lainnya: boolean };
+
+export async function rincianPemakaian(urls: string[], kecualiPostId: number | null): Promise<Pemakaian[]> {
+  const d = db();
+  const hasil: Pemakaian[] = [];
+  for (const url of urls.slice(0, MAKS_HAPUS)) {
+    const jalur = jalurIK(url);
+    if (!jalur) continue;
+    const nama = jalur.split("/").pop() ?? "";
+    const pola = `%${nama.replace(/[%_\\]/g, "\\$&")}%`;
+    const a = await d.execute(sql`select id, title from posts where (content ilike ${pola} or cover_url ilike ${pola}) and id <> ${kecualiPostId ?? 0} order by id limit 6`);
+    const b = await d.execute(sql`select (
+      exists(select 1 from images where url ilike ${pola})
+      or exists(select 1 from redaksi where foto_url ilike ${pola})
+      or exists(select 1 from settings where value ilike ${pola})
+      or exists(select 1 from site_settings where value ilike ${pola})
+    ) as lain`);
+    hasil.push({
+      url,
+      nama,
+      dipakaiDi: (a.rows as { id: number; title: string }[]).map((r) => ({ id: Number(r.id), title: String(r.title) })),
+      lainnya: (b.rows[0] as { lain?: boolean } | undefined)?.lain === true,
+    });
+  }
+  return hasil;
 }

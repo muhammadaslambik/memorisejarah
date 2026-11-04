@@ -87,10 +87,19 @@ export async function savePost(fd: FormData) {
   };
   if (id) {
     await d.update(posts).set(data).where(eq(posts.id, id)); await simpanKategori(d, id, fd);
-    // Gambar yang dibuang dari artikel/sampul dihapus dari ImageKit bila tidak dipakai di tempat lain
+    // Penghapusan permanen di ImageKit hanya atas pilihan eksplisit pengguna (dialog konfirmasi), dan hanya bila gambar tak dipakai di tempat lain
     if (old) {
-      const dipakai = new Set([...urlIKDalam(data.content), data.coverUrl?.split("?")[0]]);
-      await bersihkanYatim([...urlIKDalam(old.content), old.coverUrl?.split("?")[0]].filter((u) => u && !dipakai.has(u)));
+      const dipilih = ((): string[] => {
+        try {
+          const a = JSON.parse(String(fd.get("hapusIK") ?? "[]"));
+          return Array.isArray(a) ? a.filter((x): x is string => typeof x === "string").slice(0, 12) : [];
+        } catch { return []; }
+      })();
+      if (dipilih.length) {
+        const lama = new Set([...urlIKDalam(old.content), old.coverUrl?.split("?")[0]]);
+        const sekarang = new Set([...urlIKDalam(data.content), data.coverUrl?.split("?")[0]]);
+        await bersihkanYatim(dipilih.filter((u) => lama.has(u) && !sekarang.has(u)));
+      }
     }
   }
   else { const [baru] = await d.insert(posts).values({ ...data, authorId: s.id }).returning({ id: posts.id }); await simpanKategori(d, baru.id, fd); }
@@ -103,7 +112,7 @@ export async function deletePost(fd: FormData) {
   const [p] = await db().select({ authorId: posts.authorId, content: posts.content, coverUrl: posts.coverUrl }).from(posts).where(eq(posts.id, id)).limit(1);
   if (p && canDeletePost(u, p)) {
     await db().delete(posts).where(eq(posts.id, id));
-    await bersihkanYatim([...urlIKDalam(p.content), p.coverUrl?.split("?")[0]]);
+    // Gambar artikel yang dihapus dibiarkan di galeri/ImageKit (aman bagi artikel lain); gambar tak terpakai bisa dirapikan dengan skrip sinkron-galeri
   }
   redirect("/admin/artikel");
 }

@@ -5,6 +5,8 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import { ekstensiEditor } from "./editor-ekstensi";
 import { unggahGambarArtikel } from "@/lib/unggah-actions";
+import { hashBerkas } from "@/lib/gambar-klien";
+import { GaleriGambar } from "@/components/admin/GaleriGambar";
 import { posisiCatatan, sisipCatatanKaki as sisipNomorCatatan } from "@/lib/catatan-kaki";
 
 type Props = { initial: string; name?: string; catatanKaki?: boolean; tinggi?: number; awal?: ReactNode };
@@ -59,6 +61,7 @@ export function Editor({ initial, name = "content", catatanKaki = false, tinggi 
   const berkas = useRef<HTMLInputElement>(null);
   const aksiTautan = useRef<() => void>(() => {});
   const aksiCatatan = useRef<() => void>(() => {});
+  const [galeri, setGaleri] = useState(false);
   const [catatanBaru, setCatatanBaru] = useState<number | null>(null);
   const editor = useEditor({
     extensions: ekstensiEditor,
@@ -90,12 +93,14 @@ export function Editor({ initial, name = "content", catatanKaki = false, tinggi 
     setSibuk(true);
     try {
       setPesan("Mengecilkan gambar...");
+      const hashAsli = await hashBerkas(f);
       const kecil = await perkecil(f);
       setPesan(`Mengunggah gambar (${kb(kecil.size)})...`);
       const fd = new FormData();
       fd.set("berkas", kecil);
+      if (hashAsli) fd.set("hashAsli", hashAsli);
       const r = await unggahGambarArtikel(fd);
-      if ("url" in r) { setPesan(""); sisipGambar(r.url); } else setPesan(r.galat);
+      if ("url" in r) { setPesan(r.dipakaiUlang ? "Gambar yang sama sudah ada di galeri; berkas yang ada dipakai ulang (hemat ruang)." : ""); sisipGambar(r.url); } else setPesan(r.galat);
     } catch {
       setPesan("Unggah gagal. Periksa koneksi lalu coba lagi.");
     } finally {
@@ -178,6 +183,7 @@ export function Editor({ initial, name = "content", catatanKaki = false, tinggi 
         <Tombol judul="Tautan (Ctrl+K)" aktif={ya("link")} lebar onClick={() => aksiTautan.current()}>Tautan</Tombol>
         <Tombol judul="Unggah gambar dari perangkat (otomatis dikecilkan)" lebar disabled={sibuk} onClick={() => berkas.current?.click()}>{sibuk ? "Memproses..." : "Gambar"}</Tombol>
         <Tombol judul="Sisipkan gambar dari alamat https" lebar onClick={gambarUrl}>Gambar (URL)</Tombol>
+        <Tombol judul="Pilih gambar yang sudah ada di galeri" lebar onClick={() => setGaleri(true)}>Galeri</Tombol>
         <Tombol judul="Garis pemisah" lebar onClick={() => c()?.setHorizontalRule().run()}>&mdash;</Tombol>
         {catatanKaki && <Tombol judul="Sisipkan catatan kaki (Ctrl+Alt+F)" lebar onClick={sisipCatatanKaki}>Catatan kaki</Tombol>}
         <Pemisah />
@@ -203,6 +209,7 @@ export function Editor({ initial, name = "content", catatanKaki = false, tinggi 
       )}
       <EditorContent editor={editor} />
       <input type="hidden" name={name} value={html} />
+      {galeri && <GaleriGambar tutup={() => setGaleri(false)} pilih={(u) => { setGaleri(false); sisipGambar(u); }} />}
     </div>
   );
 }

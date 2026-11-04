@@ -140,3 +140,17 @@ export const userPrefs = pgTable("user_prefs", {
   userId: integer("user_id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
   perHalaman: integer("per_halaman").default(20).notNull(),
 });
+
+// PAKET-13B: indeks galeri gambar (alamat ImageKit, fileId, hash isi untuk mencegah gambar kembar)
+export const gambarBerkas = pgTable("gambar_berkas", {
+  id: serial("id").primaryKey(),
+  url: text("url").notNull().unique(),
+  fileId: text("file_id"),
+  nama: text("nama").notNull(),
+  hash: text("hash"),
+  hashAsli: text("hash_asli"),
+  ukuran: integer("ukuran"),
+  lebar: integer("lebar"),
+  tinggi: integer("tinggi"),
+  dibuat: timestamp("dibuat").defaultNow().notNull(),
+});

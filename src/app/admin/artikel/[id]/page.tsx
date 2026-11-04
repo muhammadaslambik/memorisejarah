@@ -6,6 +6,8 @@ import { canEditPost, isReviewer, needsApproval, requireUser } from "@/lib/auth"
 import { Editor } from "@/components/Editor";
 import { TombolKembali } from "@/components/admin/TombolKembali";
 import { PilihSampul } from "@/components/admin/PilihSampul";
+import { PenjagaGambar } from "@/components/admin/PenjagaGambar";
+import { urlIKDalam } from "@/lib/imagekit";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +25,7 @@ export default async function EditPost({ params }: { params: Promise<{ id: strin
       {/* tombol kembali kini berupa ikon di bilah alat editor */}
       <h1 className="font-serif text-3xl">{isNew ? "Artikel Baru" : "Edit Artikel"}</h1>
       {p && <input type="hidden" name="id" value={p.id} />}
+      {p && <PenjagaGambar postId={p.id} awal={[...urlIKDalam(p.content), p.coverUrl?.split("?")[0]].filter((u): u is string => !!u)} />}
       {p?.reviewNote && p.status === "draft" && (
         <p className="rounded border border-amber-300 bg-amber-50 p-3 text-sm">
           <strong>Catatan dari editor:</strong> {p.reviewNote}

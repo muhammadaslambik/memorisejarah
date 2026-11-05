@@ -7,6 +7,8 @@ import { ekstensiEditor } from "./editor-ekstensi";
 import { unggahGambarArtikel } from "@/lib/unggah-actions";
 import { hashBerkas } from "@/lib/gambar-klien";
 import { GaleriGambar } from "@/components/admin/GaleriGambar";
+import { AlatBahasa } from "@/components/admin/AlatBahasa";
+import { cariBahasa } from "@/lib/bahasa";
 import { posisiCatatan, sisipCatatanKaki as sisipNomorCatatan } from "@/lib/catatan-kaki";
 
 type Props = { initial: string; name?: string; catatanKaki?: boolean; tinggi?: number; awal?: ReactNode };
@@ -58,6 +60,7 @@ export function Editor({ initial, name = "content", catatanKaki = false, tinggi 
   const [pesan, setPesan] = useState("");
   const [sibuk, setSibuk] = useState(false);
   const [ejaan, setEjaan] = useState(false);
+  const [bahasa, setBahasa] = useState("id");
   const berkas = useRef<HTMLInputElement>(null);
   const aksiTautan = useRef<() => void>(() => {});
   const aksiCatatan = useRef<() => void>(() => {});
@@ -79,8 +82,12 @@ export function Editor({ initial, name = "content", catatanKaki = false, tinggi 
   });
   // Garis merah ejaan mati secara bawaan; tombol "Ejaan" menyalakannya (mengikuti kamus bahasa di browser)
   useEffect(() => {
-    try { editor?.view.dom.setAttribute("spellcheck", ejaan ? "true" : "false"); } catch { /* editor belum terpasang */ }
-  }, [editor, ejaan]);
+    try {
+      const dom = editor?.view.dom;
+      dom?.setAttribute("spellcheck", ejaan ? "true" : "false");
+      dom?.setAttribute("lang", cariBahasa(bahasa).lang);
+    } catch { /* editor belum terpasang */ }
+  }, [editor, ejaan, bahasa]);
   const c = () => editor?.chain().focus();
   const ya = (nama: string, attrs?: Record<string, unknown>) => !!editor?.isActive(nama, attrs);
   const rata = (a: string) => !!editor?.isActive({ textAlign: a });
@@ -141,7 +148,7 @@ export function Editor({ initial, name = "content", catatanKaki = false, tinggi 
     <div className="editor-kaya">
       <div className="sticky top-[var(--adm-lengket,4rem)] z-10 flex flex-wrap items-center gap-0.5 rounded-t-lg border border-b-0 bg-cream-dark p-1.5" role="toolbar" aria-label="Pemformatan teks">
         {awal}
-        {awal && <span className="mx-1 h-5 w-px bg-black/15" aria-hidden="true" />}
+        {/* pemisah di samping ikon kembali kini digambar oleh komponennya sendiri */}
         <select
           aria-label="Gaya paragraf"
           value={gaya}
@@ -190,7 +197,7 @@ export function Editor({ initial, name = "content", catatanKaki = false, tinggi 
         <Tombol judul="Urungkan (Ctrl+Z)" disabled={!editor?.can().undo()} onClick={() => c()?.undo().run()}>&#8630;</Tombol>
         <Tombol judul="Ulangi (Ctrl+Y)" disabled={!editor?.can().redo()} onClick={() => c()?.redo().run()}>&#8631;</Tombol>
         <Tombol judul="Hapus semua pemformatan" lebar onClick={() => c()?.unsetAllMarks().clearNodes().run()}>Bersihkan</Tombol>
-        <Tombol judul="Nyalakan/matikan garis merah pemeriksa ejaan browser" aktif={ejaan} lebar onClick={() => setEjaan(!ejaan)}>Ejaan</Tombol>
+        <AlatBahasa editor={editor} bahasa={bahasa} setBahasa={setBahasa} ejaan={ejaan} setEjaan={setEjaan} />
         <input
           ref={berkas}
           type="file"

@@ -10,3 +10,5 @@ node_modules
 .DS_Store
 memorisejarah_WordPress_*.xml
 .impor-gambar.json
+paket-*.ps1
+perbaikan-*.ps1

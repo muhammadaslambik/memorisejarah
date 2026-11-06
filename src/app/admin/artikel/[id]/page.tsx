@@ -6,6 +6,7 @@ import { canEditPost, isReviewer, needsApproval, requireUser } from "@/lib/auth"
 import { Editor } from "@/components/Editor";
 import { TombolKembali } from "@/components/admin/TombolKembali";
 import { PilihSampul } from "@/components/admin/PilihSampul";
+import { TerjemahJudul } from "@/components/admin/TerjemahJudul";
 import { PenjagaGambar } from "@/components/admin/PenjagaGambar";
 import { urlIKDalam } from "@/lib/imagekit";
 
@@ -40,6 +41,7 @@ export default async function EditPost({ params }: { params: Promise<{ id: strin
       <input name="title" defaultValue={p?.title} placeholder="Judul" required spellCheck={false} className="w-full rounded border p-3 font-serif text-2xl" />
       <input name="slug" defaultValue={p?.slug} placeholder="Slug URL (kosongkan = otomatis dari judul)" spellCheck={false} className="w-full rounded border p-3 text-sm" />
       <textarea name="excerpt" defaultValue={p?.excerpt} placeholder="Ringkasan singkat" spellCheck={false} rows={2} className="w-full rounded border p-3" />
+      <TerjemahJudul />
       <PilihSampul defaultUrl={p?.coverUrl ?? ""} />
       <Editor initial={p?.content ?? ""} catatanKaki awal={<TombolKembali />} />
       <div className="flex flex-wrap items-center gap-4">

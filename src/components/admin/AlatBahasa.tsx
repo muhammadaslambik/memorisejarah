@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Editor as TipTapEditor } from "@tiptap/react";
 import type { JSONContent } from "@tiptap/core";
 import { BAHASA_CMS, cariBahasa } from "@/lib/bahasa";
-import { terjemahkanDaftar } from "@/lib/terjemah";
+import { namaMesinTerakhir, terjemahkanDaftar } from "@/lib/terjemah";
 import { kumpulkanTeks, terapkanTerjemahan } from "@/lib/terjemah-editor";
 
 type Props = {
@@ -61,14 +61,14 @@ export function AlatBahasa({ editor, bahasa, setBahasa, ejaan, setEjaan }: Props
     setPesan("Menerjemahkan...");
     editor.setEditable(false); // kunci sementara agar posisi teks tidak bergeser
     try {
-      const hasil = await terjemahkanDaftar(potongan.map((p) => p.inti), b.kode, (s, t) => setPesan(`Menerjemahkan... ${s}/${t}`));
+      const hasil = await terjemahkanDaftar(potongan.map((p) => p.inti), b.kode, (s, t) => setPesan(`Menerjemahkan... ${s}/${t}`), aktif ?? "id");
       if ("galat" in hasil) { setPesan(hasil.galat + " Teks tidak diubah."); return; }
       if (!asli.current) asli.current = { json: editor.getJSON(), bahasa };
       const tr = editor.state.tr;
       terapkanTerjemahan(tr, potongan, hasil);
       editor.view.dispatch(tr);
       setAktif(b.kode);
-      setPesan(`Selesai: ${empty ? "seluruh teks" : "bagian terpilih"} diterjemahkan ke ${b.nama}. Gunakan "Kembali ke bahasa asli" untuk membatalkan.`);
+      setPesan(`Selesai: ${empty ? "seluruh teks" : "bagian terpilih"} diterjemahkan ke ${b.nama} (${namaMesinTerakhir()}). Gunakan "Kembali ke bahasa asli" untuk membatalkan.`);
     } catch {
       setPesan("Terjemahan gagal. Teks tidak diubah.");
     } finally {

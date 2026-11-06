@@ -21,7 +21,7 @@ export default async function EditPost({ params }: { params: Promise<{ id: strin
   const cats = await db().select().from(categories).orderBy(categories.name);
   const terpilih = new Set(isNew ? [] : (await db().select({ id: postCategories.categoryId }).from(postCategories).where(eq(postCategories.postId, Number(id)))).map((r) => r.id));
   return (
-    <form action={savePost} className="mx-auto max-w-4xl space-y-4 px-5 py-10">
+    <form action={savePost} className="mx-auto max-w-4xl space-y-4 px-5 pb-10 pt-1">
       {/* tombol kembali kini berupa ikon di bilah alat editor */}
       <h1 className="font-serif text-3xl">{isNew ? "Artikel Baru" : "Edit Artikel"}</h1>
       {p && <input type="hidden" name="id" value={p.id} />}

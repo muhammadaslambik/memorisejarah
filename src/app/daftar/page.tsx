@@ -17,24 +17,24 @@ const errors: Record<string, string> = {
 export default async function Daftar({ searchParams }: { searchParams: Promise<{ error?: string; ok?: string }> }) {
   const { error, ok } = await searchParams;
   const open = await registrationOpen();
-  const input = "w-full rounded border p-2";
+  const input = "w-full rounded border border-ms-line bg-ms-bg p-2 text-ms-cream placeholder:text-ms-cream/40";
   const siteKey = process.env.TURNSTILE_SITE_KEY; // kunci situs Turnstile (publik); kosong = tanpa verifikasi
   return (
-    <div className="mx-auto mt-16 max-w-sm space-y-4 rounded-lg bg-white/70 p-8 shadow">
+    <div className="mx-auto mt-16 max-w-sm space-y-4 rounded-2xl border border-ms-line bg-ms-surface p-8 text-ms-cream shadow-xl">
       <h1 className="font-serif text-2xl">Daftar</h1>
       {ok === "menunggu" && (
-        <p className="rounded bg-green-50 p-3 text-sm text-green-800">
+        <p className="rounded bg-emerald-500/10 p-3 text-sm text-emerald-400">
           Pendaftaran diterima. Akun Admin/Editor baru bisa dipakai setelah disetujui admin.
         </p>
       )}
-      {error && <p className="text-sm text-red-700">{errors[error] ?? "Terjadi kesalahan."}</p>}
+      {error && <p className="text-sm text-rose-400">{errors[error] ?? "Terjadi kesalahan."}</p>}
       {!open ? (
-        <p className="text-sm text-charcoal/70">Pendaftaran sedang ditutup.</p>
+        <p className="text-sm text-ms-cream/70">Pendaftaran sedang ditutup.</p>
       ) : (
         <form action={register} className="space-y-4">
           <input name="name" placeholder="Nama" required maxLength={100} autoComplete="name" className={input} />
           <input name="email" type="email" placeholder="Email" required autoComplete="email" className={input} />
-          <PasswordInput name="password" placeholder="Password (min. 12 karakter)" minLength={12} autoComplete="new-password" className="rounded border p-2" />
+          <PasswordInput name="password" placeholder="Password (min. 12 karakter)" minLength={12} autoComplete="new-password" className="rounded border border-ms-line bg-ms-bg p-2 text-ms-cream placeholder:text-ms-cream/40" />
           <select name="role" defaultValue="penulis" className={input}>
             <option value="penulis">Penulis (langsung aktif; artikel perlu persetujuan)</option>
             <option value="editor">Editor (perlu persetujuan admin)</option>
@@ -47,7 +47,7 @@ export default async function Daftar({ searchParams }: { searchParams: Promise<{
             </>
           )}
           <input name="alamat_web" tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" />
-          <button className="w-full rounded bg-charcoal py-2 text-cream hover:bg-gold-dark">Daftar</button>
+          <button className="w-full rounded bg-ms-gold py-2 font-semibold text-ms-bg hover:opacity-90">Daftar</button>
         </form>
       )}
       <p className="text-center text-sm"><Link href="/admin/login" className="underline">Sudah punya akun? Masuk</Link></p>

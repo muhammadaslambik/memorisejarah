@@ -10,7 +10,7 @@ const whiteList: Record<string, string[]> = {
   ul: [], ol: [], li: [],
   a: ["href", "title", "id"],
   img: ["src", "alt", "title"],
-  figure: ["data-w", "data-rata", "data-tumpuk"], figcaption: [],
+  figure: ["data-w", "data-rata", "data-tumpuk", "data-ar", "data-isi", "data-crop"], figcaption: [],
 };
 
 const SAFE_URL = /^(https?:\/\/|mailto:|\/(?!\/)|#)/i;
@@ -34,13 +34,21 @@ const filter = new FilterXSS({
     if (name === "data-w") { const n = Number(value); return Number.isInteger(n) && n >= 10 && n <= 100 ? String(n) : ""; }
     if (name === "data-rata") return /^(kiri|kanan)$/.test(value) ? value : "";
     if (name === "data-tumpuk") return /^(atas|tengah|bawah)$/.test(value) ? value : "";
+    if (name === "data-ar") { const n = Number(value); return Number.isFinite(n) && n >= 0.2 && n <= 6 ? String(Math.round(n * 1000) / 1000) : ""; }
+    if (name === "data-isi") return value === "regang" ? value : "";
+    if (name === "data-crop") return /^\d{1,3}(\.\d{1,2})?(,\d{1,3}(\.\d{1,2})?){3}$/.test(value) ? value : "";
     return safeAttrValue(tag, name, value, css);
   },
 });
 
 export const sanitizeHtml = (html: string) => filter.process(html).replace(/<figcaption>(?:\s|<br\s*\/?>|&nbsp;)*<\/figcaption>/gi, "")
   // lebar gambar (data-w, sudah divalidasi 10-100) dijadikan gaya lebar saat ditampilkan
-  .replace(/<figure([^>]*?)\sdata-w="(\d{2,3})"([^>]*)>/gi, '<figure$1 data-w="$2"$3 style="width:$2%">');
+  .replace(/<figure\b([^>]*)>/gi, (m, attrs: string) => {
+    const w = /\sdata-w="(\d{2,3})"/.exec(attrs)?.[1];
+    const ar = /\sdata-ar="([\d.]+)"/.exec(attrs)?.[1];
+    const gaya = [w ? `width:${w}%` : "", ar ? `--ar:${ar}` : ""].filter(Boolean).join(";");
+    return gaya ? `<figure${attrs} style="${gaya}">` : m;
+  });
 
 // URL gambar sampul: hanya http(s)
 export const safeCoverUrl = (v: string) => (/^https?:\/\//i.test(v.trim()) ? v.trim() : null);

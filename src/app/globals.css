@@ -201,3 +201,9 @@ figure[data-tumpuk="tengah"] figcaption { top: 50%; transform: translateY(-50%);
 @media (max-width: 640px) {
   figure[data-rata="kiri"], figure[data-rata="kanan"] { float: none; width: 100% !important; margin: 1rem 0; }
 }
+
+/* PAKET-14B: ukuran bebas (lebar dan tinggi bingkai sendiri-sendiri; isi gambar pas atau diregangkan) */
+figure[data-ar] img { aspect-ratio: var(--ar); width: 100%; height: auto; object-fit: cover; }
+figure[data-ar][data-isi="regang"] img { object-fit: fill; }
+.adm .editor-kaya figure[data-ar] img { aspect-ratio: var(--ar); width: 100%; height: auto; object-fit: cover; }
+.adm .editor-kaya figure[data-ar][data-isi="regang"] img { object-fit: fill; }

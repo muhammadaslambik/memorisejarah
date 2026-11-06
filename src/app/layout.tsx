@@ -8,6 +8,7 @@ const sans = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-sans" });
 export const metadata: Metadata = {
   title: { default: "Memori Sejarah", template: "%s | Memori Sejarah" },
   description: "Menelusuri jejak masa lalu, merawat ingatan bangsa.",
+  icons: { icon: "/brand/logo-memori-sejarah-kecil.png", apple: "/brand/logo-memori-sejarah-kecil.png" },
 };
 
 // PAKET-12C: menerapkan pilihan mode gelap/terang sebelum halaman tampil (tanpa berkedip)

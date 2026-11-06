@@ -11,6 +11,7 @@ import { PanelShell } from "@/components/layout/PanelShell";
 import { AdminNav, type Grup } from "@/components/admin/AdminNav";
 import { IkonAdmin } from "@/components/admin/ikon-admin";
 import { TombolTema } from "@/components/admin/TombolTema";
+import { MenuArtikel } from "@/components/admin/MenuArtikel";
 
 const cms = Manrope({ subsets: ["latin"], variable: "--font-cms" });
 
@@ -118,7 +119,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             </details>
           </div>
         </header>
-        <main className="mx-auto max-w-[90rem] px-4 py-6 pb-16 lg:px-8">{children}</main>
+        <main className="mx-auto max-w-[90rem] px-4 py-6 pb-24 lg:px-8">{children}</main>
+        <MenuArtikel />
       </div>
     </div>
   );

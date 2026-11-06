@@ -1,4 +1,4 @@
-// PAKET-13A2: tombol kembali ke daftar artikel berupa ikon.
+// PAKET-14A: tombol kembali ke daftar artikel berupa ikon.
 // Bila ada ruang di samping kolom penulisan, tombol diletakkan DI LUAR kolom, tepat di bawah tombol hamburger,
 // dan menempel saat halaman digulir. Bila layar sempit (tidak ada ruang), tombol tetap di kiri bilah alat editor.
 // Tulisan "Kembali ke daftar artikel" muncul saat kursor diarahkan atau tombol difokuskan (keyboard).
@@ -23,7 +23,9 @@ export function TombolKembali({ label = "Kembali ke daftar artikel" }: { label?:
       const sisi = document.querySelector<HTMLElement>(".a-side")?.getBoundingClientRect();
       const kiri = tampak ? ham!.left : (sisi && sisi.right > 0 ? sisi.right : 0) + 32;
       const atas = Math.max(tampak ? ham!.bottom : 0, 64) + 8; // di bawah bilah atas CMS (tinggi 64 px)
-      const cukup = form.getBoundingClientRect().left - (kiri + LEBAR) >= 12;
+      const gaya = getComputedStyle(form);
+      const isiKiri = form.getBoundingClientRect().left + (parseFloat(gaya.paddingLeft) || 0); // tepi isi formulir
+      const cukup = isiKiri - (kiri + LEBAR) >= 8;
       setLuar((lama) => {
         if (!cukup) return null;
         return lama && Math.abs(lama.kiri - kiri) < 0.5 && Math.abs(lama.atas - atas) < 0.5 ? lama : { kiri, atas };

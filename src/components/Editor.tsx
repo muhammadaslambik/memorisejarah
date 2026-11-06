@@ -8,6 +8,7 @@ import { unggahGambarArtikel } from "@/lib/unggah-actions";
 import { hashBerkas } from "@/lib/gambar-klien";
 import { GaleriGambar } from "@/components/admin/GaleriGambar";
 import { AlatBahasa } from "@/components/admin/AlatBahasa";
+import { ekstensiEditorLengkap } from "@/components/admin/figure-editor";
 import { cariBahasa } from "@/lib/bahasa";
 import { posisiCatatan, sisipCatatanKaki as sisipNomorCatatan } from "@/lib/catatan-kaki";
 
@@ -67,7 +68,7 @@ export function Editor({ initial, name = "content", catatanKaki = false, tinggi 
   const [galeri, setGaleri] = useState(false);
   const [catatanBaru, setCatatanBaru] = useState<number | null>(null);
   const editor = useEditor({
-    extensions: ekstensiEditor,
+    extensions: ekstensiEditorLengkap,
     content: initial,
     immediatelyRender: false,
     onUpdate: ({ editor }) => setHtml(editor.getHTML()),

@@ -178,3 +178,26 @@ body { top: 0 !important; }
 .goog-te-banner-frame, iframe.skiptranslate, .skiptranslate > iframe, iframe.VIpgJd-ZVi9od-ORHb-OEVmcd { display: none !important; }
 #goog-gt-tt, .goog-tooltip, .goog-te-balloon-frame { display: none !important; }
 .goog-text-highlight { background: none !important; box-shadow: none !important; }
+
+/* PAKET-12E: gambar di artikel (ukuran, rata, teks di atas gambar). Berlaku di halaman publik dan di editor CMS. */
+figure[data-w] { max-width: 100%; margin-left: auto; margin-right: auto; }
+figure[data-w] img { width: 100%; height: auto; }
+figure[data-rata="kiri"] { float: left; margin: 0.25rem 1.5rem 1rem 0; }
+figure[data-rata="kanan"] { float: right; margin: 0.25rem 0 1rem 1.5rem; }
+figure[data-tumpuk] { position: relative; }
+figure[data-tumpuk] figcaption { position: absolute; left: 0; right: 0; margin: 0; padding: 0.75rem 1rem; color: #fff; text-align: center; font-size: 1rem; text-shadow: 0 1px 3px rgba(0,0,0,0.75); border-radius: 0.75rem; }
+figure[data-tumpuk="atas"] figcaption { top: 0; bottom: auto; background: linear-gradient(to bottom, rgba(0,0,0,0.65), transparent); }
+figure[data-tumpuk="bawah"] figcaption { bottom: 0; top: auto; background: linear-gradient(to top, rgba(0,0,0,0.65), transparent); }
+figure[data-tumpuk="tengah"] figcaption { top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.4); }
+.adm .editor-kaya figure[data-w] { max-width: 100%; margin-left: auto; margin-right: auto; }
+.adm .editor-kaya figure[data-w] img { width: 100%; height: auto; }
+.adm .editor-kaya figure[data-rata="kiri"] { float: left; margin: 0.25rem 1.5rem 1rem 0; }
+.adm .editor-kaya figure[data-rata="kanan"] { float: right; margin: 0.25rem 0 1rem 1.5rem; }
+.adm .editor-kaya figure[data-tumpuk] { position: relative; }
+.adm .editor-kaya figure[data-tumpuk] figcaption { position: absolute; left: 0; right: 0; margin: 0; padding: 0.75rem 1rem; color: #fff; text-align: center; font-size: 1rem; text-shadow: 0 1px 3px rgba(0,0,0,0.75); border-radius: 0.75rem; }
+.adm .editor-kaya figure[data-tumpuk="atas"] figcaption { top: 0; bottom: auto; background: linear-gradient(to bottom, rgba(0,0,0,0.65), transparent); }
+.adm .editor-kaya figure[data-tumpuk="bawah"] figcaption { bottom: 0; top: auto; background: linear-gradient(to top, rgba(0,0,0,0.65), transparent); }
+.adm .editor-kaya figure[data-tumpuk="tengah"] figcaption { top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.4); }
+@media (max-width: 640px) {
+  figure[data-rata="kiri"], figure[data-rata="kanan"] { float: none; width: 100% !important; margin: 1rem 0; }
+}

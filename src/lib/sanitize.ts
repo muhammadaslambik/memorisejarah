@@ -10,7 +10,7 @@ const whiteList: Record<string, string[]> = {
   ul: [], ol: [], li: [],
   a: ["href", "title", "id"],
   img: ["src", "alt", "title"],
-  figure: [], figcaption: [],
+  figure: ["data-w", "data-rata", "data-tumpuk"], figcaption: [],
 };
 
 const SAFE_URL = /^(https?:\/\/|mailto:|\/(?!\/)|#)/i;
@@ -31,11 +31,16 @@ const filter = new FilterXSS({
     if (name === "id") return SAFE_ID.test(value) ? escapeAttrValue(value) : "";
     if (name === "class") return /^language-[\w-]+$/.test(value) ? escapeAttrValue(value) : "";
     if (name === "style") return SAFE_STYLE.test(value.trim()) ? value.trim() : "";
+    if (name === "data-w") { const n = Number(value); return Number.isInteger(n) && n >= 10 && n <= 100 ? String(n) : ""; }
+    if (name === "data-rata") return /^(kiri|kanan)$/.test(value) ? value : "";
+    if (name === "data-tumpuk") return /^(atas|tengah|bawah)$/.test(value) ? value : "";
     return safeAttrValue(tag, name, value, css);
   },
 });
 
-export const sanitizeHtml = (html: string) => filter.process(html).replace(/<figcaption>(?:\s|<br\s*\/?>|&nbsp;)*<\/figcaption>/gi, "");
+export const sanitizeHtml = (html: string) => filter.process(html).replace(/<figcaption>(?:\s|<br\s*\/?>|&nbsp;)*<\/figcaption>/gi, "")
+  // lebar gambar (data-w, sudah divalidasi 10-100) dijadikan gaya lebar saat ditampilkan
+  .replace(/<figure([^>]*?)\sdata-w="(\d{2,3})"([^>]*)>/gi, '<figure$1 data-w="$2"$3 style="width:$2%">');
 
 // URL gambar sampul: hanya http(s)
 export const safeCoverUrl = (v: string) => (/^https?:\/\//i.test(v.trim()) ? v.trim() : null);

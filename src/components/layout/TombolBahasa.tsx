@@ -2,6 +2,7 @@
 // setelah pengunjung memilih bahasa selain Indonesia. Teks asli situs tetap bahasa Indonesia.
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { useTutupLuar } from "@/lib/tutup-luar";
 
 const BAHASA = [
   { kode: "id", nama: "Bahasa Indonesia" },
@@ -66,14 +67,7 @@ export function TombolBahasa({ className }: { className: string }) {
     if (k !== "id") muatWidget();
   }, []);
 
-  useEffect(() => {
-    if (!buka) return;
-    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setBuka(false); };
-    const luar = (e: MouseEvent) => { if (!kotak.current?.contains(e.target as Node)) setBuka(false); };
-    document.addEventListener("keydown", esc);
-    document.addEventListener("mousedown", luar);
-    return () => { document.removeEventListener("keydown", esc); document.removeEventListener("mousedown", luar); };
-  }, [buka]);
+  useTutupLuar(buka, [kotak], () => setBuka(false)); // PAKET-15K: klik di luar hanya menutup
 
   const pilih = (kode: string) => {
     setBuka(false);

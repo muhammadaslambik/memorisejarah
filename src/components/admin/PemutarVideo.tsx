@@ -65,14 +65,11 @@ export function PemutarVideo({ judul, sumber, onTutup, onMini, awal = "kecil" }:
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/brand/logo-memori-sejarah-kecil.png" alt="" width={28} height={28} className="h-7 w-7 shrink-0 rounded-full" />
           <p className="min-w-0 flex-1 truncate text-sm font-semibold">{judul}</p>
-          <button type="button" onClick={ganti} className="a-btn-soft !px-2.5 !py-1.5 text-xs" aria-label={`Ukuran: ${NAMA[ukuran]}. Klik untuk ukuran ${NAMA[BERIKUT[ukuran]].toLowerCase()}`} title={`Ukuran: ${NAMA[ukuran]} (klik untuk ganti)`}>
-            {ukuran === "kecil" && <svg {...g} className="h-4 w-4"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></svg>}
-            {ukuran === "besar" && <svg {...g} className="h-4 w-4"><path d="M3 8V3h5M21 8V3h-5M3 16v5h5M21 16v5h-5" /></svg>}
-            {ukuran === "penuh" && <svg {...g} className="h-4 w-4"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" /></svg>}
-            <span className="hidden sm:inline">{NAMA[ukuran]}</span>
-            <span className="flex gap-0.5" aria-hidden="true">
-              {(["kecil", "besar", "penuh"] as Ukuran[]).map((u) => <i key={u} className={`h-1.5 w-1.5 rounded-full ${u === ukuran ? "bg-current" : "bg-current opacity-30"}`} />)}
-            </span>
+          <button type="button" onClick={ganti} className="a-btn-soft !px-2.5 !py-1.5 text-xs" aria-label={`Ubah ke ukuran ${NAMA[BERIKUT[ukuran]].toLowerCase()}`} title={`Ukuran sekarang: ${NAMA[ukuran]}. Klik untuk ${NAMA[BERIKUT[ukuran]].toLowerCase()}`}>
+            {BERIKUT[ukuran] === "kecil" && <svg {...g} className="h-4 w-4"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" /></svg>}
+            {BERIKUT[ukuran] === "besar" && <svg {...g} className="h-4 w-4"><path d="M3 8V3h5M21 8V3h-5M3 16v5h5M21 16v5h-5" /></svg>}
+            {BERIKUT[ukuran] === "penuh" && <svg {...g} className="h-4 w-4"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></svg>}
+            <span>{NAMA[BERIKUT[ukuran]]}</span>
           </button>
           {onMini && (
             <button type="button" onClick={onMini} className="a-ikon-btn !h-9 !w-9" aria-label="Mini player" title="Mini player (jendela kecil yang bisa digeser)">

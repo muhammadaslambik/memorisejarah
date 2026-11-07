@@ -13,6 +13,7 @@ import { IkonAdmin } from "@/components/admin/ikon-admin";
 import { TombolTema } from "@/components/admin/TombolTema";
 import { TombolSidebar } from "@/components/admin/TombolSidebar";
 import { MenuAkun } from "@/components/admin/MenuAkun";
+import { MenuLihatSitus } from "@/components/admin/MenuLihatSitus";
 import { fotoKecil } from "@/lib/foto";
 
 const cms = Manrope({ subsets: ["latin"], variable: "--font-cms" });
@@ -110,7 +111,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                 {menunggu > 0 && <span className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white">{menunggu}</span>}
               </Link>
             )}
-            <Link href="/" target="_blank" className="a-btn-soft hidden md:inline-flex">Lihat Situs &#8599;</Link>
+            <MenuLihatSitus />
             <MenuAkun nama={me.name} peran={ROLE_LABEL[me.role as Role]} inisial={inisial(me.name)} foto={fotoKecil(me.photoUrl)} logout={logout} />
           </div>
         </header>

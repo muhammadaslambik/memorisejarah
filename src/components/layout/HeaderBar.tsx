@@ -4,6 +4,7 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { AkunHeader } from "./AkunHeader";
+import { useTutupLuar } from "@/lib/tutup-luar";
 import { TombolTemaSitus } from "./TombolTemaSitus";
 import { TombolBahasa } from "./TombolBahasa";
 
@@ -24,19 +25,8 @@ export function HeaderBar({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!buka) return;
     input.current?.focus();
-    const tutupEsc = (e: KeyboardEvent) => { if (e.key === "Escape") setBuka(false); };
-    const tutupLuar = (e: MouseEvent) => {
-      const t = e.target as Element | null;
-      if (kotak.current?.contains(t) || t?.closest("[data-tombol-cari]")) return;
-      setBuka(false);
-    };
-    document.addEventListener("keydown", tutupEsc);
-    document.addEventListener("mousedown", tutupLuar);
-    return () => {
-      document.removeEventListener("keydown", tutupEsc);
-      document.removeEventListener("mousedown", tutupLuar);
-    };
   }, [buka]);
+  useTutupLuar(buka, [kotak], () => setBuka(false), "[data-tombol-cari]"); // PAKET-15K: klik di luar hanya menutup
 
   const kirim = (e: React.FormEvent) => {
     e.preventDefault();

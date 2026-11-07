@@ -1,8 +1,7 @@
 // PAKET-15B: daftar video di CMS dengan tampilan Baris atau Kolom (pilihan diingat) dan tombol Lihat (pemutar tersemat).
 "use client";
-import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ConfirmButton } from "@/components/ConfirmButton";
+import { IkonEdit, IkonHapus } from "@/components/admin/TombolAksi";
 import { PemutarVideo } from "@/components/admin/PemutarVideo";
 import { MiniPemutar } from "@/components/admin/MiniPemutar";
 import { PilihKategori, PilihJumlah, Pager, useHalaman, potong, cocokKat, type Kat } from "@/components/admin/KontrolDaftar";
@@ -44,10 +43,11 @@ export function VideoDaftar({ items, hapus, cats }: { items: ItemVideo[]; hapus:
       <svg {...g} className="h-4 w-4"><path d="M8 5v14l11-7z" /></svg>Lihat
     </button>
   );
+  const ikonEdit = (x: ItemVideo) => <IkonEdit href={`/admin/video?edit=${x.id}`} label="Edit video" />;
   const formHapus = (x: ItemVideo) => (
     <form action={hapus}>
       <input type="hidden" name="id" value={x.id} />
-      <ConfirmButton pesan={`Hapus video "${x.title}"? Tindakan ini tidak bisa dibatalkan.`} />
+      <IkonHapus label="Hapus video" pesan={`Hapus video "${x.title}"? Tindakan ini tidak bisa dibatalkan.`} />
     </form>
   );
 
@@ -90,10 +90,10 @@ export function VideoDaftar({ items, hapus, cats }: { items: ItemVideo[]; hapus:
           {tampil.map((x) => (
             <li key={x.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
               <div className="min-w-0 flex-1">
-                <Link href={`/admin/video?edit=${x.id}`} className="font-medium hover:text-[color:var(--a-accent)]">{x.title}</Link>
+                <button type="button" onClick={() => { setInline(null); setModal({ x, awal: "kecil" }); }} className="text-left font-medium hover:text-[color:var(--a-accent)]" title="Putar video">{x.title}</button>
                 <span className="ml-2 inline-flex gap-1.5 align-middle">{chip(x)}</span>
               </div>
-              <div className="flex items-center gap-3">{tombolLihat(x)}{formHapus(x)}</div>
+              <div className="flex items-center gap-1.5">{tombolLihat(x)}{ikonEdit(x)}{formHapus(x)}</div>
             </li>
           ))}
         </ul>
@@ -115,7 +115,7 @@ export function VideoDaftar({ items, hapus, cats }: { items: ItemVideo[]; hapus:
                 </button>
               )}
               <div className="flex flex-1 flex-col gap-2 p-3">
-                <Link href={`/admin/video?edit=${x.id}`} className="line-clamp-3 text-sm font-medium hover:text-[color:var(--a-accent)]">{x.title}</Link>
+                <button type="button" onClick={() => { setMini(null); setInline(x.id); }} className="line-clamp-3 text-left text-sm font-medium hover:text-[color:var(--a-accent)]" title="Putar video">{x.title}</button>
                 <div className="flex flex-wrap items-center gap-1.5">{chip(x)}</div>
                 <div className="mt-auto flex flex-wrap items-center gap-2 pt-1">
                   <button type="button" onClick={() => { setMini(null); setInline((i) => (i === x.id ? null : x.id)); }} className="a-btn-soft !px-3 !py-1 text-sm" aria-label={inline === x.id ? `Hentikan video: ${x.title}` : `Putar video: ${x.title}`}>
@@ -129,7 +129,7 @@ export function VideoDaftar({ items, hapus, cats }: { items: ItemVideo[]; hapus:
                   <button type="button" onClick={() => { setInline(null); setMini(x); }} className="a-ikon-btn !h-8 !w-8" aria-label={`Mini player: ${x.title}`} title="Mini player">
                     <svg {...g} className="h-4 w-4"><rect x="3" y="5" width="18" height="14" rx="2" /><rect x="12" y="11" width="7" height="5" rx="1" fill="currentColor" /></svg>
                   </button>
-                  <span className="ml-auto">{formHapus(x)}</span>
+                  <span className="ml-auto flex items-center gap-1">{ikonEdit(x)}{formHapus(x)}</span>
                 </div>
               </div>
             </div>

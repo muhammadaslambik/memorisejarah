@@ -5,26 +5,31 @@ import { useEffect, useState } from "react";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { PemutarVideo } from "@/components/admin/PemutarVideo";
 import { MiniPemutar } from "@/components/admin/MiniPemutar";
+import { PilihKategori, PilihJumlah, Pager, useHalaman, potong, cocokKat, type Kat } from "@/components/admin/KontrolDaftar";
 
-export type ItemVideo = { id: number; title: string; status: string; featured: boolean; youtubeId: string };
+export type ItemVideo = { id: number; title: string; status: string; featured: boolean; youtubeId: string; categoryId: number | null };
 type Mode = "baris" | "kolom";
 type Saring = "semua" | "terbit" | "pilihan";
 const KUNCI = "adm-video-tampil";
 const g = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round" } as const;
 
-export function VideoDaftar({ items, hapus }: { items: ItemVideo[]; hapus: (fd: FormData) => void | Promise<void> }) {
-  const [mode, setMode] = useState<Mode>("baris");
+export function VideoDaftar({ items, hapus, cats }: { items: ItemVideo[]; hapus: (fd: FormData) => void | Promise<void>; cats: Kat[] }) {
+  const [mode, setMode] = useState<Mode>("kolom");
   const [modal, setModal] = useState<{ x: ItemVideo; awal: "kecil" | "besar" } | null>(null);
   const [mini, setMini] = useState<ItemVideo | null>(null);
   const [inline, setInline] = useState<number | null>(null); // video yang sedang diputar langsung di kartu (tampilan Kolom)
   const [saring, setSaring] = useState<Saring>("semua");
   const nTerbit = items.filter((x) => x.status === "published").length;
   const nPilihan = items.filter((x) => x.featured).length;
-  const tampil = items.filter((x) => (saring === "terbit" ? x.status === "published" : saring === "pilihan" ? x.featured : true));
+  const [kat, setKat] = useState("semua");
+  const { per, setPer, hal, setHal } = useHalaman("adm-per-video");
+  const terfilter = items.filter((x) => (saring === "terbit" ? x.status === "published" : saring === "pilihan" ? x.featured : true) && cocokKat(kat, x.categoryId));
+  const { baris: tampil, jumlah: jumlahHal, hal: halIni } = potong(terfilter, hal, per);
+  const ubahSaring = (v: Saring) => { setSaring(v); setHal(1); };
   const judulDaftar = saring === "terbit" ? "Video terbit" : saring === "pilihan" ? "Video pilihan" : "Semua video";
 
   useEffect(() => {
-    try { if (localStorage.getItem(KUNCI) === "kolom") setMode("kolom"); } catch { /* abaikan */ }
+    try { if (localStorage.getItem(KUNCI) === "baris") setMode("baris"); } catch { /* abaikan */ }
   }, []);
   const pilih = (m: Mode) => { setMode(m); try { localStorage.setItem(KUNCI, m); } catch { /* abaikan */ } };
 
@@ -49,16 +54,16 @@ export function VideoDaftar({ items, hapus }: { items: ItemVideo[]; hapus: (fd: 
   return (
     <div>
       <div className="mt-10 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-medium">{judulDaftar} ({tampil.length})</h2>
+        <h2 className="font-medium">{judulDaftar} ({terfilter.length})</h2>
         <div className="flex flex-wrap items-center gap-2">
         <div className="a-tab-baris" role="group" aria-label="Saring video">
-          <button type="button" className="a-tab" aria-current={saring === "semua" ? "page" : undefined} onClick={() => setSaring("semua")}>
+          <button type="button" className="a-tab" aria-current={saring === "semua" ? "page" : undefined} onClick={() => ubahSaring("semua")}>
             <svg {...g} className="h-4 w-4"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" /></svg>Semua <span className="a-tab-n">{items.length}</span>
           </button>
-          <button type="button" className="a-tab" aria-current={saring === "terbit" ? "page" : undefined} onClick={() => setSaring("terbit")}>
+          <button type="button" className="a-tab" aria-current={saring === "terbit" ? "page" : undefined} onClick={() => ubahSaring("terbit")}>
             <svg {...g} className="h-4 w-4"><circle cx="12" cy="12" r="9" /><path d="M8 12.5l3 3 5-6" /></svg>Video terbit <span className="a-tab-n">{nTerbit}</span>
           </button>
-          <button type="button" className="a-tab" aria-current={saring === "pilihan" ? "page" : undefined} onClick={() => setSaring("pilihan")}>
+          <button type="button" className="a-tab" aria-current={saring === "pilihan" ? "page" : undefined} onClick={() => ubahSaring("pilihan")}>
             <svg {...g} className="h-4 w-4"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.8 6.8 19.6l1-5.8L3.5 9.7l5.9-.9z" /></svg>Video pilihan <span className="a-tab-n">{nPilihan}</span>
           </button>
         </div>
@@ -71,6 +76,11 @@ export function VideoDaftar({ items, hapus }: { items: ItemVideo[]; hapus: (fd: 
           </button>
         </div>
         </div>
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
+        <PilihKategori kats={cats} nilai={kat} ubah={(v) => { setKat(v); setHal(1); }} />
+        <PilihJumlah per={per} ubah={setPer} />
       </div>
 
       {tampil.length === 0 ? (
@@ -113,7 +123,7 @@ export function VideoDaftar({ items, hapus }: { items: ItemVideo[]; hapus: (fd: 
                       ? <><svg {...g} className="h-4 w-4"><rect x="6" y="6" width="12" height="12" rx="1.5" fill="currentColor" /></svg>Berhenti</>
                       : <><svg {...g} className="h-4 w-4"><path d="M8 5v14l11-7z" /></svg>Putar</>}
                   </button>
-                  <button type="button" onClick={() => { setInline(null); setModal({ x, awal: "besar" }); }} className="a-ikon-btn !h-8 !w-8" aria-label={`Perbesar: ${x.title}`} title="Perbesar">
+                  <button type="button" onClick={() => { setInline(null); setModal({ x, awal: "kecil" }); }} className="a-ikon-btn !h-8 !w-8" aria-label={`Perbesar: ${x.title}`} title="Perbesar">
                     <svg {...g} className="h-4 w-4"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></svg>
                   </button>
                   <button type="button" onClick={() => { setInline(null); setMini(x); }} className="a-ikon-btn !h-8 !w-8" aria-label={`Mini player: ${x.title}`} title="Mini player">
@@ -126,6 +136,8 @@ export function VideoDaftar({ items, hapus }: { items: ItemVideo[]; hapus: (fd: 
           ))}
         </div>
       )}
+
+      <Pager hal={halIni} jumlah={jumlahHal} ubah={setHal} />
 
       {modal && (
         <PemutarVideo
@@ -143,7 +155,7 @@ export function VideoDaftar({ items, hapus }: { items: ItemVideo[]; hapus: (fd: 
           judul={mini.title}
           sumber={{ tipe: "youtube", id: mini.youtubeId }}
           onTutup={() => setMini(null)}
-          onBesar={() => { setModal({ x: mini, awal: "besar" }); setMini(null); }}
+          onBesar={() => { setModal({ x: mini, awal: "kecil" }); setMini(null); }}
         />
       )}
     </div>

@@ -83,7 +83,7 @@ export default async function AdminVideo({ searchParams }: { searchParams: Promi
         </div>
       </form>
 
-      <VideoDaftar items={list.map((x) => ({ id: x.id, title: x.title, status: x.status, featured: x.featured, youtubeId: x.youtubeId }))} hapus={deleteVideo} />
+      <VideoDaftar items={list.map((x) => ({ id: x.id, title: x.title, status: x.status, featured: x.featured, youtubeId: x.youtubeId, categoryId: x.categoryId }))} hapus={deleteVideo} cats={cats.map((c) => ({ id: c.id, name: c.name }))} />
     </div>
   );
 }

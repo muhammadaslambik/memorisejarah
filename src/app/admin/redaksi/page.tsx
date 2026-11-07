@@ -1,6 +1,7 @@
 // PAKET-9C: kelola redaksi dan profil anggota (admin dan editor)
 import Link from "next/link";
 import { eq } from "drizzle-orm";
+import { fotoRedaksiSql } from "@/lib/foto-redaksi";
 import { db, redaksi, redaksiTim, users } from "@/db";
 import { requireReviewer } from "@/lib/auth";
 import { saveRedaksi, deleteRedaksi } from "@/lib/redaksi-actions";
@@ -29,11 +30,13 @@ export default async function AdminRedaksi({ searchParams }: { searchParams: Pro
   const { edit, error, ok } = await searchParams;
   const editId = Number(edit) || null;
   const d = db();
-  const [daftar, relasi, akun] = await Promise.all([
+  const [daftar, relasi, akun, fotoCad] = await Promise.all([
     d.select().from(redaksi).orderBy(redaksi.urutan, redaksi.name),
     d.select().from(redaksiTim),
     d.select({ id: users.id, name: users.name }).from(users).orderBy(users.name),
+    d.select({ id: redaksi.id, foto: fotoRedaksiSql }).from(redaksi).leftJoin(users, eq(users.id, redaksi.userId)), // PAKET-15I: foto akun sebagai cadangan
   ]);
+  const cad = new Map(fotoCad.map((r) => [r.id, r.foto]));
   const m = editId ? daftar.find((x) => x.id === editId) : undefined;
   const timM = new Map(relasi.filter((r) => r.memberId === m?.id).map((r) => [r.tim, r.catatan]));
   const input = "mt-1 w-full rounded border p-2";
@@ -144,7 +147,7 @@ export default async function AdminRedaksi({ searchParams }: { searchParams: Pro
           {daftar.map((x) => (
             <li key={x.id} className="flex items-center justify-between gap-3 p-4">
               <div className="flex min-w-0 items-center gap-3">
-                <Avatar nama={x.name} url={x.fotoUrl} ukuran={40} />
+                <Avatar nama={x.name} url={x.fotoUrl ?? cad.get(x.id) ?? null} ukuran={40} />
                 <div className="min-w-0">
                   <Link href={`/admin/redaksi?edit=${x.id}`} className="font-medium hover:text-gold-dark">{x.name}</Link>
                   <span className="ml-2 text-xs text-charcoal/50">#{x.urutan}</span>

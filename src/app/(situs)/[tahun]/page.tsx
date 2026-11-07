@@ -5,6 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { and, desc, eq } from "drizzle-orm";
 import { db, redaksi, redaksiTim, posts, users } from "@/db";
+import { fotoRedaksiSql } from "@/lib/foto-redaksi";
 import { kolomKartu } from "@/lib/kolom";
 import { kecil } from "@/lib/gambar-url";
 import { namaTim, tautanAman } from "@/lib/redaksi";
@@ -19,10 +20,10 @@ const cari = async (slug: string) => {
   if (slug.includes(".")) return undefined; // berkas seperti /favicon.ico bukan penulis
   try {
     const [m] = await db().select().from(redaksi).where(and(eq(redaksi.slug, slug), eq(redaksi.aktif, true))).limit(1);
-    // PAKET-15H: bila profil redaksi belum punya foto, pakai foto akun penulis (bila ada)
-    if (m && !m.fotoUrl && m.userId) {
-      const [u] = await db().select({ foto: users.photoUrl }).from(users).where(eq(users.id, m.userId)).limit(1);
-      if (u?.foto) return { ...m, fotoUrl: u.foto };
+    // PAKET-15I: bila profil redaksi belum punya foto, pakai foto akun penulis (tertaut atau cocok nama)
+    if (m && !m.fotoUrl) {
+      const [f] = await db().select({ foto: fotoRedaksiSql }).from(redaksi).leftJoin(users, eq(users.id, redaksi.userId)).where(eq(redaksi.id, m.id)).limit(1);
+      if (f?.foto) return { ...m, fotoUrl: f.foto };
     }
     return m;
   } catch {

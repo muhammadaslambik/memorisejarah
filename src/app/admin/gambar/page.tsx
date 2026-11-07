@@ -4,7 +4,7 @@ import { desc, eq } from "drizzle-orm";
 import { db, images, categories } from "@/db";
 import { requireReviewer } from "@/lib/auth";
 import { saveGambar, deleteGambar } from "@/lib/gambar-actions";
-import { ConfirmButton } from "@/components/ConfirmButton";
+import { GambarDaftar } from "@/components/admin/GambarDaftar";
 import { PilihSumberGambar } from "@/components/admin/PilihSumberGambar";
 import { penyimpananSiap } from "@/lib/gambar-simpan";
 import { kecil } from "@/lib/gambar-url";
@@ -75,28 +75,7 @@ export default async function AdminGambar({ searchParams }: { searchParams: Prom
         </div>
       </form>
 
-      <h2 className="mt-10 font-medium">Semua gambar ({list.length})</h2>
-      {list.length === 0 ? (
-        <p className="mt-2 text-sm text-charcoal/60">Belum ada gambar.</p>
-      ) : (
-        <ul className="mt-3 divide-y divide-cream-dark rounded bg-white/70">
-          {list.map((x) => (
-            <li key={x.id} className="flex items-center justify-between gap-3 p-4">
-              <div className="flex items-center gap-3">
-                <img src={kecil(x.url, 160)} alt="" loading="lazy" referrerPolicy="no-referrer" className="h-12 w-16 rounded object-cover" />
-                <div>
-                  <Link href={`/admin/gambar?edit=${x.id}`} className="font-medium hover:text-gold-dark">{x.title}</Link>
-                  <span className="ml-2 rounded bg-cream-dark px-2 py-0.5 text-xs">{x.status === "published" ? "terbit" : "draft"}</span>
-                </div>
-              </div>
-              <form action={deleteGambar}>
-                <input type="hidden" name="id" value={x.id} />
-                <ConfirmButton pesan={`Hapus gambar "${x.title}"? Tindakan ini tidak bisa dibatalkan.`} />
-              </form>
-            </li>
-          ))}
-        </ul>
-      )}
+      <GambarDaftar items={list.map((x) => ({ id: x.id, title: x.title, status: x.status, url: x.url, categoryId: x.categoryId }))} hapus={deleteGambar} cats={cats.map((c) => ({ id: c.id, name: c.name }))} />
     </div>
   );
 }

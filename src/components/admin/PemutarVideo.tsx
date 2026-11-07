@@ -28,7 +28,7 @@ export function PemutarVideo({ judul, sumber, onTutup, onMini, awal = "kecil" }:
   }, [ukuran]);
 
   useEffect(() => {
-    const ubah = () => { if (!document.fullscreenElement) setUkuran((u) => (u === "penuh" ? "besar" : u)); }; // Esc bawaan peramban
+    const ubah = () => { if (!document.fullscreenElement) setUkuran((u) => (u === "penuh" ? "kecil" : u)); }; // keluar layar penuh (Esc bawaan peramban) -> kembali ke Kecil
     document.addEventListener("fullscreenchange", ubah);
     return () => {
       document.removeEventListener("fullscreenchange", ubah);
@@ -37,7 +37,7 @@ export function PemutarVideo({ judul, sumber, onTutup, onMini, awal = "kecil" }:
   }, []);
 
   useEffect(() => {
-    const esc = (e: KeyboardEvent) => { if (e.key !== "Escape") return; if (penuh) void keluarPenuh("besar"); else onTutup(); };
+    const esc = (e: KeyboardEvent) => { if (e.key !== "Escape") return; if (penuh) void keluarPenuh("kecil"); else onTutup(); };
     document.addEventListener("keydown", esc);
     return () => document.removeEventListener("keydown", esc);
   }, [penuh, keluarPenuh, onTutup]);
@@ -62,6 +62,8 @@ export function PemutarVideo({ judul, sumber, onTutup, onMini, awal = "kecil" }:
         style={penuh ? undefined : { maxWidth: `min(${LEBAR[ukuran as "kecil" | "besar"]}, calc((100vh - 7.5rem) * 16 / 9))` }}
       >
         <div className="flex shrink-0 items-center gap-2 px-4 py-2.5">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/logo-memori-sejarah-kecil.png" alt="" width={28} height={28} className="h-7 w-7 shrink-0 rounded-full" />
           <p className="min-w-0 flex-1 truncate text-sm font-semibold">{judul}</p>
           <button type="button" onClick={ganti} className="a-btn-soft !px-2.5 !py-1.5 text-xs" aria-label={`Ukuran: ${NAMA[ukuran]}. Klik untuk ukuran ${NAMA[BERIKUT[ukuran]].toLowerCase()}`} title={`Ukuran: ${NAMA[ukuran]} (klik untuk ganti)`}>
             {ukuran === "kecil" && <svg {...g} className="h-4 w-4"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></svg>}

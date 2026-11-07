@@ -13,6 +13,7 @@ export const users = pgTable("users", {
   trusted: boolean("trusted").default(false).notNull(),
   // Peran yang diminta saat mendaftar sebagai admin/editor; terisi = menunggu persetujuan admin
   pendingRole: text("pending_role", { enum: ["admin", "editor"] }),
+  photoUrl: text("photo_url"), // PAKET-15C: foto akun (alamat ImageKit)
 });
 
 // Catatan percobaan login yang gagal (untuk pembatasan)

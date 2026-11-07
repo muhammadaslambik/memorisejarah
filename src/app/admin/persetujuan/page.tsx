@@ -23,7 +23,7 @@ export default async function Persetujuan({ searchParams }: { searchParams: Prom
     .leftJoin(users, eq(posts.authorId, users.id)).where(eq(posts.status, "pending")).orderBy(asc(posts.updatedAt));
   const writers = await db().select().from(users).where(and(eq(users.role, "penulis"), eq(users.active, true))).orderBy(asc(users.name));
   return (
-    <div className="mx-auto max-w-5xl px-5 py-10">
+    <div className="mx-auto max-w-5xl px-5">
       <div className="flex items-center justify-between">
         <h1 className="font-serif text-3xl">Persetujuan</h1>
         <Link href="/admin" className="rounded border px-4 py-2">← Artikel</Link>

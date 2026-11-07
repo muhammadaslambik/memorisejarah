@@ -38,7 +38,7 @@ export default async function AdminRedaksi({ searchParams }: { searchParams: Pro
   const timM = new Map(relasi.filter((r) => r.memberId === m?.id).map((r) => [r.tim, r.catatan]));
   const input = "mt-1 w-full rounded border p-2";
   return (
-    <div className="mx-auto max-w-5xl px-5 py-10">
+    <div className="mx-auto max-w-5xl px-5">
       <h1 className="font-serif text-3xl">Redaksi</h1>
       <p className="mt-1 text-sm text-charcoal/60">Susunan redaksi dan profil anggota di halaman Tentang. Hanya kolom yang diisi yang tampil di situs.</p>
       {error && <p className="mt-4 rounded bg-red-50 p-3 text-sm text-red-700">{errors[error] ?? "Terjadi kesalahan."}</p>}

@@ -31,7 +31,7 @@ export default async function AdminKategori({ searchParams }: { searchParams: Pr
   const urut = atas.flatMap((a) => [a, ...semua.filter((c) => c.parentId === a.id)]);
   const input = "mt-1 w-full rounded border p-2";
   return (
-    <div className="mx-auto max-w-5xl px-5 py-10">
+    <div className="mx-auto max-w-5xl px-5">
       <h1 className="font-serif text-3xl">Kategori</h1>
       <p className="mt-1 text-sm text-charcoal/60">Kategori tingkat atas boleh punya subkategori (dua tingkat). Menu situs menampilkan subkategori; kategori induk hanya sebagai pengelompok.</p>
       {error && <p className="mt-4 rounded bg-red-50 p-3 text-sm text-red-700">{errors[error] ?? "Terjadi kesalahan."}</p>}

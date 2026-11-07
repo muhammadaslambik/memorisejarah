@@ -5,7 +5,8 @@ import { db, videos, categories } from "@/db";
 import { requireReviewer } from "@/lib/auth";
 import { saveVideo, deleteVideo } from "@/lib/video-actions";
 import { AGENDA } from "@/lib/agenda";
-import { ConfirmButton } from "@/components/ConfirmButton";
+import { SumberVideo } from "@/components/admin/SumberVideo";
+import { VideoDaftar } from "@/components/admin/VideoDaftar";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +29,7 @@ export default async function AdminVideo({ searchParams }: { searchParams: Promi
   const v = cur[0];
   const input = "mt-1 w-full rounded border p-2";
   return (
-    <div className="mx-auto max-w-5xl px-5 py-10">
+    <div className="mx-auto max-w-5xl px-5">
       <div className="flex items-center justify-between">
         <h1 className="font-serif text-3xl">Video</h1>
         <Link href="/admin" className="rounded border px-4 py-2">&larr; Artikel</Link>
@@ -42,9 +43,7 @@ export default async function AdminVideo({ searchParams }: { searchParams: Promi
         <label className="block text-sm">Judul
           <input name="title" required maxLength={200} defaultValue={v?.title} className={input} />
         </label>
-        <label className="block text-sm">Alamat YouTube atau ID video
-          <input name="youtube" required defaultValue={v?.youtubeId} placeholder="https://www.youtube.com/watch?v=..." className={input} />
-        </label>
+        <SumberVideo defaultValue={v?.youtubeId} className={input} judulAwal={v?.title} />
         <label className="block text-sm">Slug (alamat halaman; kosongkan agar dibuat dari judul)
           <input name="slug" defaultValue={v?.slug} className={input} />
         </label>
@@ -84,26 +83,7 @@ export default async function AdminVideo({ searchParams }: { searchParams: Promi
         </div>
       </form>
 
-      <h2 className="mt-10 font-medium">Semua video ({list.length})</h2>
-      {list.length === 0 ? (
-        <p className="mt-2 text-sm text-charcoal/60">Belum ada video.</p>
-      ) : (
-        <ul className="mt-3 divide-y divide-cream-dark rounded bg-white/70">
-          {list.map((x) => (
-            <li key={x.id} className="flex items-center justify-between gap-3 p-4">
-              <div>
-                <Link href={`/admin/video?edit=${x.id}`} className="font-medium hover:text-gold-dark">{x.title}</Link>
-                <span className="ml-2 rounded bg-cream-dark px-2 py-0.5 text-xs">{x.status === "published" ? "terbit" : "draft"}</span>
-                {x.featured && <span className="ml-2 rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-800">pilihan</span>}
-              </div>
-              <form action={deleteVideo}>
-                <input type="hidden" name="id" value={x.id} />
-                <ConfirmButton pesan={`Hapus video "${x.title}"? Tindakan ini tidak bisa dibatalkan.`} />
-              </form>
-            </li>
-          ))}
-        </ul>
-      )}
+      <VideoDaftar items={list.map((x) => ({ id: x.id, title: x.title, status: x.status, featured: x.featured, youtubeId: x.youtubeId }))} hapus={deleteVideo} />
     </div>
   );
 }

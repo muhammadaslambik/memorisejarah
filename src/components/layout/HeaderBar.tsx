@@ -1,9 +1,9 @@
 // PAKET-9B: area tengah header + ikon cari dan ikon masuk di pojok kanan.
 // Ikon cari membuka kolom pencarian lebar yang menggantikan menu; Esc atau klik di luar mengembalikannya.
 "use client";
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { AkunHeader } from "./AkunHeader";
 import { TombolTemaSitus } from "./TombolTemaSitus";
 import { TombolBahasa } from "./TombolBahasa";
 
@@ -76,9 +76,7 @@ export function HeaderBar({ children }: { children: React.ReactNode }) {
         </button>
         <TombolTemaSitus className={tombolIkon} />
         <TombolBahasa className={tombolIkon} />
-        <Link href="/admin" aria-label="Masuk" title="Masuk" className={tombolIkon}>
-          <svg {...svg} className="h-5 w-5" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" /></svg>
-        </Link>
+        <AkunHeader className={tombolIkon} />
       </div>
     </>
   );

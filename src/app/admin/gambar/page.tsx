@@ -33,7 +33,7 @@ export default async function AdminGambar({ searchParams }: { searchParams: Prom
   const g = cur[0];
   const input = "mt-1 w-full rounded border p-2";
   return (
-    <div className="mx-auto max-w-5xl px-5 py-10">
+    <div className="mx-auto max-w-5xl px-5">
       <h1 className="font-serif text-3xl">Gambar</h1>
       {error && <p className="mt-4 rounded bg-red-50 p-3 text-sm text-red-700">{errors[error] ?? "Terjadi kesalahan."}</p>}
       {ok && <p className="mt-4 rounded bg-green-50 p-3 text-sm text-green-800">{oks[ok] ?? "Berhasil."}</p>}

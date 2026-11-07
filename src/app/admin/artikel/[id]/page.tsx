@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { canEditPost, isReviewer, needsApproval, requireUser } from "@/lib/auth";
 import { Editor } from "@/components/Editor";
 import { TombolKembali } from "@/components/admin/TombolKembali";
+import { MenuArtikel } from "@/components/admin/MenuArtikel";
 import { PilihSampul } from "@/components/admin/PilihSampul";
 import { TerjemahJudul } from "@/components/admin/TerjemahJudul";
 import { PenjagaGambar } from "@/components/admin/PenjagaGambar";
@@ -22,7 +23,8 @@ export default async function EditPost({ params }: { params: Promise<{ id: strin
   const cats = await db().select().from(categories).orderBy(categories.name);
   const terpilih = new Set(isNew ? [] : (await db().select({ id: postCategories.categoryId }).from(postCategories).where(eq(postCategories.postId, Number(id)))).map((r) => r.id));
   return (
-    <form action={savePost} className="mx-auto max-w-4xl space-y-4 px-5 pb-10 pt-1">
+    <>
+    <form action={savePost} className="-mt-5 mx-auto max-w-4xl space-y-4 px-5 pb-10 pt-1">
       {/* tombol kembali kini berupa ikon di bilah alat editor */}
       <h1 className="font-serif text-3xl">{isNew ? "Artikel Baru" : "Edit Artikel"}</h1>
       {p && <input type="hidden" name="id" value={p.id} />}
@@ -76,5 +78,7 @@ export default async function EditPost({ params }: { params: Promise<{ id: strin
         <button className="ml-auto rounded bg-charcoal px-6 py-2 text-cream hover:bg-gold-dark">Simpan</button>
       </div>
     </form>
+    <MenuArtikel />
+    </>
   );
 }

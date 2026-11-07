@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { db, users } from "@/db";
 import { hashPassword, requireUser, verifyPassword } from "./auth";
 import { clearFailures, clientIp, isLocked, recordFailure } from "./ratelimit";
+import { unggahKeImageKit } from "./gambar-simpan";
 
 const MIN_PW = 12;
 const back = (q: string): never => redirect(`/admin/akun?${q}`);
@@ -33,4 +34,21 @@ export async function changeOwnPassword(fd: FormData) {
   await clearFailures(me.email);
   await db().update(users).set({ passwordHash: await hashPassword(next) }).where(eq(users.id, me.id));
   back("ok=password");
+}
+
+// PAKET-15C: foto akun (semua peran, hanya akun sendiri). Berkas sudah dipotong persegi dan dikecilkan di peramban.
+export async function simpanFotoAkun(fd: FormData) {
+  const me = await requireUser();
+  const f = fd.get("foto");
+  if (!(f instanceof File) || f.size === 0 || f.size > 2 * 1024 * 1024) back("error=foto");
+  const h = await unggahKeImageKit(f as File, `foto-akun-${me.id}`);
+  if ("galat" in h) back(h.galat === "belum" ? "error=belum" : h.galat === "unggah" ? "error=unggah" : "error=foto");
+  else await db().update(users).set({ photoUrl: h.url }).where(eq(users.id, me.id));
+  back("ok=foto");
+}
+
+export async function hapusFotoAkun() {
+  const me = await requireUser();
+  await db().update(users).set({ photoUrl: null }).where(eq(users.id, me.id));
+  back("ok=fotohapus");
 }

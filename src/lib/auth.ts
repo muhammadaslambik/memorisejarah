@@ -26,7 +26,7 @@ export const getCurrentUser = cache(ambilPenggunaSaatIni);
 async function ambilPenggunaSaatIni() {
   const s = await getSession();
   if (!s) return null;
-  const [u] = await db().select({ id: users.id, email: users.email, name: users.name, role: users.role, active: users.active, trusted: users.trusted })
+  const [u] = await db().select({ id: users.id, email: users.email, name: users.name, role: users.role, active: users.active, trusted: users.trusted, photoUrl: users.photoUrl })
     .from(users).where(eq(users.id, s.uid)).limit(1);
   return u && u.active ? u : null;
 }

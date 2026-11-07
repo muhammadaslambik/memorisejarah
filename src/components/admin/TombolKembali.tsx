@@ -18,7 +18,7 @@ export function TombolKembali({ label = "Kembali ke daftar artikel" }: { label?:
     const hitung = () => {
       const form = akar.current?.closest("form");
       if (!form) { setLuar(null); return; }
-      const ham = document.querySelector<HTMLElement>('label[for="adm-menu"]')?.getBoundingClientRect();
+      const ham = document.querySelector<HTMLElement>('[data-adm-ham]')?.getBoundingClientRect();
       const tampak = !!ham && ham.width > 0; // tombol hamburger hanya ada di layar sempit
       const sisi = document.querySelector<HTMLElement>(".a-side")?.getBoundingClientRect();
       const kiri = tampak ? ham!.left : (sisi && sisi.right > 0 ? sisi.right : 0) + 32;

@@ -2,6 +2,8 @@ import Link from "next/link";
 import { requireUser, ROLE_LABEL, type Role } from "@/lib/auth";
 import { PasswordInput } from "@/components/PasswordInput";
 import { changeOwnPassword, updateOwnName } from "@/lib/account-actions";
+import { FotoAkun } from "@/components/admin/FotoAkun";
+import { fotoKecil } from "@/lib/foto";
 
 export const dynamic = "force-dynamic";
 
@@ -10,15 +12,18 @@ const errors: Record<string, string> = {
   pw: "Password baru minimal 12 karakter.",
   lama: "Password lama salah.",
   locked: "Terlalu banyak percobaan gagal. Coba lagi dalam 15 menit.",
+  foto: "Foto tidak valid (gunakan gambar JPG, PNG, WEBP, atau GIF, maksimal 2 MB).",
+  belum: "Penyimpanan gambar belum diatur di server.",
+  unggah: "Foto gagal diunggah. Coba lagi.",
 };
-const oks: Record<string, string> = { nama: "Nama diperbarui.", password: "Password diganti." };
+const oks: Record<string, string> = { nama: "Nama diperbarui.", password: "Password diganti.", foto: "Foto profil disimpan.", fotohapus: "Foto profil dihapus." };
 
 export default async function Akun({ searchParams }: { searchParams: Promise<{ error?: string; ok?: string }> }) {
   const me = await requireUser();
   const { error, ok } = await searchParams;
   const input = "rounded border p-2 text-sm";
   return (
-    <div className="mx-auto max-w-2xl px-5 py-10">
+    <div className="mx-auto max-w-2xl px-5">
       <div className="flex items-center justify-between">
         <h1 className="font-serif text-3xl">Akun Saya</h1>
         <Link href="/admin" className="rounded border px-4 py-2">← Artikel</Link>
@@ -26,6 +31,8 @@ export default async function Akun({ searchParams }: { searchParams: Promise<{ e
       <p className="mt-2 text-sm text-charcoal/60">{me.email} · {ROLE_LABEL[me.role as Role]}</p>
       {error && <p className="mt-4 rounded bg-red-50 p-3 text-sm text-red-700">{errors[error] ?? "Terjadi kesalahan."}</p>}
       {ok && <p className="mt-4 rounded bg-green-50 p-3 text-sm text-green-800">{oks[ok] ?? "Berhasil."}</p>}
+
+      <FotoAkun foto={fotoKecil(me.photoUrl, 160)} inisial={me.name.split(" ").filter(Boolean).slice(0, 2).map((x) => x[0]).join("").toUpperCase() || "?"} nama={me.name} />
 
       <form action={updateOwnName} className="mt-6 space-y-3 rounded bg-white/70 p-5">
         <h2 className="font-medium">Ganti nama</h2>

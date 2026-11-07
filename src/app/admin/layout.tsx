@@ -11,7 +11,9 @@ import { PanelShell } from "@/components/layout/PanelShell";
 import { AdminNav, type Grup } from "@/components/admin/AdminNav";
 import { IkonAdmin } from "@/components/admin/ikon-admin";
 import { TombolTema } from "@/components/admin/TombolTema";
-import { MenuArtikel } from "@/components/admin/MenuArtikel";
+import { TombolSidebar } from "@/components/admin/TombolSidebar";
+import { MenuAkun } from "@/components/admin/MenuAkun";
+import { fotoKecil } from "@/lib/foto";
 
 const cms = Manrope({ subsets: ["latin"], variable: "--font-cms" });
 
@@ -81,7 +83,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <div className="a-scroll flex-1 overflow-y-auto px-3 pb-4"><AdminNav grup={grup} /></div>
         <div className="border-t border-white/10 p-3">
           <div className="flex items-center gap-3 rounded-xl bg-white/5 p-3">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#d9a441] to-[#a8691b] text-sm font-bold text-[#1b1108]">{inisial(me.name)}</span>
+            <span className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-gradient-to-br from-[#d9a441] to-[#a8691b] text-sm font-bold text-[#1b1108]">{me.photoUrl ? <img src={fotoKecil(me.photoUrl) ?? ""} alt="" className="h-full w-full object-cover" /> : inisial(me.name)}</span>
             <span className="min-w-0 flex-1 leading-tight">
               <span className="block truncate text-sm font-semibold text-[#f3e3c3]">{me.name}</span>
               <span className="block text-xs text-[#a8957a]">{ROLE_LABEL[me.role as Role]}</span>
@@ -90,9 +92,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </div>
       </aside>
 
-      <div className="lg:pl-[17rem]">
+      <div className="a-main lg:pl-[17rem]">
         <header className="a-top sticky top-0 z-30 flex h-16 items-center gap-3 px-4 lg:px-8">
-          <label htmlFor="adm-menu" className="a-ikon-btn lg:hidden" aria-label="Buka menu"><IkonAdmin nama="menu" className="h-5 w-5" /></label>
+          <TombolSidebar />
           <form action="/admin/artikel" role="search" className="a-search hidden min-w-0 flex-1 sm:flex">
             <IkonAdmin nama="cari" className="h-4 w-4 opacity-60" />
             <input name="q" type="search" placeholder="Cari artikel..." aria-label="Cari artikel" autoComplete="off" />
@@ -106,21 +108,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               </Link>
             )}
             <Link href="/" target="_blank" className="a-btn-soft hidden md:inline-flex">Lihat Situs &#8599;</Link>
-            <details className="a-menu relative">
-              <summary className="a-ikon-btn cursor-pointer list-none !w-auto gap-2 !px-2" aria-label="Menu akun">
-                <span className="grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br from-[#d9a441] to-[#a8691b] text-xs font-bold text-[#1b1108]">{inisial(me.name)}</span>
-                <span className="hidden max-w-[8rem] truncate text-sm md:block">{me.name}</span>
-              </summary>
-              <div className="a-card absolute right-0 top-12 z-50 w-52 p-2 shadow-xl">
-                <Link href="/admin/akun" className="a-menu-item">Akun Saya</Link>
-                <Link href="/" target="_blank" className="a-menu-item md:hidden">Lihat Situs</Link>
-                <form action={logout}><button className="a-menu-item w-full text-left">Keluar</button></form>
-              </div>
-            </details>
+            <MenuAkun nama={me.name} peran={ROLE_LABEL[me.role as Role]} inisial={inisial(me.name)} foto={fotoKecil(me.photoUrl)} logout={logout} />
           </div>
         </header>
         <main className="mx-auto max-w-[90rem] px-4 py-6 pb-24 lg:px-8">{children}</main>
-        <MenuArtikel />
       </div>
     </div>
   );

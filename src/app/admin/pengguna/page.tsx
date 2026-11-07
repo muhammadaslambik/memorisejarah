@@ -36,7 +36,7 @@ export default async function Pengguna({ searchParams }: { searchParams: Promise
   const open = await registrationOpen();
   const input = "rounded border p-2 text-sm";
   return (
-    <div className="mx-auto max-w-5xl px-5 py-10">
+    <div className="mx-auto max-w-5xl px-5">
       <div className="flex items-center justify-between">
         <h1 className="font-serif text-3xl">Pengguna</h1>
         <div className="flex gap-3">

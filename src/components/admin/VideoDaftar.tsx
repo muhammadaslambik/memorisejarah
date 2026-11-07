@@ -7,12 +7,18 @@ import { PemutarVideo } from "@/components/admin/PemutarVideo";
 
 export type ItemVideo = { id: number; title: string; status: string; featured: boolean; youtubeId: string };
 type Mode = "baris" | "kolom";
+type Saring = "semua" | "terbit" | "pilihan";
 const KUNCI = "adm-video-tampil";
 const g = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round" } as const;
 
 export function VideoDaftar({ items, hapus }: { items: ItemVideo[]; hapus: (fd: FormData) => void | Promise<void> }) {
   const [mode, setMode] = useState<Mode>("baris");
   const [putar, setPutar] = useState<ItemVideo | null>(null);
+  const [saring, setSaring] = useState<Saring>("semua");
+  const nTerbit = items.filter((x) => x.status === "published").length;
+  const nPilihan = items.filter((x) => x.featured).length;
+  const tampil = items.filter((x) => (saring === "terbit" ? x.status === "published" : saring === "pilihan" ? x.featured : true));
+  const judulDaftar = saring === "terbit" ? "Video terbit" : saring === "pilihan" ? "Video pilihan" : "Semua video";
 
   useEffect(() => {
     try { if (localStorage.getItem(KUNCI) === "kolom") setMode("kolom"); } catch { /* abaikan */ }
@@ -40,7 +46,19 @@ export function VideoDaftar({ items, hapus }: { items: ItemVideo[]; hapus: (fd: 
   return (
     <div>
       <div className="mt-10 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-medium">Semua video ({items.length})</h2>
+        <h2 className="font-medium">{judulDaftar} ({tampil.length})</h2>
+        <div className="flex flex-wrap items-center gap-2">
+        <div className="a-tab-baris" role="group" aria-label="Saring video">
+          <button type="button" className="a-tab" aria-current={saring === "semua" ? "page" : undefined} onClick={() => setSaring("semua")}>
+            <svg {...g} className="h-4 w-4"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" /></svg>Semua <span className="a-tab-n">{items.length}</span>
+          </button>
+          <button type="button" className="a-tab" aria-current={saring === "terbit" ? "page" : undefined} onClick={() => setSaring("terbit")}>
+            <svg {...g} className="h-4 w-4"><circle cx="12" cy="12" r="9" /><path d="M8 12.5l3 3 5-6" /></svg>Video terbit <span className="a-tab-n">{nTerbit}</span>
+          </button>
+          <button type="button" className="a-tab" aria-current={saring === "pilihan" ? "page" : undefined} onClick={() => setSaring("pilihan")}>
+            <svg {...g} className="h-4 w-4"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.8 6.8 19.6l1-5.8L3.5 9.7l5.9-.9z" /></svg>Video pilihan <span className="a-tab-n">{nPilihan}</span>
+          </button>
+        </div>
         <div className="a-tab-baris" role="group" aria-label="Tampilan daftar video">
           <button type="button" className="a-tab" aria-current={mode === "baris" ? "page" : undefined} onClick={() => pilih("baris")}>
             <svg {...g} className="h-4 w-4"><path d="M4 6h16M4 12h16M4 18h16" /></svg>Baris
@@ -49,13 +67,14 @@ export function VideoDaftar({ items, hapus }: { items: ItemVideo[]; hapus: (fd: 
             <svg {...g} className="h-4 w-4"><rect x="4" y="4" width="7" height="7" rx="1" /><rect x="13" y="4" width="7" height="7" rx="1" /><rect x="4" y="13" width="7" height="7" rx="1" /><rect x="13" y="13" width="7" height="7" rx="1" /></svg>Kolom
           </button>
         </div>
+        </div>
       </div>
 
-      {items.length === 0 ? (
-        <p className="a-muted mt-2 text-sm">Belum ada video.</p>
+      {tampil.length === 0 ? (
+        <p className="a-muted mt-2 text-sm">{items.length === 0 ? "Belum ada video." : "Tidak ada video pada pilihan ini."}</p>
       ) : mode === "baris" ? (
         <ul className="a-card a-daftar mt-3 overflow-hidden">
-          {items.map((x) => (
+          {tampil.map((x) => (
             <li key={x.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
               <div className="min-w-0 flex-1">
                 <Link href={`/admin/video?edit=${x.id}`} className="font-medium hover:text-[color:var(--a-accent)]">{x.title}</Link>
@@ -67,7 +86,7 @@ export function VideoDaftar({ items, hapus }: { items: ItemVideo[]; hapus: (fd: 
         </ul>
       ) : (
         <div className="mt-3 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {items.map((x) => (
+          {tampil.map((x) => (
             <div key={x.id} className="a-card flex flex-col overflow-hidden">
               <button type="button" onClick={() => setPutar(x)} className="group relative block aspect-video w-full bg-black" aria-label={`Lihat video: ${x.title}`}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}

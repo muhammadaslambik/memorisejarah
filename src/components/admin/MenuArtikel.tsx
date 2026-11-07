@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 
 const g = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round" } as const;
 const IKON = {
+  baru: <svg {...g} className="h-4 w-4"><path d="M12 5v14M5 12h14" /></svg>,
   semua: <svg {...g} className="h-4 w-4"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" /></svg>,
   terbit: <svg {...g} className="h-4 w-4"><circle cx="12" cy="12" r="9" /><path d="M8 12.5l3 3 5-6" /></svg>,
   menunggu: <svg {...g} className="h-4 w-4"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>,
@@ -14,6 +15,7 @@ const IKON = {
   cari: <svg {...g} className="h-4 w-4"><circle cx="11" cy="11" r="6.5" /><path d="M16 16l4.5 4.5" /></svg>,
 };
 const MENU = [
+  { label: "Artikel baru", href: "/admin/artikel/baru", ikon: IKON.baru },
   { label: "Semua artikel", href: "/admin/artikel", ikon: IKON.semua },
   { label: "Artikel terbit", href: "/admin/artikel?s=published", ikon: IKON.terbit },
   { label: "Artikel menunggu", href: "/admin/artikel?s=pending", ikon: IKON.menunggu },

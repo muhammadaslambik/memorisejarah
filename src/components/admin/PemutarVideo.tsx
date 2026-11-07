@@ -24,7 +24,11 @@ export function PemutarVideo({ judul, sumber, onTutup }: { judul: string; sumber
       aria-modal="true"
       aria-label={`Pemutar video: ${judul}`}
     >
-      <div className={`a-card w-full overflow-hidden shadow-2xl transition-[max-width] duration-200 ${besar ? "max-w-[92rem]" : "max-w-3xl"}`}>
+      <div
+        className="a-card w-full overflow-hidden shadow-2xl transition-[max-width] duration-200"
+        // lebar dibatasi agar seluruh jendela (judul + tombol + video 16:9) selalu muat di layar, sehingga tombol X tidak pernah terpotong
+        style={{ maxWidth: `min(${besar ? "96rem" : "48rem"}, calc((100vh - 7.5rem) * 16 / 9))` }}
+      >
         <div className="flex items-center gap-2 px-4 py-2.5">
           <p className="min-w-0 flex-1 truncate text-sm font-semibold">{judul}</p>
           <button type="button" onClick={() => setBesar((b) => !b)} className="a-ikon-btn !h-9 !w-9" aria-label={besar ? "Perkecil" : "Perbesar"} title={besar ? "Perkecil" : "Perbesar"}>
@@ -32,7 +36,7 @@ export function PemutarVideo({ judul, sumber, onTutup }: { judul: string; sumber
               ? <svg {...g} className="h-[18px] w-[18px]"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" /></svg>
               : <svg {...g} className="h-[18px] w-[18px]"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></svg>}
           </button>
-          <button type="button" onClick={onTutup} className="a-ikon-btn !h-9 !w-9" aria-label="Tutup" title="Tutup">
+          <button type="button" onClick={onTutup} className="a-ikon-btn !h-9 !w-9 !bg-black/20 hover:!bg-black/30" aria-label="Tutup dan kembali ke daftar video" title="Tutup (kembali ke daftar video)">
             <svg {...g} className="h-[18px] w-[18px]"><path d="M6 6l12 12M18 6L6 18" /></svg>
           </button>
         </div>

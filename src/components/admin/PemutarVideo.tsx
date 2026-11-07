@@ -1,27 +1,34 @@
-// PAKET-15B/15G: jendela pemutar video di dalam CMS (YouTube tersemat atau berkas dari perangkat).
-// Ukuran awal sudah besar (muat di layar). Tombol Perbesar = layar penuh. Tutup: tombol X, klik di luar jendela, atau Esc.
+// PAKET-15B/15G/15H: jendela pemutar video di dalam CMS (YouTube tersemat atau berkas dari perangkat).
+// Satu tombol ukuran bergiliran: Kecil -> Besar -> Layar penuh -> Kecil. Tombol mini player memindahkan video ke jendela kecil yang bisa digeser.
+// Tutup: tombol X, klik di luar jendela, atau Esc.
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export type SumberVideo = { tipe: "youtube"; id: string } | { tipe: "file"; url: string };
+export type Ukuran = "kecil" | "besar" | "penuh";
 
 const g = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round" } as const;
+const LEBAR: Record<Exclude<Ukuran, "penuh">, string> = { kecil: "48rem", besar: "96rem" };
+const NAMA: Record<Ukuran, string> = { kecil: "Kecil", besar: "Besar", penuh: "Layar penuh" };
+const BERIKUT: Record<Ukuran, Ukuran> = { kecil: "besar", besar: "penuh", penuh: "kecil" };
 
-export function PemutarVideo({ judul, sumber, onTutup }: { judul: string; sumber: SumberVideo; onTutup: () => void }) {
-  const [penuh, setPenuh] = useState(false);
+export function PemutarVideo({ judul, sumber, onTutup, onMini, awal = "kecil" }: { judul: string; sumber: SumberVideo; onTutup: () => void; onMini?: () => void; awal?: Ukuran }) {
+  const [ukuran, setUkuran] = useState<Ukuran>(awal);
   const panel = useRef<HTMLDivElement>(null);
+  const penuh = ukuran === "penuh";
 
-  const keluarPenuh = useCallback(async () => {
+  const keluarPenuh = useCallback(async (ke: Ukuran) => {
     if (document.fullscreenElement) { try { await document.exitFullscreen(); } catch { /* abaikan */ } }
-    setPenuh(false);
+    setUkuran(ke);
   }, []);
-  const masukPenuh = async () => {
-    setPenuh(true); // tata letak layar penuh lewat CSS (cadangan bila peramban menolak Fullscreen API)
-    try { await panel.current?.requestFullscreen?.(); } catch { /* tetap pakai mode CSS */ }
-  };
+
+  // masuk ke layar penuh sungguhan (bila peramban mengizinkan) setiap kali ukuran menjadi "penuh"
+  useEffect(() => {
+    if (ukuran === "penuh" && !document.fullscreenElement) panel.current?.requestFullscreen?.().catch(() => { /* tetap mode CSS */ });
+  }, [ukuran]);
 
   useEffect(() => {
-    const ubah = () => { if (!document.fullscreenElement) setPenuh(false); }; // keluar dengan Esc bawaan peramban
+    const ubah = () => { if (!document.fullscreenElement) setUkuran((u) => (u === "penuh" ? "besar" : u)); }; // Esc bawaan peramban
     document.addEventListener("fullscreenchange", ubah);
     return () => {
       document.removeEventListener("fullscreenchange", ubah);
@@ -30,10 +37,15 @@ export function PemutarVideo({ judul, sumber, onTutup }: { judul: string; sumber
   }, []);
 
   useEffect(() => {
-    const esc = (e: KeyboardEvent) => { if (e.key !== "Escape") return; if (penuh) void keluarPenuh(); else onTutup(); };
+    const esc = (e: KeyboardEvent) => { if (e.key !== "Escape") return; if (penuh) void keluarPenuh("besar"); else onTutup(); };
     document.addEventListener("keydown", esc);
     return () => document.removeEventListener("keydown", esc);
   }, [penuh, keluarPenuh, onTutup]);
+
+  const ganti = () => {
+    const ke = BERIKUT[ukuran];
+    if (ukuran === "penuh") void keluarPenuh(ke); else setUkuran(ke);
+  };
 
   return (
     <div
@@ -46,16 +58,25 @@ export function PemutarVideo({ judul, sumber, onTutup }: { judul: string; sumber
       <div
         ref={panel}
         className={`a-card flex w-full flex-col overflow-hidden shadow-2xl ${penuh ? "!fixed inset-0 z-[80] !max-w-none !rounded-none" : ""}`}
-        // ukuran awal: selebar mungkin tetapi seluruh jendela (judul + video 16:9) tetap muat di layar
-        style={penuh ? undefined : { maxWidth: "min(96rem, calc((100vh - 7.5rem) * 16 / 9))" }}
+        // lebar dibatasi agar seluruh jendela (judul + video 16:9) selalu muat di layar
+        style={penuh ? undefined : { maxWidth: `min(${LEBAR[ukuran as "kecil" | "besar"]}, calc((100vh - 7.5rem) * 16 / 9))` }}
       >
         <div className="flex shrink-0 items-center gap-2 px-4 py-2.5">
           <p className="min-w-0 flex-1 truncate text-sm font-semibold">{judul}</p>
-          <button type="button" onClick={() => (penuh ? void keluarPenuh() : void masukPenuh())} className="a-ikon-btn !h-9 !w-9" aria-label={penuh ? "Keluar dari layar penuh" : "Layar penuh"} title={penuh ? "Keluar dari layar penuh" : "Layar penuh"}>
-            {penuh
-              ? <svg {...g} className="h-[18px] w-[18px]"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" /></svg>
-              : <svg {...g} className="h-[18px] w-[18px]"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></svg>}
+          <button type="button" onClick={ganti} className="a-btn-soft !px-2.5 !py-1.5 text-xs" aria-label={`Ukuran: ${NAMA[ukuran]}. Klik untuk ukuran ${NAMA[BERIKUT[ukuran]].toLowerCase()}`} title={`Ukuran: ${NAMA[ukuran]} (klik untuk ganti)`}>
+            {ukuran === "kecil" && <svg {...g} className="h-4 w-4"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></svg>}
+            {ukuran === "besar" && <svg {...g} className="h-4 w-4"><path d="M3 8V3h5M21 8V3h-5M3 16v5h5M21 16v5h-5" /></svg>}
+            {ukuran === "penuh" && <svg {...g} className="h-4 w-4"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" /></svg>}
+            <span className="hidden sm:inline">{NAMA[ukuran]}</span>
+            <span className="flex gap-0.5" aria-hidden="true">
+              {(["kecil", "besar", "penuh"] as Ukuran[]).map((u) => <i key={u} className={`h-1.5 w-1.5 rounded-full ${u === ukuran ? "bg-current" : "bg-current opacity-30"}`} />)}
+            </span>
           </button>
+          {onMini && (
+            <button type="button" onClick={onMini} className="a-ikon-btn !h-9 !w-9" aria-label="Mini player" title="Mini player (jendela kecil yang bisa digeser)">
+              <svg {...g} className="h-[18px] w-[18px]"><rect x="3" y="5" width="18" height="14" rx="2" /><rect x="12" y="11" width="7" height="5" rx="1" fill="currentColor" /></svg>
+            </button>
+          )}
           <button type="button" onClick={onTutup} className="a-ikon-btn !h-9 !w-9 !bg-black/20 hover:!bg-black/30" aria-label="Tutup dan kembali ke daftar video" title="Tutup (kembali ke daftar video)">
             <svg {...g} className="h-[18px] w-[18px]"><path d="M6 6l12 12M18 6L6 18" /></svg>
           </button>

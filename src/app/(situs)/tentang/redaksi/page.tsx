@@ -1,7 +1,7 @@
 // PAKET-9C: susunan redaksi dari database; setiap nama menuju halaman profil
 import Link from "next/link";
-import { eq } from "drizzle-orm";
-import { db, redaksi, redaksiTim } from "@/db";
+import { eq, sql } from "drizzle-orm";
+import { db, redaksi, redaksiTim, users } from "@/db";
 import { TIM } from "@/lib/redaksi";
 import { Avatar } from "@/components/content/Avatar";
 
@@ -13,8 +13,8 @@ export default async function Redaksi() {
   let relasi: { memberId: number; tim: string; catatan: string }[] = [];
   try {
     [anggota, relasi] = await Promise.all([
-      db().select({ id: redaksi.id, slug: redaksi.slug, name: redaksi.name, peran: redaksi.peran, pemimpin: redaksi.pemimpin, fotoUrl: redaksi.fotoUrl })
-        .from(redaksi).where(eq(redaksi.aktif, true)).orderBy(redaksi.urutan, redaksi.name),
+      db().select({ id: redaksi.id, slug: redaksi.slug, name: redaksi.name, peran: redaksi.peran, pemimpin: redaksi.pemimpin, fotoUrl: sql<string | null>`coalesce(${redaksi.fotoUrl}, ${users.photoUrl})` })
+        .from(redaksi).leftJoin(users, eq(users.id, redaksi.userId)).where(eq(redaksi.aktif, true)).orderBy(redaksi.urutan, redaksi.name),
       db().select().from(redaksiTim),
     ]);
   } catch { /* tabel belum dibuat: tampilkan halaman kosong */ }

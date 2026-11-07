@@ -23,7 +23,7 @@ export async function ambilPenulis(authorId: number | null | undefined): Promise
   if (!authorId) return null;
   try {
     const d = db();
-    const [u] = await d.select({ id: users.id, name: users.name }).from(users).where(eq(users.id, authorId)).limit(1);
+    const [u] = await d.select({ id: users.id, name: users.name, foto: users.photoUrl }).from(users).where(eq(users.id, authorId)).limit(1);
     if (!u) return null;
     const [m] = await d.select().from(redaksi).where(and(eq(redaksi.userId, u.id), eq(redaksi.aktif, true))).limit(1);
     const terbit = and(eq(posts.authorId, u.id), eq(posts.status, "published"));
@@ -42,7 +42,7 @@ export async function ambilPenulis(authorId: number | null | undefined): Promise
     return {
       id: u.id,
       nama: m?.name ?? u.name,
-      foto: m?.fotoUrl ?? null,
+      foto: m?.fotoUrl ?? u.foto ?? null, // PAKET-15H: foto akun sebagai cadangan
       peran: m?.peran ?? "",
       bidang: m?.bidang ?? "",
       domisili: m?.domisili ?? "",

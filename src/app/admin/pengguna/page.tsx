@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { asc } from "drizzle-orm";
 import { db, users } from "@/db";
+import { fotoKecil } from "@/lib/foto";
 import { requireAdmin } from "@/lib/auth";
 import { PasswordInput } from "@/components/PasswordInput";
 import { registrationOpen } from "@/lib/settings";
@@ -105,6 +106,7 @@ export default async function Pengguna({ searchParams }: { searchParams: Promise
         {list.map((u) => (
           <li key={u.id} className="space-y-3 p-4">
             <div className="flex flex-wrap items-center gap-2">
+              <span className="grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-gradient-to-br from-[#d9a441] to-[#a8691b] text-xs font-bold text-[#1b1108]">{u.photoUrl ? <img src={fotoKecil(u.photoUrl, 64) ?? ""} alt="" className="h-full w-full object-cover" /> : (u.name.trim()[0] ?? "?").toUpperCase()}</span>
               <span className="font-medium">{u.name}</span>
               <span className="text-sm text-charcoal/60">{u.email}</span>
               <span className="rounded bg-cream-dark px-2 py-0.5 text-xs">{u.role}</span>

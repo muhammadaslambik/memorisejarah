@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { PemutarVideo } from "@/components/admin/PemutarVideo";
+import { MiniPemutar } from "@/components/admin/MiniPemutar";
 
 export type ItemVideo = { id: number; title: string; status: string; featured: boolean; youtubeId: string };
 type Mode = "baris" | "kolom";
@@ -13,7 +14,9 @@ const g = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWi
 
 export function VideoDaftar({ items, hapus }: { items: ItemVideo[]; hapus: (fd: FormData) => void | Promise<void> }) {
   const [mode, setMode] = useState<Mode>("baris");
-  const [putar, setPutar] = useState<ItemVideo | null>(null);
+  const [modal, setModal] = useState<{ x: ItemVideo; awal: "kecil" | "besar" } | null>(null);
+  const [mini, setMini] = useState<ItemVideo | null>(null);
+  const [inline, setInline] = useState<number | null>(null); // video yang sedang diputar langsung di kartu (tampilan Kolom)
   const [saring, setSaring] = useState<Saring>("semua");
   const nTerbit = items.filter((x) => x.status === "published").length;
   const nPilihan = items.filter((x) => x.featured).length;
@@ -32,7 +35,7 @@ export function VideoDaftar({ items, hapus }: { items: ItemVideo[]; hapus: (fd: 
     </>
   );
   const tombolLihat = (x: ItemVideo) => (
-    <button type="button" onClick={() => setPutar(x)} className="a-btn-soft !px-3 !py-1 text-sm" aria-label={`Lihat video: ${x.title}`}>
+    <button type="button" onClick={() => { setInline(null); setModal({ x, awal: "kecil" }); }} className="a-btn-soft !px-3 !py-1 text-sm" aria-label={`Lihat video: ${x.title}`}>
       <svg {...g} className="h-4 w-4"><path d="M8 5v14l11-7z" /></svg>Lihat
     </button>
   );
@@ -88,24 +91,61 @@ export function VideoDaftar({ items, hapus }: { items: ItemVideo[]; hapus: (fd: 
         <div className="mt-3 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {tampil.map((x) => (
             <div key={x.id} className="a-card flex flex-col overflow-hidden">
-              <button type="button" onClick={() => setPutar(x)} className="group relative block aspect-video w-full bg-black" aria-label={`Lihat video: ${x.title}`}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={`https://i.ytimg.com/vi/${x.youtubeId}/mqdefault.jpg`} alt="" loading="lazy" className="h-full w-full object-cover opacity-90 transition group-hover:opacity-100" />
-                <span className="absolute inset-0 grid place-items-center">
-                  <span className="grid h-12 w-12 place-items-center rounded-full bg-black/60 text-white transition group-hover:scale-110"><svg {...g} className="h-6 w-6" fill="currentColor"><path d="M8 5v14l11-7z" /></svg></span>
-                </span>
-              </button>
+              {inline === x.id ? (
+                <div className="aspect-video w-full bg-black">
+                  <iframe src={`https://www.youtube-nocookie.com/embed/${x.youtubeId}?autoplay=1&rel=0`} title={x.title} className="h-full w-full" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" />
+                </div>
+              ) : (
+                <button type="button" onClick={() => { setMini(null); setInline(x.id); }} className="group relative block aspect-video w-full bg-black" aria-label={`Putar video: ${x.title}`}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={`https://i.ytimg.com/vi/${x.youtubeId}/mqdefault.jpg`} alt="" loading="lazy" className="h-full w-full object-cover opacity-90 transition group-hover:opacity-100" />
+                  <span className="absolute inset-0 grid place-items-center">
+                    <span className="grid h-12 w-12 place-items-center rounded-full bg-black/60 text-white transition group-hover:scale-110"><svg {...g} className="h-6 w-6" fill="currentColor"><path d="M8 5v14l11-7z" /></svg></span>
+                  </span>
+                </button>
+              )}
               <div className="flex flex-1 flex-col gap-2 p-3">
                 <Link href={`/admin/video?edit=${x.id}`} className="line-clamp-3 text-sm font-medium hover:text-[color:var(--a-accent)]">{x.title}</Link>
                 <div className="flex flex-wrap items-center gap-1.5">{chip(x)}</div>
-                <div className="mt-auto flex items-center justify-between pt-1">{tombolLihat(x)}{formHapus(x)}</div>
+                <div className="mt-auto flex flex-wrap items-center gap-2 pt-1">
+                  <button type="button" onClick={() => { setMini(null); setInline((i) => (i === x.id ? null : x.id)); }} className="a-btn-soft !px-3 !py-1 text-sm" aria-label={inline === x.id ? `Hentikan video: ${x.title}` : `Putar video: ${x.title}`}>
+                    {inline === x.id
+                      ? <><svg {...g} className="h-4 w-4"><rect x="6" y="6" width="12" height="12" rx="1.5" fill="currentColor" /></svg>Berhenti</>
+                      : <><svg {...g} className="h-4 w-4"><path d="M8 5v14l11-7z" /></svg>Putar</>}
+                  </button>
+                  <button type="button" onClick={() => { setInline(null); setModal({ x, awal: "besar" }); }} className="a-ikon-btn !h-8 !w-8" aria-label={`Perbesar: ${x.title}`} title="Perbesar">
+                    <svg {...g} className="h-4 w-4"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></svg>
+                  </button>
+                  <button type="button" onClick={() => { setInline(null); setMini(x); }} className="a-ikon-btn !h-8 !w-8" aria-label={`Mini player: ${x.title}`} title="Mini player">
+                    <svg {...g} className="h-4 w-4"><rect x="3" y="5" width="18" height="14" rx="2" /><rect x="12" y="11" width="7" height="5" rx="1" fill="currentColor" /></svg>
+                  </button>
+                  <span className="ml-auto">{formHapus(x)}</span>
+                </div>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {putar && <PemutarVideo judul={putar.title} sumber={{ tipe: "youtube", id: putar.youtubeId }} onTutup={() => setPutar(null)} />}
+      {modal && (
+        <PemutarVideo
+          key={modal.x.id}
+          judul={modal.x.title}
+          sumber={{ tipe: "youtube", id: modal.x.youtubeId }}
+          awal={modal.awal}
+          onTutup={() => setModal(null)}
+          onMini={() => { setMini(modal.x); setModal(null); }}
+        />
+      )}
+      {mini && (
+        <MiniPemutar
+          key={mini.id}
+          judul={mini.title}
+          sumber={{ tipe: "youtube", id: mini.youtubeId }}
+          onTutup={() => setMini(null)}
+          onBesar={() => { setModal({ x: mini, awal: "besar" }); setMini(null); }}
+        />
+      )}
     </div>
   );
 }

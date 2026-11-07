@@ -6,6 +6,7 @@ import { Logo } from "./Logo";
 import { HeaderBar } from "./HeaderBar";
 import { NavDropdown } from "./NavDropdown";
 import { NavScroll } from "./NavScroll";
+import { NavSeluler } from "./NavSeluler";
 import { navItem, navSub } from "./nav-style";
 
 const biasa = `${navItem} shrink-0 whitespace-nowrap`;
@@ -39,11 +40,10 @@ export async function Header() {
           </NavScroll>
         </HeaderBar>
       </div>
-      <nav className="flex gap-1 overflow-x-auto border-t border-ms-line px-3 py-2 lg:hidden" aria-label="Menu seluler">
-        {[["/", "Beranda"], ["/artikel", "Artikel"], ["/pustaka", "Pustaka"], ["/gambar", "Gambar"], ["/video", "Video"], ["/informasi", "Informasi"], ["/agenda", "Agenda"], ["/tentang", "Tentang"]].map(([h, l]) => (
-          <Link key={h} href={h} className={`${navItem} whitespace-nowrap`}>{l}</Link>
-        ))}
-      </nav>
+      <NavSeluler
+        artikel={[{ href: "/artikel", label: "Semua Artikel" }, ...cats.map((c) => ({ href: `/kategori/${c.slug}`, label: c.name }))]}
+        pustaka={[{ href: "/pustaka", label: "Semua Pustaka" }, ...pustaka.map((p) => ({ href: `/pustaka?f=${p.kunci}`, label: p.nama })), { href: "/gambar", label: "Galeri Gambar" }]}
+      />
     </header>
   );
 }

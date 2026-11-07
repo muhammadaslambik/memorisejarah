@@ -32,7 +32,7 @@ export default async function TulisanPenulis({ params }: { params: Promise<{ id:
         <div className="mt-6 flex items-center gap-5">
           <Avatar nama={p.nama} url={p.foto} ukuran={84} />
           <div className="min-w-0">
-            <h1 className="font-serif text-3xl font-bold md:text-4xl">Tulisan oleh {p.nama.split(",")[0]}</h1>
+            <h1 className="font-serif text-2xl sm:text-3xl font-bold md:text-4xl">Tulisan oleh {p.nama.split(",")[0]}</h1>
             <p className="mt-1 text-ms-cream/70">{[p.peran, `${p.jumlah} tulisan terbit`].filter(Boolean).join(" \u2022 ")}</p>
             {p.profilSlug && <Link href={`/${p.profilSlug}`} className="mt-1 inline-block text-sm text-ms-gold underline underline-offset-4">Lihat profil redaksi</Link>}
           </div>

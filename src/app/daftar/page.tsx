@@ -21,7 +21,7 @@ export default async function Daftar({ searchParams }: { searchParams: Promise<{
   const siteKey = process.env.TURNSTILE_SITE_KEY; // kunci situs Turnstile (publik); kosong = tanpa verifikasi
   return (
     <div className="mx-auto mt-16 max-w-sm space-y-4 rounded-2xl border border-ms-line bg-ms-surface p-8 text-ms-cream shadow-xl">
-      <h1 className="font-serif text-2xl">Daftar</h1>
+      <h1 className="font-serif text-xl sm:text-2xl">Daftar</h1>
       {ok === "menunggu" && (
         <p className="rounded bg-emerald-500/10 p-3 text-sm text-emerald-400">
           Pendaftaran diterima. Akun Admin/Editor baru bisa dipakai setelah disetujui admin.

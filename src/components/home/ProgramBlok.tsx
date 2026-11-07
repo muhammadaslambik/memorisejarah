@@ -32,7 +32,7 @@ export async function ProgramBlok() {
           <section key={a.slug}>
             <div className="flex items-end justify-between gap-4">
               <div>
-                <h2 className="font-serif text-2xl font-bold"><span className="mr-2">{a.emoji}</span>{a.nama}</h2>
+                <h2 className="font-serif text-xl sm:text-2xl font-bold"><span className="mr-2">{a.emoji}</span>{a.nama}</h2>
                 <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-ms-cream/50">{a.sub}</p>
               </div>
               <Link href={`/agenda/${a.slug}`} className="shrink-0 text-sm text-ms-gold">Lihat semua &rarr;</Link>

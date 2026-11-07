@@ -29,7 +29,7 @@ export default async function Redaksi() {
   return (
     <div className="-mb-16 min-h-[70vh] bg-ms-bg pb-24 text-ms-cream">
       <section className="mx-auto max-w-[90rem] px-6 pt-12 md:px-10 lg:px-16">
-        <h1 className="font-serif text-4xl font-bold md:text-5xl">Susunan Redaksi</h1>
+        <h1 className="font-serif text-2xl sm:text-4xl font-bold md:text-5xl">Susunan Redaksi</h1>
         <p className="mt-3 text-ms-cream/70">Klik nama untuk melihat profil anggota.</p>
         {anggota.length === 0 && <p className="mt-8 text-ms-cream/60">Susunan redaksi belum diatur.</p>}
 
@@ -38,7 +38,7 @@ export default async function Redaksi() {
             <Avatar nama={a.name} url={a.fotoUrl} ukuran={72} />
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ms-gold">{a.peran || "Pendiri & Pemimpin Redaksi"}</p>
-              <p className="mt-2 font-serif text-2xl font-bold">{nama(a)}</p>
+              <p className="mt-2 font-serif text-xl sm:text-2xl font-bold">{nama(a)}</p>
             </div>
           </div>
         ))}

@@ -11,19 +11,19 @@ export async function InformasiBlok() {
       <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr]">
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-red-800 to-red-950 p-8">
           <span className="rounded-full border border-white/30 bg-white/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider">{d.merah.label}</span>
-          <h3 className="mt-5 max-w-sm font-serif text-3xl font-bold leading-tight">{d.merah.judul}</h3>
+          <h3 className="mt-5 max-w-sm font-serif text-2xl sm:text-3xl font-bold leading-tight">{d.merah.judul}</h3>
           <p className="mt-3 text-amber-400">&#9733; &#9733; &#9733;</p>
           <div className="mt-5 flex items-center gap-4">
-            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-ms-cream text-2xl">&#9994;</span>
+            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-ms-cream text-xl sm:text-2xl">&#9994;</span>
             <p className="max-w-xs text-sm text-white/85">{d.merah.ket}</p>
           </div>
           <Link href={d.merah.href} className="mt-6 inline-flex rounded-full bg-ms-cream px-5 py-2.5 text-sm font-semibold text-ms-bg">{d.merah.tombol}</Link>
         </div>
         <div className="rounded-3xl bg-ms-cream p-8 text-ms-bg">
           <div className="flex items-start gap-4">
-            <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-ms-bg text-3xl">&#128220;</span>
+            <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-ms-bg text-2xl sm:text-3xl">&#128220;</span>
             <div>
-              <h3 className="font-serif text-2xl font-bold uppercase">{d.krem.judul}</h3>
+              <h3 className="font-serif text-xl sm:text-2xl font-bold uppercase">{d.krem.judul}</h3>
               <p className="mt-2 text-sm text-ms-bg/75">{tebal(d.krem.isi)}</p>
             </div>
           </div>

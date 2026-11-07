@@ -25,13 +25,13 @@ export default async function AgendaDetail({ params }: { params: Promise<{ slug:
       <section className="mx-auto max-w-[90rem] px-6 pt-12 md:px-10 lg:px-16">
         <Link href="/agenda" className="text-sm text-ms-gold">&larr; Agenda Kegiatan</Link>
         <div className={`mt-4 rounded-3xl border bg-gradient-to-br p-8 ${a.kelas}`}>
-          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-black/30 text-3xl">{a.emoji}</span>
-          <h1 className="mt-5 font-serif text-3xl font-bold md:text-4xl">{a.nama}</h1>
+          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-black/30 text-2xl sm:text-3xl">{a.emoji}</span>
+          <h1 className="mt-5 font-serif text-2xl sm:text-3xl font-bold md:text-4xl">{a.nama}</h1>
           <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-ms-cream/55">{a.sub}</p>
           <p className="mt-4 max-w-3xl text-ms-cream/80">{a.deskripsi}</p>
           {a.jadwal && <p className="mt-4 text-sm text-ms-gold">Jadwal: {a.jadwal}</p>}
         </div>
-        <h2 className="mt-12 font-serif text-2xl font-bold">Tayangan</h2>
+        <h2 className="mt-12 font-serif text-xl sm:text-2xl font-bold">Tayangan</h2>
         {items.length > 0 ? (
           <div className="mt-5 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {items.map((v) => <VideoCard key={v.id} v={v} />)}

@@ -73,7 +73,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <label htmlFor="adm-menu" className="a-scrim peer-checked:opacity-100 peer-checked:pointer-events-auto" aria-hidden="true" />
 
       <aside className="a-side fixed inset-y-0 left-0 z-40 flex w-[17rem] -translate-x-full flex-col transition-transform duration-200 peer-checked:translate-x-0 lg:translate-x-0">
-        <Link href="/admin" className="flex items-center gap-3 px-5 py-5">
+        <label htmlFor="adm-menu" className="a-ikon-btn absolute right-3 top-4 z-10 cursor-pointer !text-[#ecdcc4] lg:!hidden" aria-label="Tutup menu" title="Tutup menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" className="h-5 w-5" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+        </label>
+        <Link href="/admin" className="flex items-center gap-3 px-5 py-5 pr-14">
           <img src="/brand/logo-memori-sejarah-kecil.png" alt="" width={40} height={40} className="h-10 w-10 rounded-full" />
           <span className="leading-tight">
             <span className="block font-serif text-lg font-bold text-[#f3e3c3]">Memori Sejarah</span>

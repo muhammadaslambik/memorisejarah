@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Tentang Memori Sejarah" };
 
 const kartu = "rounded-2xl border border-ms-line bg-ms-surface p-6 md:p-8";
-const judulKelas = "font-serif text-2xl font-bold text-ms-gold";
+const judulKelas = "font-serif text-xl sm:text-2xl font-bold text-ms-gold";
 const isiKelas = "prose prose-invert max-w-none leading-relaxed prose-headings:font-serif prose-a:text-ms-gold prose-blockquote:border-ms-gold prose-blockquote:font-serif prose-p:my-3";
 const Isi = ({ html }: { html: string }) => <div className={isiKelas} dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }} />;
 
@@ -21,7 +21,7 @@ export default async function Tentang() {
         <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center">
           <img src="/brand/logo-memori-sejarah-kecil.png" alt="Logo Memori Sejarah" className="h-24 w-24 rounded-full" />
           <div>
-            <h1 className="font-serif text-4xl font-bold md:text-5xl">Tentang Memori Sejarah</h1>
+            <h1 className="font-serif text-2xl sm:text-4xl font-bold md:text-5xl">Tentang Memori Sejarah</h1>
             <p className="mt-2 text-xs font-semibold uppercase tracking-[0.2em] text-ms-gold">Tempat Mengingat Sejarah</p>
           </div>
         </div>

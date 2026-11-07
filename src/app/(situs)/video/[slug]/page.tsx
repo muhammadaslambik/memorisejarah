@@ -26,7 +26,7 @@ export default async function VideoPage({ params }: { params: Promise<{ slug: st
   return (
     <div className="-mb-16 min-h-[70vh] bg-ms-bg pb-24 text-ms-cream">
       <article className="mx-auto max-w-5xl px-5 pt-12">
-        <h1 className="font-serif text-3xl leading-tight md:text-4xl">{v.title}</h1>
+        <h1 className="font-serif text-2xl sm:text-3xl leading-tight md:text-4xl">{v.title}</h1>
         <p className="mt-3 text-sm text-ms-gold">{tanggalLengkap(v.publishedAt)}</p>
         <div className="mt-6 aspect-video overflow-hidden rounded-xl border border-ms-line bg-black">
           <iframe
@@ -44,7 +44,7 @@ export default async function VideoPage({ params }: { params: Promise<{ slug: st
       <div className="mx-auto mt-14 max-w-[90rem] space-y-14 px-6 md:px-10 lg:px-16">
         {lain.length > 0 && (
           <section>
-            <h2 className="font-serif text-2xl font-bold">Video Lainnya</h2>
+            <h2 className="font-serif text-xl sm:text-2xl font-bold">Video Lainnya</h2>
             <div className="mt-4">
               <VideoStrip items={lain.map((x) => ({ slug: x.slug, title: x.title, youtubeId: x.youtubeId }))} />
             </div>

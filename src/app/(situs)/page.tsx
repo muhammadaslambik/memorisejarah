@@ -65,7 +65,7 @@ export default async function Home() {
             </div>
             <div className="flex flex-col justify-center p-6 md:p-8">
               {kat(utama.categoryId) && <span className={`${badge} self-start`}>{kat(utama.categoryId)}</span>}
-              <h3 className="mt-4 font-serif text-2xl font-bold leading-snug group-hover:text-ms-gold">{utama.title}</h3>
+              <h3 className="mt-4 font-serif text-xl sm:text-2xl font-bold leading-snug group-hover:text-ms-gold">{utama.title}</h3>
               <p className="mt-3 line-clamp-4 text-sm text-ms-cream/70">{utama.excerpt}</p>
               <span className="mt-5 inline-flex items-center gap-2 self-start rounded-full bg-ms-cream px-5 py-2.5 text-sm font-semibold text-ms-bg">
                 Baca Selengkapnya &rarr;

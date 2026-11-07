@@ -19,7 +19,7 @@ export default async function Gambar({ searchParams }: { searchParams: Promise<{
   return (
     <div className="-mb-16 min-h-[70vh] bg-ms-bg pb-24 text-ms-cream">
       <section className="mx-auto max-w-[90rem] px-6 pt-12 md:px-10 lg:px-16">
-        <h1 className="font-serif text-4xl font-bold md:text-5xl">Gambar</h1>
+        <h1 className="font-serif text-2xl sm:text-4xl font-bold md:text-5xl">Gambar</h1>
         <p className="mt-3 max-w-2xl text-ms-cream/70">Foto, lukisan, dan arsip visual dari perjalanan sejarah.</p>
         {tampil.length > 0 ? (
           <div className="mt-8 grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-5">

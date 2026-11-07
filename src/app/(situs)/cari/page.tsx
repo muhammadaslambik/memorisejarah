@@ -40,7 +40,7 @@ export default async function Cari({ searchParams }: { searchParams: Promise<{ q
   return (
     <div className="-mb-16 min-h-[70vh] bg-ms-bg pb-24 text-ms-cream">
       <section className="mx-auto max-w-[90rem] px-6 md:px-10 lg:px-16 pt-12">
-        <h1 className="font-serif text-4xl font-bold md:text-5xl">Pencarian</h1>
+        <h1 className="font-serif text-2xl sm:text-4xl font-bold md:text-5xl">Pencarian</h1>
         <form action="/cari" method="get" className="mt-6 flex max-w-xl gap-2">
           <input
             type="search" name="q" defaultValue={q} placeholder="Cari artikel..."

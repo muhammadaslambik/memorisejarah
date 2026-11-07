@@ -11,7 +11,7 @@ export function VideoStrip({ items }: { items: V[] }) {
     const el = ref.current;
     if (el) el.scrollBy({ left: arah * el.clientWidth, behavior: "smooth" });
   };
-  const bulat = "absolute top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-ms-line bg-ms-bg/90 text-2xl leading-none text-ms-cream transition hover:border-ms-gold hover:text-ms-gold";
+  const bulat = "absolute top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-ms-line bg-ms-bg/90 text-xl sm:text-2xl leading-none text-ms-cream transition hover:border-ms-gold hover:text-ms-gold";
   return (
     <div className="relative">
       <div

@@ -39,7 +39,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
 
   return (
     <div className="-mb-16 min-h-[70vh] bg-ms-bg pb-24 text-ms-cream"><article className="mx-auto max-w-4xl px-5 pt-12">
-      <h1 className="font-serif text-4xl leading-tight md:text-5xl">{p.title}</h1>
+      <h1 className="font-serif text-2xl sm:text-4xl leading-tight md:text-5xl">{p.title}</h1>
       <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-ms-gold"><span>{tanggalLengkap(p.publishedAt)}</span>{penulis && (<><span aria-hidden="true">&bull;</span><span className="text-ms-cream/70">Oleh</span><PenulisInfo data={penulis} /></>)}</div>
       {p.coverUrl && !sampulSudahAdaDiIsi(p.coverUrl, p.content) && <img src={p.coverUrl} alt="" className="mt-8 w-full rounded-lg" />}
       <div className="prose prose-lg prose-invert mt-8 max-w-none prose-headings:font-serif prose-a:text-ms-gold prose-img:rounded-xl prose-figcaption:text-center prose-figcaption:text-ms-cream/60"
@@ -49,7 +49,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
         {share.map(([n, h]) => <a key={n} href={h} target="_blank" rel="noopener" className="text-ms-gold underline">{n}</a>)}
       </div>
       {related.length > 0 && (<>
-        <h2 className="mb-5 mt-12 font-serif text-2xl">Baca Juga</h2>
+        <h2 className="mb-5 mt-12 font-serif text-xl sm:text-2xl">Baca Juga</h2>
         <div className="grid gap-5 sm:grid-cols-3">{related.map((r) => <PostCard key={r.id} p={r} />)}</div>
       </>)}
     </article></div>

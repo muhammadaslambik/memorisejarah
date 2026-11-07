@@ -230,3 +230,11 @@ body { top: 0 !important; }
   .adm main { min-width: 0; }
   .adm img, .adm video, .adm iframe { max-width: 100%; }
 }
+
+/* PAKET-15F: CMS di ponsel: grid tidak melebar, huruf judul lebih kecil */
+.adm .grid > * { min-width: 0; }
+@media (max-width: 639px) {
+  .adm h1 { font-size: 1.5rem; line-height: 2rem; }
+  .adm .text-3xl { font-size: 1.5rem; line-height: 2rem; }
+  .adm .text-2xl { font-size: 1.25rem; line-height: 1.75rem; }
+}

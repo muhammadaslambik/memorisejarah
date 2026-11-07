@@ -18,7 +18,7 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
     return () => clearInterval(t);
   }, [n, jeda, hover]);
 
-  const bulat = "absolute top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-ms-line bg-ms-bg/80 text-2xl leading-none text-ms-cream transition hover:border-ms-gold hover:text-ms-gold";
+  const bulat = "absolute top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-ms-line bg-ms-bg/80 text-xl sm:text-2xl leading-none text-ms-cream transition hover:border-ms-gold hover:text-ms-gold";
   return (
     <div
       className="relative h-[340px] overflow-hidden rounded-3xl border border-ms-line bg-ms-surface sm:h-[400px] lg:h-[440px]"
@@ -40,7 +40,7 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
               {s.kategori && <span className="rounded-full bg-ms-gold px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-ms-bg">{s.kategori}</span>}
               <span>{[s.tanggal, s.penulis].filter(Boolean).join(" \u2022 ")}</span>
             </div>
-            <h2 className="mt-3 max-w-3xl line-clamp-3 font-serif text-2xl font-bold leading-tight md:text-4xl">{s.title}</h2>
+            <h2 className="mt-3 max-w-3xl line-clamp-3 font-serif text-xl sm:text-2xl font-bold leading-tight md:text-4xl">{s.title}</h2>
           </div>
         </Link>
       ))}

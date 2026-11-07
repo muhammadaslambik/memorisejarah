@@ -77,8 +77,8 @@ export default async function Dashboard() {
         ))}
       </div>
 
-      <div className="mt-6 grid gap-6 xl:grid-cols-3">
-        <section className="a-card p-5 xl:col-span-2">
+      <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-3">
+        <section className="a-card min-w-0 p-5 xl:col-span-2">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="font-serif text-lg font-bold">Artikel terbaru</h2>
             <Link href="/admin/artikel" className="a-link text-sm">Lihat semua &rarr;</Link>
@@ -101,7 +101,7 @@ export default async function Dashboard() {
           )}
         </section>
 
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           <section className="a-card p-5">
             <h2 className="mb-3 font-serif text-lg font-bold">Aksi cepat</h2>
             <div className="grid grid-cols-1 gap-2">

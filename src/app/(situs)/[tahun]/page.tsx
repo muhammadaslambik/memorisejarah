@@ -80,7 +80,7 @@ export default async function Profil({ params }: { params: Promise<{ tahun: stri
         <div className="mt-6 flex flex-col gap-8 rounded-2xl border border-ms-line bg-ms-surface p-6 md:flex-row md:p-10">
           <div className="shrink-0"><Avatar nama={m.name} url={m.fotoUrl} ukuran={180} /></div>
           <div className="min-w-0">
-            <h1 className="font-serif text-3xl font-bold md:text-4xl">{m.name}</h1>
+            <h1 className="font-serif text-2xl sm:text-3xl font-bold md:text-4xl">{m.name}</h1>
             {m.peran && <p className="mt-2 text-ms-gold">{m.peran}</p>}
             {tim.length > 0 && (
               <div className="mt-4 flex flex-wrap gap-2">
@@ -104,7 +104,7 @@ export default async function Profil({ params }: { params: Promise<{ tahun: stri
       </section>
       {tulisan.length > 0 && (
         <section className="mx-auto mt-12 max-w-[90rem] px-6 md:px-10 lg:px-16">
-          <h2 className="font-serif text-2xl font-bold">Tulisan oleh {m.name.split(",")[0]}</h2>
+          <h2 className="font-serif text-xl sm:text-2xl font-bold">Tulisan oleh {m.name.split(",")[0]}</h2>
           <div className="mt-5 grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-5">
             {tulisan.map((p) => <PostCardMini key={p.id} p={p} />)}
           </div>

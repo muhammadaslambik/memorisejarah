@@ -1,20 +1,39 @@
-// PAKET-15B: jendela pemutar video di dalam CMS (YouTube tersemat atau berkas dari perangkat).
-// Bisa diperbesar/diperkecil; menutup dengan tombol X, klik di luar jendela, atau Esc.
+// PAKET-15B/15G: jendela pemutar video di dalam CMS (YouTube tersemat atau berkas dari perangkat).
+// Ukuran awal sudah besar (muat di layar). Tombol Perbesar = layar penuh. Tutup: tombol X, klik di luar jendela, atau Esc.
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export type SumberVideo = { tipe: "youtube"; id: string } | { tipe: "file"; url: string };
 
 const g = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round" } as const;
 
 export function PemutarVideo({ judul, sumber, onTutup }: { judul: string; sumber: SumberVideo; onTutup: () => void }) {
-  const [besar, setBesar] = useState(false);
+  const [penuh, setPenuh] = useState(false);
+  const panel = useRef<HTMLDivElement>(null);
+
+  const keluarPenuh = useCallback(async () => {
+    if (document.fullscreenElement) { try { await document.exitFullscreen(); } catch { /* abaikan */ } }
+    setPenuh(false);
+  }, []);
+  const masukPenuh = async () => {
+    setPenuh(true); // tata letak layar penuh lewat CSS (cadangan bila peramban menolak Fullscreen API)
+    try { await panel.current?.requestFullscreen?.(); } catch { /* tetap pakai mode CSS */ }
+  };
 
   useEffect(() => {
-    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") onTutup(); };
+    const ubah = () => { if (!document.fullscreenElement) setPenuh(false); }; // keluar dengan Esc bawaan peramban
+    document.addEventListener("fullscreenchange", ubah);
+    return () => {
+      document.removeEventListener("fullscreenchange", ubah);
+      if (document.fullscreenElement) document.exitFullscreen().catch(() => { /* abaikan */ });
+    };
+  }, []);
+
+  useEffect(() => {
+    const esc = (e: KeyboardEvent) => { if (e.key !== "Escape") return; if (penuh) void keluarPenuh(); else onTutup(); };
     document.addEventListener("keydown", esc);
     return () => document.removeEventListener("keydown", esc);
-  }, [onTutup]);
+  }, [penuh, keluarPenuh, onTutup]);
 
   return (
     <div
@@ -25,14 +44,15 @@ export function PemutarVideo({ judul, sumber, onTutup }: { judul: string; sumber
       aria-label={`Pemutar video: ${judul}`}
     >
       <div
-        className="a-card w-full overflow-hidden shadow-2xl transition-[max-width] duration-200"
-        // lebar dibatasi agar seluruh jendela (judul + tombol + video 16:9) selalu muat di layar, sehingga tombol X tidak pernah terpotong
-        style={{ maxWidth: `min(${besar ? "96rem" : "48rem"}, calc((100vh - 7.5rem) * 16 / 9))` }}
+        ref={panel}
+        className={`a-card flex w-full flex-col overflow-hidden shadow-2xl ${penuh ? "!fixed inset-0 z-[80] !max-w-none !rounded-none" : ""}`}
+        // ukuran awal: selebar mungkin tetapi seluruh jendela (judul + video 16:9) tetap muat di layar
+        style={penuh ? undefined : { maxWidth: "min(96rem, calc((100vh - 7.5rem) * 16 / 9))" }}
       >
-        <div className="flex items-center gap-2 px-4 py-2.5">
+        <div className="flex shrink-0 items-center gap-2 px-4 py-2.5">
           <p className="min-w-0 flex-1 truncate text-sm font-semibold">{judul}</p>
-          <button type="button" onClick={() => setBesar((b) => !b)} className="a-ikon-btn !h-9 !w-9" aria-label={besar ? "Perkecil" : "Perbesar"} title={besar ? "Perkecil" : "Perbesar"}>
-            {besar
+          <button type="button" onClick={() => (penuh ? void keluarPenuh() : void masukPenuh())} className="a-ikon-btn !h-9 !w-9" aria-label={penuh ? "Keluar dari layar penuh" : "Layar penuh"} title={penuh ? "Keluar dari layar penuh" : "Layar penuh"}>
+            {penuh
               ? <svg {...g} className="h-[18px] w-[18px]"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" /></svg>
               : <svg {...g} className="h-[18px] w-[18px]"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></svg>}
           </button>
@@ -40,7 +60,7 @@ export function PemutarVideo({ judul, sumber, onTutup }: { judul: string; sumber
             <svg {...g} className="h-[18px] w-[18px]"><path d="M6 6l12 12M18 6L6 18" /></svg>
           </button>
         </div>
-        <div className="aspect-video w-full bg-black">
+        <div className={`w-full bg-black ${penuh ? "min-h-0 flex-1" : "aspect-video"}`}>
           {sumber.tipe === "youtube" ? (
             <iframe
               src={`https://www.youtube-nocookie.com/embed/${sumber.id}?autoplay=1&rel=0`}

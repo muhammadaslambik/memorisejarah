@@ -7,6 +7,7 @@ export const kolomKartu = {
   title: posts.title,
   excerpt: posts.excerpt,
   coverUrl: posts.coverUrl,
+  coverCaption: posts.coverCaption,
   featured: posts.featured,
   status: posts.status,
   categoryId: posts.categoryId,

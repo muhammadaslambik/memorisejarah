@@ -24,7 +24,7 @@ export default async function EditPost({ params }: { params: Promise<{ id: strin
   const terpilih = new Set(isNew ? [] : (await db().select({ id: postCategories.categoryId }).from(postCategories).where(eq(postCategories.postId, Number(id)))).map((r) => r.id));
   return (
     <>
-    <form action={savePost} className="-mt-5 mx-auto max-w-4xl space-y-4 px-5 pb-10 pt-1">
+    <form action={savePost} className="-mt-10 mx-auto max-w-4xl space-y-4 px-5 pb-10 pt-1">
       {/* tombol kembali kini berupa ikon di bilah alat editor */}
       <h1 className="font-serif text-3xl">{isNew ? "Artikel Baru" : "Edit Artikel"}</h1>
       {p && <input type="hidden" name="id" value={p.id} />}
@@ -44,7 +44,7 @@ export default async function EditPost({ params }: { params: Promise<{ id: strin
       <input name="slug" defaultValue={p?.slug} placeholder="Slug URL (kosongkan = otomatis dari judul)" spellCheck={false} className="w-full rounded border p-3 text-sm" />
       <textarea name="excerpt" defaultValue={p?.excerpt} placeholder="Ringkasan singkat" spellCheck={false} rows={2} className="w-full rounded border p-3" />
       <TerjemahJudul />
-      <PilihSampul defaultUrl={p?.coverUrl ?? ""} />
+      <PilihSampul defaultUrl={p?.coverUrl ?? ""} defaultKeterangan={p?.coverCaption ?? ""} />
       <Editor initial={p?.content ?? ""} catatanKaki awal={<TombolKembali />} />
       <div className="flex flex-wrap items-center gap-4">
         <fieldset className="w-full rounded border p-3 text-sm">

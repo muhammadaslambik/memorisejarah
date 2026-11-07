@@ -2,8 +2,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { IkonEdit, IkonHapus } from "@/components/admin/TombolAksi";
-import { PemutarVideo } from "@/components/admin/PemutarVideo";
-import { MiniPemutar } from "@/components/admin/MiniPemutar";
+import { PemutarTerpadu, type ModePemutar } from "@/components/admin/PemutarTerpadu";
 import { PilihKategori, PilihJumlah, Pager, useHalaman, potong, cocokKat, type Kat } from "@/components/admin/KontrolDaftar";
 
 export type ItemVideo = { id: number; title: string; status: string; featured: boolean; youtubeId: string; categoryId: number | null };
@@ -14,9 +13,9 @@ const g = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWi
 
 export function VideoDaftar({ items, hapus, cats }: { items: ItemVideo[]; hapus: (fd: FormData) => void | Promise<void>; cats: Kat[] }) {
   const [mode, setMode] = useState<Mode>("kolom");
-  const [modal, setModal] = useState<{ x: ItemVideo; awal: "kecil" | "besar" } | null>(null);
-  const [mini, setMini] = useState<ItemVideo | null>(null);
-  const [inline, setInline] = useState<number | null>(null); // video yang sedang diputar langsung di kartu (tampilan Kolom)
+  const [aktif, setAktif] = useState<{ x: ItemVideo; mode: ModePemutar } | null>(null); // satu pemutar: bentuknya berganti tanpa memuat ulang video
+  const putar = (x: ItemVideo, mode: ModePemutar) => setAktif({ x, mode });
+  const sedangInline = (x: ItemVideo) => aktif?.x.id === x.id && aktif.mode === "inline";
   const [saring, setSaring] = useState<Saring>("semua");
   const nTerbit = items.filter((x) => x.status === "published").length;
   const nPilihan = items.filter((x) => x.featured).length;
@@ -39,7 +38,7 @@ export function VideoDaftar({ items, hapus, cats }: { items: ItemVideo[]; hapus:
     </>
   );
   const tombolLihat = (x: ItemVideo) => (
-    <button type="button" onClick={() => { setInline(null); setModal({ x, awal: "kecil" }); }} className="a-btn-soft !px-3 !py-1 text-sm" aria-label={`Lihat video: ${x.title}`}>
+    <button type="button" onClick={() => putar(x, "modal")} className="a-btn-soft !px-3 !py-1 text-sm" aria-label={`Lihat video: ${x.title}`}>
       <svg {...g} className="h-4 w-4"><path d="M8 5v14l11-7z" /></svg>Lihat
     </button>
   );
@@ -86,11 +85,11 @@ export function VideoDaftar({ items, hapus, cats }: { items: ItemVideo[]; hapus:
       {tampil.length === 0 ? (
         <p className="a-muted mt-2 text-sm">{items.length === 0 ? "Belum ada video." : "Tidak ada video pada pilihan ini."}</p>
       ) : mode === "baris" ? (
-        <ul className="a-card a-daftar mt-3 overflow-hidden">
+        <ul className="a-card a-daftar mt-3">
           {tampil.map((x) => (
             <li key={x.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
               <div className="min-w-0 flex-1">
-                <button type="button" onClick={() => { setInline(null); setModal({ x, awal: "kecil" }); }} className="text-left font-medium hover:text-[color:var(--a-accent)]" title="Putar video">{x.title}</button>
+                <button type="button" onClick={() => putar(x, "modal")} className="text-left font-medium hover:text-[color:var(--a-accent)]" title="Putar video">{x.title}</button>
                 <span className="ml-2 inline-flex gap-1.5 align-middle">{chip(x)}</span>
               </div>
               <div className="flex items-center gap-1.5">{tombolLihat(x)}{ikonEdit(x)}{formHapus(x)}</div>
@@ -100,33 +99,29 @@ export function VideoDaftar({ items, hapus, cats }: { items: ItemVideo[]; hapus:
       ) : (
         <div className="mt-3 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {tampil.map((x) => (
-            <div key={x.id} className="a-card flex flex-col overflow-hidden">
-              {inline === x.id ? (
-                <div className="aspect-video w-full bg-black">
-                  <iframe src={`https://www.youtube-nocookie.com/embed/${x.youtubeId}?autoplay=1&rel=0`} title={x.title} className="h-full w-full" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" />
-                </div>
-              ) : (
-                <button type="button" onClick={() => { setMini(null); setInline(x.id); }} className="group relative block aspect-video w-full bg-black" aria-label={`Putar video: ${x.title}`}>
+            <div key={x.id} className="a-card flex flex-col">
+              <div id={`slot-video-${x.id}`} className="relative aspect-video w-full overflow-hidden rounded-t-[inherit] bg-black">
+                <button type="button" onClick={() => putar(x, "inline")} className="group absolute inset-0 block" aria-label={`Putar video: ${x.title}`}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={`https://i.ytimg.com/vi/${x.youtubeId}/mqdefault.jpg`} alt="" loading="lazy" className="h-full w-full object-cover opacity-90 transition group-hover:opacity-100" />
                   <span className="absolute inset-0 grid place-items-center">
                     <span className="grid h-12 w-12 place-items-center rounded-full bg-black/60 text-white transition group-hover:scale-110"><svg {...g} className="h-6 w-6" fill="currentColor"><path d="M8 5v14l11-7z" /></svg></span>
                   </span>
                 </button>
-              )}
+              </div>
               <div className="flex flex-1 flex-col gap-2 p-3">
-                <button type="button" onClick={() => { setMini(null); setInline(x.id); }} className="line-clamp-3 text-left text-sm font-medium hover:text-[color:var(--a-accent)]" title="Putar video">{x.title}</button>
+                <button type="button" onClick={() => putar(x, "inline")} className="line-clamp-3 text-left text-sm font-medium hover:text-[color:var(--a-accent)]" title="Putar video">{x.title}</button>
                 <div className="flex flex-wrap items-center gap-1.5">{chip(x)}</div>
                 <div className="mt-auto flex flex-wrap items-center gap-2 pt-1">
-                  <button type="button" onClick={() => { setMini(null); setInline((i) => (i === x.id ? null : x.id)); }} className="a-btn-soft !px-3 !py-1 text-sm" aria-label={inline === x.id ? `Hentikan video: ${x.title}` : `Putar video: ${x.title}`}>
-                    {inline === x.id
+                  <button type="button" onClick={() => (sedangInline(x) ? setAktif(null) : putar(x, "inline"))} className="a-btn-soft !px-3 !py-1 text-sm" aria-label={sedangInline(x) ? `Hentikan video: ${x.title}` : `Putar video: ${x.title}`}>
+                    {sedangInline(x)
                       ? <><svg {...g} className="h-4 w-4"><rect x="6" y="6" width="12" height="12" rx="1.5" fill="currentColor" /></svg>Berhenti</>
                       : <><svg {...g} className="h-4 w-4"><path d="M8 5v14l11-7z" /></svg>Putar</>}
                   </button>
-                  <button type="button" onClick={() => { setInline(null); setModal({ x, awal: "kecil" }); }} className="a-ikon-btn !h-8 !w-8" aria-label={`Perbesar: ${x.title}`} title="Perbesar">
+                  <button type="button" onClick={() => putar(x, "modal")} className="a-ikon-btn !h-8 !w-8" aria-label={`Perbesar: ${x.title}`} title="Perbesar">
                     <svg {...g} className="h-4 w-4"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></svg>
                   </button>
-                  <button type="button" onClick={() => { setInline(null); setMini(x); }} className="a-ikon-btn !h-8 !w-8" aria-label={`Mini player: ${x.title}`} title="Mini player">
+                  <button type="button" onClick={() => putar(x, "mini")} className="a-ikon-btn !h-8 !w-8" aria-label={`Mini player: ${x.title}`} title="Mini player">
                     <svg {...g} className="h-4 w-4"><rect x="3" y="5" width="18" height="14" rx="2" /><rect x="12" y="11" width="7" height="5" rx="1" fill="currentColor" /></svg>
                   </button>
                   <span className="ml-auto flex items-center gap-1">{ikonEdit(x)}{formHapus(x)}</span>
@@ -139,23 +134,15 @@ export function VideoDaftar({ items, hapus, cats }: { items: ItemVideo[]; hapus:
 
       <Pager hal={halIni} jumlah={jumlahHal} ubah={setHal} />
 
-      {modal && (
-        <PemutarVideo
-          key={modal.x.id}
-          judul={modal.x.title}
-          sumber={{ tipe: "youtube", id: modal.x.youtubeId }}
-          awal={modal.awal}
-          onTutup={() => setModal(null)}
-          onMini={() => { setMini(modal.x); setModal(null); }}
-        />
-      )}
-      {mini && (
-        <MiniPemutar
-          key={mini.id}
-          judul={mini.title}
-          sumber={{ tipe: "youtube", id: mini.youtubeId }}
-          onTutup={() => setMini(null)}
-          onBesar={() => { setModal({ x: mini, awal: "kecil" }); setMini(null); }}
+      {aktif && (
+        <PemutarTerpadu
+          key={aktif.x.id}
+          judul={aktif.x.title}
+          youtubeId={aktif.x.youtubeId}
+          mode={aktif.mode}
+          ubahMode={(m) => setAktif({ x: aktif.x, mode: m })}
+          slotId={`slot-video-${aktif.x.id}`}
+          onTutup={() => setAktif(null)}
         />
       )}
     </div>

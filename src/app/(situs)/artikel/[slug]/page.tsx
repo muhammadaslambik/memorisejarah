@@ -41,7 +41,12 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
     <div className="-mb-16 min-h-[70vh] bg-ms-bg pb-24 text-ms-cream"><article className="mx-auto max-w-4xl px-5 pt-12">
       <h1 className="font-serif text-2xl sm:text-4xl leading-tight md:text-5xl">{p.title}</h1>
       <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-ms-gold"><span>{tanggalLengkap(p.publishedAt)}</span>{penulis && (<><span aria-hidden="true">&bull;</span><span className="text-ms-cream/70">Oleh</span><PenulisInfo data={penulis} /></>)}</div>
-      {p.coverUrl && !sampulSudahAdaDiIsi(p.coverUrl, p.content) && <img src={p.coverUrl} alt="" className="mt-8 w-full rounded-lg" />}
+      {p.coverUrl && !sampulSudahAdaDiIsi(p.coverUrl, p.content) && (
+        <figure className="mt-8">
+          <img src={p.coverUrl} alt={p.coverCaption ?? ""} className="w-full rounded-lg" />
+          {p.coverCaption && <figcaption className="mt-2 text-center text-sm leading-snug text-ms-cream/60">{p.coverCaption}</figcaption>}
+        </figure>
+      )}
       <div className="prose prose-lg prose-invert mt-8 max-w-none prose-headings:font-serif prose-a:text-ms-gold prose-img:rounded-xl prose-figcaption:text-center prose-figcaption:text-ms-cream/60"
         dangerouslySetInnerHTML={{ __html: optimalkanGambar(buangTautanBiografiLama(sanitizeHtml(p.content))) }} />
       <div className="mt-10 flex gap-3 border-t border-ms-line pt-6 text-sm">

@@ -25,6 +25,8 @@ export function MenuLihatSitus() {
   useTutupLuar(buka, [akar], () => setBuka(false));
   const k = KONTEKS.find(([p]) => jalur === p || jalur.startsWith(p + "/"));
   const item = "block rounded-lg px-3 py-2 text-sm hover:bg-white/5";
+  // hanya satu pilihan (Beranda): langsung ke beranda tanpa menu
+  if (!k) return <Link href="/" target="_blank" rel="noopener" className="a-btn-soft hidden md:inline-flex">Lihat Situs &#8599;</Link>;
 
   return (
     <div ref={akar} className="relative hidden md:block">

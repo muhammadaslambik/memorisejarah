@@ -5,7 +5,7 @@ import Link from "next/link";
 const g = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round" } as const;
 const kelas = "group relative a-ikon-btn !h-8 !w-8 shrink-0";
 const Tip = ({ t }: { t: string }) => (
-  <span role="tooltip" className="pointer-events-none absolute right-full top-1/2 z-30 mr-2 -translate-y-1/2 whitespace-nowrap rounded-md bg-black/90 px-2 py-1 text-xs font-medium text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">{t}</span>
+  <span role="tooltip" className="pointer-events-none absolute left-1/2 top-full z-30 mt-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-black/90 px-2 py-1 text-xs font-medium text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">{t}</span>
 );
 
 export function IkonEdit({ href, label }: { href: string; label: string }) {

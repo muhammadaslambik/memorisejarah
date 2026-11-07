@@ -44,6 +44,7 @@ export const posts = pgTable("posts", {
   excerpt: text("excerpt").default("").notNull(),
   content: text("content").default("").notNull(), // HTML dari TipTap
   coverUrl: text("cover_url"),
+  coverCaption: text("cover_caption"), // PAKET-15L: keterangan gambar utama
   featured: boolean("featured").default(false).notNull(),
   status: text("status", { enum: ["draft", "pending", "published"] }).default("draft").notNull(),
   categoryId: integer("category_id").references(() => categories.id, { onDelete: "set null" }),

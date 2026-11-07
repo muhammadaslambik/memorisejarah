@@ -75,6 +75,7 @@ export async function savePost(fd: FormData) {
     excerpt: String(fd.get("excerpt") ?? ""),
     content: sanitizeHtml(String(fd.get("content") ?? "")),
     coverUrl: safeCoverUrl(String(fd.get("coverUrl") ?? "")),
+    coverCaption: String(fd.get("coverCaption") ?? "").replace(/\s+/g, " ").trim().slice(0, 400) || null, // PAKET-15L
     // Hanya admin/editor yang boleh mengatur artikel Pilihan (hero)
     featured: isReviewer(s.role) ? fd.get("featured") === "on" : (old?.featured ?? false),
     status,

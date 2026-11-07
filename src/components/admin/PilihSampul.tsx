@@ -7,7 +7,7 @@ import { hashBerkas } from "@/lib/gambar-klien";
 import { kb, perkecil } from "@/components/Editor";
 import { GaleriGambar } from "./GaleriGambar";
 
-export function PilihSampul({ defaultUrl = "" }: { defaultUrl?: string }) {
+export function PilihSampul({ defaultUrl = "", defaultKeterangan = "" }: { defaultUrl?: string; defaultKeterangan?: string }) {
   const [url, setUrl] = useState(defaultUrl);
   const [mode, setMode] = useState<"" | "url">("");
   const [ketik, setKetik] = useState("");
@@ -74,6 +74,18 @@ export function PilihSampul({ defaultUrl = "" }: { defaultUrl?: string }) {
           <button type="button" className={tombol} onClick={pakaiUrl}>Gunakan</button>
         </div>
       )}
+      <label className="mt-3 block">
+        <span className="mb-1 block font-medium">Keterangan gambar utama (caption)</span>
+        <input
+          name="coverCaption"
+          defaultValue={defaultKeterangan}
+          maxLength={400}
+          placeholder="Contoh: Ir. Soekarno membacakan teks Proklamasi, 17 Agustus 1945. Sumber: ANRI"
+          spellCheck={false}
+          className="w-full rounded border p-2"
+        />
+        <span className="a-muted mt-1 block text-xs">Tampil tepat di bawah gambar utama saat artikel dibuka. Kosongkan bila tidak perlu.</span>
+      </label>
       <input
         ref={berkas}
         type="file"

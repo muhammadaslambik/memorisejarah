@@ -141,7 +141,7 @@ export function GambarDaftar({ items, hapus, cats }: { items: ItemGambar[]; hapu
       {tampil.length === 0 ? (
         <p className="a-muted mt-2 text-sm">{items.length === 0 ? "Belum ada gambar." : "Tidak ada gambar pada pilihan ini."}</p>
       ) : mode === "baris" ? (
-        <ul className="a-card a-daftar mt-3 overflow-hidden">
+        <ul className="a-card a-daftar mt-3">
           {tampil.map((x) => (
             <li key={x.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
               <div className="flex min-w-0 flex-1 items-center gap-3">
@@ -159,8 +159,8 @@ export function GambarDaftar({ items, hapus, cats }: { items: ItemGambar[]; hapu
       ) : (
         <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {tampil.map((x) => (
-            <div key={x.id} className="a-card flex flex-col overflow-hidden">
-              <button type="button" onClick={() => setLihat(x)} className="group relative block aspect-video w-full bg-black" aria-label={`Lihat gambar: ${x.title}`}>
+            <div key={x.id} className="a-card flex flex-col">
+              <button type="button" onClick={() => setLihat(x)} className="group relative block aspect-video w-full overflow-hidden rounded-t-[inherit] bg-black" aria-label={`Lihat gambar: ${x.title}`}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={kecil(x.url, 640)} alt="" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover opacity-95 transition group-hover:opacity-100" />
               </button>

@@ -14,8 +14,8 @@ export async function Header() {
   const [cats, pustaka] = await Promise.all([ambilKategoriCache(), getPustaka()]);
   return (
     <header className="sticky top-0 z-40 border-b border-ms-line bg-ms-bg">
-      <div className="mx-auto flex max-w-[90rem] items-center gap-3 px-6 py-3 md:px-10 lg:px-16">
-        <Link href="/" aria-label="Memori Sejarah, beranda" className="shrink-0"><Logo /></Link>
+      <div className="relative mx-auto flex max-w-[90rem] items-center gap-2 px-3 py-2.5 sm:gap-3 sm:px-6 sm:py-3 md:px-10 lg:px-16">
+        <Link href="/" aria-label="Memori Sejarah, beranda" className="min-w-0 shrink"><Logo /></Link>
         <HeaderBar>
           <NavScroll>
             <Link href="/" className={biasa}>Beranda</Link>

@@ -34,7 +34,7 @@ export function AkunHeader({ className = "" }: { className?: string }) {
   }
   return (
     <Link href="/admin" aria-label={`${saya.nama}: buka CMS`} title={`${saya.nama} (buka CMS)`} className={className}>
-      <span className="grid h-8 w-8 place-items-center overflow-hidden rounded-full bg-gradient-to-br from-[#d9a441] to-[#a8691b] text-xs font-bold text-[#1b1108]">
+      <span className="grid h-7 w-7 place-items-center overflow-hidden rounded-full sm:h-8 sm:w-8 bg-gradient-to-br from-[#d9a441] to-[#a8691b] text-xs font-bold text-[#1b1108]">
         {saya.foto ? <img src={saya.foto} alt="" className="h-full w-full object-cover" /> : saya.inisial}
       </span>
     </Link>

@@ -93,7 +93,7 @@ export function TombolBahasa({ className }: { className: string }) {
         </svg>
       </button>
       {buka && (
-        <div className="absolute right-0 top-12 z-50 w-56 rounded-xl border border-ms-line bg-ms-surface p-2 shadow-2xl" role="menu">
+        <div className="fixed inset-x-3 top-16 z-50 max-h-[calc(100vh-5rem)] overflow-y-auto rounded-xl border border-ms-line bg-ms-surface p-2 shadow-2xl sm:absolute sm:inset-x-auto sm:right-0 sm:top-12 sm:w-56" role="menu">
           {BAHASA.map((b) => (
             <button
               key={b.kode}

@@ -8,7 +8,7 @@ import { TombolTemaSitus } from "./TombolTemaSitus";
 import { TombolBahasa } from "./TombolBahasa";
 
 const tombolIkon =
-  "grid h-10 w-10 shrink-0 place-items-center rounded-full text-ms-cream/80 transition hover:bg-white/5 hover:text-ms-gold focus-visible:outline focus-visible:outline-2 focus-visible:outline-ms-gold";
+  "grid h-9 w-9 shrink-0 place-items-center sm:h-10 sm:w-10 rounded-full text-ms-cream/80 transition hover:bg-white/5 hover:text-ms-gold focus-visible:outline focus-visible:outline-2 focus-visible:outline-ms-gold";
 const svg = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round" } as const;
 
 export function HeaderBar({ children }: { children: React.ReactNode }) {
@@ -53,7 +53,7 @@ export function HeaderBar({ children }: { children: React.ReactNode }) {
           ref={kotak}
           onSubmit={kirim}
           role="search"
-          className="flex min-w-0 flex-1 items-center gap-3 rounded-full border border-ms-gold/60 bg-ms-cream px-5 py-2.5 shadow-lg"
+          className="flex min-w-0 items-center gap-3 rounded-full border border-ms-gold/60 bg-ms-cream px-4 py-2 shadow-lg max-md:absolute max-md:inset-x-2 max-md:top-1/2 max-md:z-20 max-md:-translate-y-1/2 md:flex-1 md:px-5 md:py-2.5"
         >
           <svg {...svg} className="h-5 w-5 shrink-0 text-ms-bg/60" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
           <input
@@ -70,7 +70,7 @@ export function HeaderBar({ children }: { children: React.ReactNode }) {
           </button>
         </form>
       )}
-      <div className={`${buka ? "" : "ml-auto"} flex shrink-0 items-center gap-1`}>
+      <div className={`${buka ? "" : "ml-auto"} flex shrink-0 items-center gap-0 sm:gap-1`}>
         <button data-tombol-cari type="button" aria-label="Cari" aria-expanded={buka} onClick={() => setBuka(!buka)} className={tombolIkon}>
           <svg {...svg} className="h-5 w-5" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
         </button>

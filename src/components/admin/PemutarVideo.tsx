@@ -47,7 +47,6 @@ export function PemutarVideo({ judul, sumber, onTutup }: { judul: string; sumber
               title={judul}
               className="h-full w-full"
               allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-              allowFullScreen
             />
           ) : (
             <video src={sumber.url} controls autoPlay playsInline className="h-full w-full" />

@@ -214,3 +214,19 @@ figure[data-ar][data-isi="regang"] img { object-fit: fill; }
   .adm[data-side="tutup"] .a-side { transform: translateX(-100%); visibility: hidden; transition: transform 0.2s, visibility 0s linear 0.2s; }
   .adm[data-side="tutup"] .a-main { padding-left: 0; }
 }
+
+/* PAKET-15E: tata letak seluler yang aman */
+html, body { max-width: 100%; overflow-x: clip; } /* halaman tidak pernah melebar ke samping */
+/* Google Translate menyisipkan bilah di atas halaman dan menggeser isi: disembunyikan */
+body { top: 0 !important; }
+.goog-te-banner-frame, iframe.skiptranslate, .goog-te-balloon-frame, #goog-gt-tt { display: none !important; }
+.goog-text-highlight { background: none !important; box-shadow: none !important; }
+@layer components {
+  /* tombol saring/tampilan di CMS dapat digeser ke samping bila tidak muat */
+  .adm .a-tab-baris { max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .adm .a-tab-baris::-webkit-scrollbar { display: none; }
+  .adm .a-tab { flex: none; white-space: nowrap; }
+  .adm .a-main { min-width: 0; }
+  .adm main { min-width: 0; }
+  .adm img, .adm video, .adm iframe { max-width: 100%; }
+}

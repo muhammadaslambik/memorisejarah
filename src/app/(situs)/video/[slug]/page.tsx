@@ -29,9 +29,9 @@ export default async function VideoPage({ params }: { params: Promise<{ slug: st
     .where(and(eq(videos.status, "published"), ne(videos.id, v.id))).orderBy(desc(videos.publishedAt)).limit(12);
   return (
     <div className="-mb-16 min-h-[70vh] bg-ms-bg pb-24 text-ms-cream">
-      <div className="mx-auto grid max-w-[90rem] gap-6 px-3 pt-4 sm:px-6 sm:pt-6 lg:grid-cols-[minmax(0,1fr)_24rem] lg:px-10">
+      <div className="tonton-grid mx-auto grid max-w-[90rem] gap-6 px-3 pt-4 sm:px-6 sm:pt-6 lg:grid-cols-[minmax(0,1fr)_24rem] lg:px-10">
         <article className="min-w-0 space-y-4">
-          <PemutarMenonton youtubeId={v.youtubeId} judul={v.title} />
+          <PemutarMenonton youtubeId={v.youtubeId} judul={v.title} lain={lain.map((x) => ({ slug: x.slug, title: x.title, youtubeId: x.youtubeId }))} />
           <h1 className="font-serif text-xl font-bold leading-snug sm:text-2xl">{v.title}</h1>
           <BagikanVideo judul={v.title} youtubeId={v.youtubeId} />
           <DeskripsiVideo tanggal={tanggalLengkap(v.publishedAt)} deskripsi={v.description} />

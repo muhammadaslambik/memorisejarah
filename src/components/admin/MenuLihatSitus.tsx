@@ -22,7 +22,7 @@ export function MenuLihatSitus() {
   const [buka, setBuka] = useState(false);
   const akar = useRef<HTMLDivElement>(null);
   const jalur = usePathname();
-  useTutupLuar(buka, [akar], () => setBuka(false));
+  useTutupLuar(buka, [akar], () => setBuka(false), undefined, 25); // bilah atas CMS z-30: pelindung di bawahnya
   const k = KONTEKS.find(([p]) => jalur === p || jalur.startsWith(p + "/"));
   const item = "block rounded-lg px-3 py-2 text-sm hover:bg-white/5";
   // hanya satu pilihan (Beranda): langsung ke beranda tanpa menu

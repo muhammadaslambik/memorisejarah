@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
+import { KeteranganSeragam } from "@/components/KeteranganSeragam";
 
 const serif = Playfair_Display({ subsets: ["latin"], variable: "--font-serif" });
 const sans = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-sans" });
@@ -18,7 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="id" className={`${serif.variable} ${sans.variable}`} suppressHydrationWarning>
       <head><script dangerouslySetInnerHTML={{ __html: SKRIP_TEMA }} /></head>
-      <body suppressHydrationWarning>{children}</body>
+      <body suppressHydrationWarning>{children}<KeteranganSeragam /></body>
     </html>
   );
 }

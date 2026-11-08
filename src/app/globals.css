@@ -239,7 +239,16 @@ body { top: 0 !important; }
   .adm .text-2xl { font-size: 1.25rem; line-height: 1.75rem; }
 }
 
-/* PAKET-15N: mode teater halaman tonton video (pemutar selebar halaman, Video Lainnya di bawahnya) */
+/* PAKET-16: tata letak halaman tonton video (seperti YouTube): pemutar + judul di kiri, Video Lainnya di kanan; mode teater: pita pemutar selebar halaman dengan
+   latar hitam agak terang, video 16:9 di tengah dan tingginya dibatasi supaya judul tetap terlihat */
+.tonton-grid { display: grid; gap: 1.5rem; grid-template-columns: minmax(0, 1fr); grid-template-areas: "pemutar" "info" "samping"; }
+.tonton-pemutar { grid-area: pemutar; }
+.tonton-info { grid-area: info; }
+.tonton-samping { grid-area: samping; }
 @media (min-width: 1024px) {
-  [data-teater] .tonton-grid { grid-template-columns: minmax(0, 1fr) !important; }
+  .tonton-grid { grid-template-columns: minmax(0, 1fr) 24rem; grid-template-rows: auto 1fr; grid-template-areas: "pemutar samping" "info samping"; }
+  html[data-teater] .tonton-grid { grid-template-rows: auto auto; grid-template-areas: "pemutar pemutar" "info samping"; }
+  html[data-teater] .tonton-pemutar { width: 100vw; margin-left: calc(50% - 50vw); margin-top: -1.5rem; }
+  html[data-teater] .tonton-band { display: flex; justify-content: center; background: #141414; height: clamp(20rem, min(56.25vw, calc(100vh - 14rem)), 100vh); }
+  html[data-teater] .tonton-slot { height: 100%; width: auto; max-width: 100%; border-radius: 0; margin: 0 auto; }
 }

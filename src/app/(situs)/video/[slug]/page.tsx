@@ -26,22 +26,24 @@ export default async function VideoPage({ params }: { params: Promise<{ slug: st
   const v = await cari((await params).slug);
   if (!v || !/^[A-Za-z0-9_-]{11}$/.test(v.youtubeId)) notFound();
   const lain = await db().select().from(videos)
-    .where(and(eq(videos.status, "published"), ne(videos.id, v.id))).orderBy(desc(videos.publishedAt)).limit(12);
+    .where(and(eq(videos.status, "published"), ne(videos.id, v.id))).orderBy(desc(videos.publishedAt)).limit(60);
   return (
-    <div className="-mb-16 min-h-[70vh] bg-ms-bg pb-24 text-ms-cream">
-      <div className="tonton-grid mx-auto grid max-w-[90rem] gap-6 px-3 pt-4 sm:px-6 sm:pt-6 lg:grid-cols-[minmax(0,1fr)_24rem] lg:px-10">
-        <article className="min-w-0 space-y-4">
-          <PemutarMenonton youtubeId={v.youtubeId} judul={v.title} lain={lain.map((x) => ({ slug: x.slug, title: x.title, youtubeId: x.youtubeId }))} />
+    <div className="-mb-16 min-h-[70vh] overflow-x-clip bg-ms-bg pb-24 text-ms-cream">
+      <div className="tonton-grid mx-auto max-w-[90rem] px-3 pt-4 sm:px-6 sm:pt-6 lg:px-10">
+        <div className="tonton-pemutar min-w-0">
+          <PemutarMenonton slug={v.slug} youtubeId={v.youtubeId} judul={v.title} lain={lain.map((x) => ({ slug: x.slug, title: x.title, youtubeId: x.youtubeId }))} />
+        </div>
+        <article className="tonton-info min-w-0 space-y-4">
           <h1 className="font-serif text-xl font-bold leading-snug sm:text-2xl">{v.title}</h1>
           <BagikanVideo judul={v.title} youtubeId={v.youtubeId} />
           <DeskripsiVideo tanggal={tanggalLengkap(v.publishedAt)} deskripsi={v.description} />
         </article>
 
         {lain.length > 0 && (
-          <aside aria-label="Video lainnya" className="min-w-0">
+          <aside aria-label="Video lainnya" className="tonton-samping min-w-0">
             <h2 className="font-serif text-lg font-bold">Video Lainnya</h2>
             <ul className="mt-3 space-y-3">
-              {lain.map((x) => (
+              {lain.slice(0, 20).map((x) => (
                 <li key={x.id}>
                   <Link href={`/video/${x.slug}`} className="group flex gap-3">
                     <span className="relative block aspect-video w-40 shrink-0 overflow-hidden rounded-lg bg-ms-surface sm:w-44">

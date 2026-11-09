@@ -1,4 +1,5 @@
 // PAKET-10A: ubah teks halaman Tentang dengan editor (tanpa kode)
+import { PageHeader } from "@/components/admin/PageHeader";
 import { requireReviewer } from "@/lib/auth";
 import { getTentang } from "@/lib/tentang";
 import { resetTentang, saveTentang } from "@/lib/situs-actions";
@@ -14,8 +15,7 @@ export default async function AdminTentang({ searchParams }: { searchParams: Pro
   const baris = [...bagian, { kunci: "", judul: "", isi: "" }]; // satu baris kosong untuk bagian baru
   return (
     <div className="max-w-4xl">
-      <h1 className="font-serif text-3xl">Halaman Tentang</h1>
-      <p className="mt-1 text-sm text-charcoal/60">Setiap bagian tampil sebagai kartu di halaman Tentang. Tulis dan format teks seperti di Word (Ctrl+B tebal, Ctrl+I miring, Ctrl+U garis bawah). Kosongkan judul dan isi untuk menghapus sebuah bagian; isi baris paling bawah untuk menambah bagian baru.</p>
+      <PageHeader ikon="tentang" judul="Halaman Tentang" deskripsi={<>Setiap bagian tampil sebagai kartu di halaman Tentang. Tulis dan format teks seperti di Word (Ctrl+B tebal, Ctrl+I miring, Ctrl+U garis bawah). Kosongkan judul dan isi untuk menghapus sebuah bagian; isi baris paling bawah untuk menambah bagian baru.</>} />
       {ok === "reset" && <p className="mt-4 rounded-lg bg-green-50 p-3 text-sm text-green-800">Dikembalikan ke teks bawaan.</p>}
       {ok === "1" && <p className="mt-4 rounded-lg bg-green-50 p-3 text-sm text-green-800">Perubahan disimpan.</p>}
       <form action={saveTentang} className="mt-6 space-y-5">

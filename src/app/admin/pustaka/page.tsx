@@ -1,4 +1,5 @@
 // PAKET-3C2: atur folder Google Drive pada halaman Pustaka (maksimal 8)
+import { PageHeader } from "@/components/admin/PageHeader";
 import { requireReviewer } from "@/lib/auth";
 import { getPustaka } from "@/lib/pengaturan";
 import { savePustaka } from "@/lib/pengaturan-actions";
@@ -13,10 +14,9 @@ export default async function AdminPustaka({ searchParams }: { searchParams: Pro
   const baris = Array.from({ length: 8 }, (_, i) => daftar[i]);
   return (
     <div>
-      <h1 className="font-serif text-3xl">Pustaka</h1>
-      <p className="mt-1 text-sm text-charcoal/60">
+      <PageHeader ikon="pustaka" judul="Pustaka" deskripsi={<>
         Tempel alamat folder Google Drive (atau ID-nya). Folder harus dibagikan dengan &quot;siapa saja yang memiliki link&quot; agar tampil di situs. Baris yang dikosongkan diabaikan.
-      </p>
+      </>} />
       {ok && <p className="mt-4 rounded-lg bg-green-50 p-3 text-sm text-green-800">Perubahan disimpan.</p>}
       <form action={savePustaka} className="mt-6 space-y-4">
         {baris.map((p, i) => (

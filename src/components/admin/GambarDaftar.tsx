@@ -2,7 +2,7 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { IkonEdit, IkonHapus } from "@/components/admin/TombolAksi";
-import { PilihKategori, PilihJumlah, Pager, useHalaman, potong, cocokKat, type Kat } from "@/components/admin/KontrolDaftar";
+import { BarDaftar, PilihKategori, PilihJumlah, Pager, useHalaman, potong, cocokKat, type Kat } from "@/components/admin/KontrolDaftar";
 import { kecil } from "@/lib/gambar-url";
 
 export type ItemGambar = { id: number; title: string; status: string; url: string; categoryId: number | null };
@@ -108,10 +108,9 @@ export function GambarDaftar({ items, hapus, cats }: { items: ItemGambar[]; hapu
 
   return (
     <div>
-      <div className="mt-10 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-medium">{judulDaftar} ({terfilter.length})</h2>
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="a-tab-baris" role="group" aria-label="Saring gambar">
+      <BarDaftar
+        judul={<h2 className="font-medium">{judulDaftar} ({terfilter.length})</h2>}
+        saring={<div className="a-tab-baris" role="group" aria-label="Saring gambar">
             <button type="button" className="a-tab" aria-current={saring === "semua" ? "page" : undefined} onClick={() => ubahSaring("semua")}>
               <svg {...g} className="h-4 w-4"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" /></svg>Semua <span className="a-tab-n">{items.length}</span>
             </button>
@@ -121,22 +120,18 @@ export function GambarDaftar({ items, hapus, cats }: { items: ItemGambar[]; hapu
             <button type="button" className="a-tab" aria-current={saring === "draft" ? "page" : undefined} onClick={() => ubahSaring("draft")}>
               <svg {...g} className="h-4 w-4"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z" /></svg>Draft <span className="a-tab-n">{nDraft}</span>
             </button>
-          </div>
-          <div className="a-tab-baris" role="group" aria-label="Tampilan daftar gambar">
+          </div>}
+        tampilan={<div className="a-tab-baris" role="group" aria-label="Tampilan daftar gambar">
             <button type="button" className="a-tab" aria-current={mode === "baris" ? "page" : undefined} onClick={() => pilih("baris")}>
               <svg {...g} className="h-4 w-4"><path d="M4 6h16M4 12h16M4 18h16" /></svg>Baris
             </button>
             <button type="button" className="a-tab" aria-current={mode === "kolom" ? "page" : undefined} onClick={() => pilih("kolom")}>
               <svg {...g} className="h-4 w-4"><rect x="4" y="4" width="7" height="7" rx="1" /><rect x="13" y="4" width="7" height="7" rx="1" /><rect x="4" y="13" width="7" height="7" rx="1" /><rect x="13" y="13" width="7" height="7" rx="1" /></svg>Kolom
             </button>
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
-        <PilihKategori kats={cats} nilai={kat} ubah={(v) => { setKat(v); setHal(1); }} />
-        <PilihJumlah per={per} ubah={setPer} />
-      </div>
+          </div>}
+        kontrol={<><PilihKategori kats={cats} nilai={kat} ubah={(v) => { setKat(v); setHal(1); }} />
+        <PilihJumlah per={per} ubah={setPer} /></>}
+      />
 
       {tampil.length === 0 ? (
         <p className="a-muted mt-2 text-sm">{items.length === 0 ? "Belum ada gambar." : "Tidak ada gambar pada pilihan ini."}</p>
@@ -146,7 +141,7 @@ export function GambarDaftar({ items, hapus, cats }: { items: ItemGambar[]; hapu
             <li key={x.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
               <div className="flex min-w-0 flex-1 items-center gap-3">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={kecil(x.url, 160)} alt="" loading="lazy" referrerPolicy="no-referrer" className="h-12 w-16 shrink-0 rounded object-cover" />
+                <img src={kecil(x.url, 160)} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" className="h-12 w-16 shrink-0 rounded object-cover" />
                 <div className="min-w-0">
                   <button type="button" onClick={() => setLihat(x)} className="text-left font-medium hover:text-[color:var(--a-accent)]" title="Lihat gambar">{x.title}</button>
                   <span className="ml-2 inline-flex flex-wrap gap-1.5 align-middle">{chip(x)}</span>
@@ -159,10 +154,10 @@ export function GambarDaftar({ items, hapus, cats }: { items: ItemGambar[]; hapu
       ) : (
         <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {tampil.map((x) => (
-            <div key={x.id} className="a-card flex flex-col">
+            <div key={x.id} className="a-card flex flex-col [contain-intrinsic-size:auto_21rem] [content-visibility:auto]">
               <button type="button" onClick={() => setLihat(x)} className="group relative block aspect-video w-full overflow-hidden rounded-t-[inherit] bg-black" aria-label={`Lihat gambar: ${x.title}`}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={kecil(x.url, 640)} alt="" loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover opacity-95 transition group-hover:opacity-100" />
+                <img src={kecil(x.url, 640)} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" className="h-full w-full object-cover opacity-95 transition group-hover:opacity-100" />
               </button>
               <div className="flex flex-1 flex-col gap-2 p-3">
                 <button type="button" onClick={() => setLihat(x)} className="line-clamp-3 text-left text-sm font-medium hover:text-[color:var(--a-accent)]" title="Lihat gambar">{x.title}</button>

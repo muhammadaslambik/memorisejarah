@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PageHeader } from "@/components/admin/PageHeader";
 import { and, asc, eq } from "drizzle-orm";
 import { db, posts, users } from "@/db";
 import { kolomKartu } from "@/lib/kolom";
@@ -24,10 +25,7 @@ export default async function Persetujuan({ searchParams }: { searchParams: Prom
   const writers = await db().select().from(users).where(and(eq(users.role, "penulis"), eq(users.active, true))).orderBy(asc(users.name));
   return (
     <div className="mx-auto max-w-5xl px-5">
-      <div className="flex items-center justify-between">
-        <h1 className="font-serif text-3xl">Persetujuan</h1>
-        <Link href="/admin" className="rounded border px-4 py-2">← Artikel</Link>
-      </div>
+      <PageHeader ikon="persetujuan" judul="Persetujuan" aksi={<Link href="/admin" className="rounded border px-4 py-2">← Artikel</Link>} />
       {error && <p className="mt-4 rounded bg-red-50 p-3 text-sm text-red-700">{errors[error] ?? "Terjadi kesalahan."}</p>}
       {ok && <p className="mt-4 rounded bg-green-50 p-3 text-sm text-green-800">{oks[ok] ?? "Berhasil."}</p>}
 

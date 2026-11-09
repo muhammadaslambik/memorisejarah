@@ -1,4 +1,5 @@
 // PAKET-9E: pengaturan umum situs (tautan sosial, kontak, teks sambutan footer)
+import { PageHeader } from "@/components/admin/PageHeader";
 import { requireReviewer } from "@/lib/auth";
 import { getSitus } from "@/lib/situs";
 import { saveSitus } from "@/lib/situs-actions";
@@ -16,8 +17,7 @@ export default async function AdminSitus({ searchParams }: { searchParams: Promi
   const input = "mt-1 w-full";
   return (
     <div className="max-w-3xl">
-      <h1 className="font-serif text-3xl">Pengaturan Situs</h1>
-      <p className="mt-1 text-sm text-charcoal/60">Tautan sosial dan kontak di footer dan tombol Hubungi Kami. Kosongkan sebuah kolom untuk menyembunyikannya dari situs.</p>
+      <PageHeader ikon="pengaturan" judul="Pengaturan Situs" deskripsi={<>Tautan sosial dan kontak di footer dan tombol Hubungi Kami. Kosongkan sebuah kolom untuk menyembunyikannya dari situs.</>} />
       {ok && <p className="mt-4 rounded-lg bg-green-50 p-3 text-sm text-green-800">Perubahan disimpan.</p>}
       {error && <p className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{errors[error] ?? "Terjadi kesalahan."}</p>}
       <form action={saveSitus} className="mt-6 space-y-5">

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { IkonEdit, IkonHapus } from "@/components/admin/TombolAksi";
 import { PemutarTerpadu, type ModePemutar } from "@/components/admin/PemutarTerpadu";
-import { PilihKategori, PilihJumlah, Pager, useHalaman, potong, cocokKat, type Kat } from "@/components/admin/KontrolDaftar";
+import { BarDaftar, PilihKategori, PilihJumlah, Pager, useHalaman, potong, cocokKat, type Kat } from "@/components/admin/KontrolDaftar";
 
 export type ItemVideo = { id: number; title: string; status: string; featured: boolean; youtubeId: string; categoryId: number | null };
 type Mode = "baris" | "kolom";
@@ -52,10 +52,9 @@ export function VideoDaftar({ items, hapus, cats }: { items: ItemVideo[]; hapus:
 
   return (
     <div>
-      <div className="mt-10 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-medium">{judulDaftar} ({terfilter.length})</h2>
-        <div className="flex flex-wrap items-center gap-2">
-        <div className="a-tab-baris" role="group" aria-label="Saring video">
+      <BarDaftar
+        judul={<h2 className="font-medium">{judulDaftar} ({terfilter.length})</h2>}
+        saring={<div className="a-tab-baris" role="group" aria-label="Saring video">
           <button type="button" className="a-tab" aria-current={saring === "semua" ? "page" : undefined} onClick={() => ubahSaring("semua")}>
             <svg {...g} className="h-4 w-4"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" /></svg>Semua <span className="a-tab-n">{items.length}</span>
           </button>
@@ -65,22 +64,18 @@ export function VideoDaftar({ items, hapus, cats }: { items: ItemVideo[]; hapus:
           <button type="button" className="a-tab" aria-current={saring === "pilihan" ? "page" : undefined} onClick={() => ubahSaring("pilihan")}>
             <svg {...g} className="h-4 w-4"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.8 6.8 19.6l1-5.8L3.5 9.7l5.9-.9z" /></svg>Video pilihan <span className="a-tab-n">{nPilihan}</span>
           </button>
-        </div>
-        <div className="a-tab-baris" role="group" aria-label="Tampilan daftar video">
+        </div>}
+        tampilan={<div className="a-tab-baris" role="group" aria-label="Tampilan daftar video">
           <button type="button" className="a-tab" aria-current={mode === "baris" ? "page" : undefined} onClick={() => pilih("baris")}>
             <svg {...g} className="h-4 w-4"><path d="M4 6h16M4 12h16M4 18h16" /></svg>Baris
           </button>
           <button type="button" className="a-tab" aria-current={mode === "kolom" ? "page" : undefined} onClick={() => pilih("kolom")}>
             <svg {...g} className="h-4 w-4"><rect x="4" y="4" width="7" height="7" rx="1" /><rect x="13" y="4" width="7" height="7" rx="1" /><rect x="4" y="13" width="7" height="7" rx="1" /><rect x="13" y="13" width="7" height="7" rx="1" /></svg>Kolom
           </button>
-        </div>
-        </div>
-      </div>
-
-      <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
-        <PilihKategori kats={cats} nilai={kat} ubah={(v) => { setKat(v); setHal(1); }} />
-        <PilihJumlah per={per} ubah={setPer} />
-      </div>
+        </div>}
+        kontrol={<><PilihKategori kats={cats} nilai={kat} ubah={(v) => { setKat(v); setHal(1); }} />
+        <PilihJumlah per={per} ubah={setPer} /></>}
+      />
 
       {tampil.length === 0 ? (
         <p className="a-muted mt-2 text-sm">{items.length === 0 ? "Belum ada video." : "Tidak ada video pada pilihan ini."}</p>

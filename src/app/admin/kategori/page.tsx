@@ -1,4 +1,5 @@
 // PAKET-5A: kelola kategori (admin dan editor)
+import { PageHeader } from "@/components/admin/PageHeader";
 import Link from "next/link";
 import { eq, sql } from "drizzle-orm";
 import { db, categories, postCategories } from "@/db";
@@ -32,8 +33,7 @@ export default async function AdminKategori({ searchParams }: { searchParams: Pr
   const input = "mt-1 w-full rounded border p-2";
   return (
     <div className="mx-auto max-w-5xl px-5">
-      <h1 className="font-serif text-3xl">Kategori</h1>
-      <p className="mt-1 text-sm text-charcoal/60">Kategori tingkat atas boleh punya subkategori (dua tingkat). Menu situs menampilkan subkategori; kategori induk hanya sebagai pengelompok.</p>
+      <PageHeader ikon="kategori" judul="Kategori" deskripsi={<>Kategori tingkat atas boleh punya subkategori (dua tingkat). Menu situs menampilkan subkategori; kategori induk hanya sebagai pengelompok.</>} />
       {error && <p className="mt-4 rounded bg-red-50 p-3 text-sm text-red-700">{errors[error] ?? "Terjadi kesalahan."}</p>}
       {ok && <p className="mt-4 rounded bg-green-50 p-3 text-sm text-green-800">{oks[ok] ?? "Berhasil."}</p>}
 

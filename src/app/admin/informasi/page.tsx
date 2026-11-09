@@ -1,4 +1,5 @@
 // PAKET-3C2: ubah teks bagian Informasi Terbaru (beranda dan halaman Informasi)
+import { PageHeader } from "@/components/admin/PageHeader";
 import { requireReviewer } from "@/lib/auth";
 import { getInformasi, INFORMASI_FIELDS } from "@/lib/pengaturan";
 import { saveInformasi } from "@/lib/pengaturan-actions";
@@ -12,8 +13,7 @@ export default async function AdminInformasi({ searchParams }: { searchParams: P
   const data = (await getInformasi()) as unknown as Record<string, Record<string, string>>;
   return (
     <div>
-      <h1 className="font-serif text-3xl">Informasi</h1>
-      <p className="mt-1 text-sm text-charcoal/60">Teks pada bagian Informasi Terbaru. Kosongkan sebuah kolom untuk kembali ke teks bawaan.</p>
+      <PageHeader ikon="informasi" judul="Informasi" deskripsi={<>Teks pada bagian Informasi Terbaru. Kosongkan sebuah kolom untuk kembali ke teks bawaan.</>} />
       {ok && <p className="mt-4 rounded-lg bg-green-50 p-3 text-sm text-green-800">Perubahan disimpan.</p>}
       <form action={saveInformasi} className="mt-6 space-y-5">
         {INFORMASI_FIELDS.map((g) => (

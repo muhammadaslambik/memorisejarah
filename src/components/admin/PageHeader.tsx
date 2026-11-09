@@ -2,7 +2,7 @@
 import type { ReactNode } from "react";
 import { IkonAdmin } from "@/components/admin/ikon-admin";
 
-export function PageHeader({ ikon, judul, deskripsi, aksi }: { ikon: string; judul: string; deskripsi?: string; aksi?: ReactNode }) {
+export function PageHeader({ ikon, judul, deskripsi, aksi }: { ikon: string; judul: string; deskripsi?: ReactNode; aksi?: ReactNode }) {
   return (
     <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
       <div className="flex items-center gap-4">

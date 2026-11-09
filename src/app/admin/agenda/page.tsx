@@ -1,4 +1,5 @@
 // PAKET-3C2: ubah teks Agenda & Program (video per program diatur di menu Video)
+import { PageHeader } from "@/components/admin/PageHeader";
 import Link from "next/link";
 import { requireReviewer } from "@/lib/auth";
 import { getAgenda } from "@/lib/pengaturan";
@@ -13,10 +14,9 @@ export default async function AdminAgenda({ searchParams }: { searchParams: Prom
   const agenda = await getAgenda();
   return (
     <div>
-      <h1 className="font-serif text-3xl">Agenda &amp; Program</h1>
-      <p className="mt-1 text-sm text-charcoal/60">
+      <PageHeader ikon="agenda" judul="Agenda &amp; Program" deskripsi={<>
         Ubah nama dan teks tiap program. Untuk mengisi tayangannya, tambahkan video di menu <Link href="/admin/video" className="underline">Video</Link> lalu centang programnya.
-      </p>
+      </>} />
       {ok && <p className="mt-4 rounded-lg bg-green-50 p-3 text-sm text-green-800">Perubahan disimpan.</p>}
       <form action={saveAgenda} className="mt-6 space-y-5">
         {agenda.map((a) => (

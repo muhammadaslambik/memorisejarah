@@ -4,7 +4,8 @@
 // Elemen iframe tidak pernah dibuat ulang saat bentuk berganti, sehingga video terus berlanjut dari detik yang sama.
 // (Memuat ulang hanya terjadi bila video yang diputar berganti; induk memakai key = id video.)
 "use client";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { ikutiSlot, mulaiIkuti } from "@/lib/ikuti-slot";
 import { Bilah, waktu } from "@/components/video/PemutarGlobal";
 
 export type ModePemutar = "inline" | "modal" | "mini";
@@ -15,13 +16,12 @@ const NAMA: Record<Ukuran, string> = { kecil: "Kecil", besar: "Besar", penuh: "L
 const BERIKUT: Record<Ukuran, Ukuran> = { kecil: "besar", besar: "penuh", penuh: "kecil" };
 const LEBAR: Record<Exclude<Ukuran, "penuh">, string> = { kecil: "48rem", besar: "96rem" };
 
-type Kotak = { l: number; t: number; w: number; h: number };
-
 export function PemutarTerpadu({ judul, youtubeId, mode, ubahMode, slotId, onTutup }: {
   judul: string; youtubeId: string; mode: ModePemutar; ubahMode: (m: ModePemutar) => void; slotId: string; onTutup: () => void;
 }) {
   const [ukuran, setUkuran] = useState<Ukuran>("kecil");
-  const [kotak, setKotak] = useState<Kotak | null>(null);
+  const tutupRef = useRef(onTutup);
+  tutupRef.current = onTutup;
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null); // mini player: null = pojok kanan bawah
   const wadah = useRef<HTMLDivElement>(null);
   const tarik = useRef<{ dx: number; dy: number } | null>(null);
@@ -30,7 +30,7 @@ export function PemutarTerpadu({ judul, youtubeId, mode, ubahMode, slotId, onTut
   const [info, setInfo] = useState<{ playerState?: number; currentTime?: number; duration?: number; muted?: boolean; videoLoadedFraction?: number }>({});
   const [tap, setTap] = useState(false);
   const main = info.playerState === 1 || info.playerState === 3;
-  const bersih = info.playerState === 2 || info.playerState === 0; // dijeda/selesai: YouTube menampilkan judul dan saran, ditutup sampul
+  const bersih = info.playerState === 2 || info.playerState === 0; // hanya saat dijeda/selesai: sampul menutup judul dan saran YouTube (3 detik awal dibiarkan apa adanya)
   const src = useMemo(() => {
     const asal = typeof window !== "undefined" ? `&origin=${encodeURIComponent(window.location.origin)}` : "";
     return `https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&controls=0&fs=0&rel=0&modestbranding=1&iv_load_policy=3&enablejsapi=1&playsinline=1${asal}`;
@@ -76,20 +76,24 @@ export function PemutarTerpadu({ judul, youtubeId, mode, ubahMode, slotId, onTut
   // bentuk jendela selalu dimulai dari Kecil
   useEffect(() => { if (mode === "modal") setUkuran("kecil"); }, [mode]);
 
-  // mode inline: ikuti posisi kartu (video menempel di atas gambar mini kartu)
-  useEffect(() => {
+  // mode inline: ikuti posisi kartu. Wadah position:absolute di dalam dokumen (ikut tergulir oleh peramban, tidak tertinggal);
+  // posisinya hanya diubah lewat DOM langsung bila letak kartu berubah (tanpa render ulang React).
+  useLayoutEffect(() => {
     if (mode !== "inline") return;
+    const el = wadah.current;
+    if (!el) return;
+    const st = { l: 0, t: 0 };
+    mulaiIkuti(el, st);
     let id = 0;
     const tik = () => {
-      const s = document.getElementById(slotId);
-      if (!s) { onTutup(); return; } // kartu hilang (saringan/halaman berganti)
-      const r = s.getBoundingClientRect();
-      setKotak((p) => (p && p.l === r.left && p.t === r.top && p.w === r.width && p.h === r.height ? p : { l: r.left, t: r.top, w: r.width, h: r.height }));
+      const sl = document.getElementById(slotId);
+      if (!sl) { tutupRef.current(); return; } // kartu hilang (saringan/halaman berganti)
+      if (!document.fullscreenElement) ikutiSlot(el, sl, st);
       id = requestAnimationFrame(tik);
     };
     tik();
-    return () => cancelAnimationFrame(id);
-  }, [mode, slotId, onTutup]);
+    return () => { cancelAnimationFrame(id); ["left", "top", "width", "height"].forEach((k) => el.style.removeProperty(k)); };
+  }, [mode, slotId]);
 
   // layar penuh sungguhan untuk wadah yang sama (iframe tidak dipindah, jadi video tidak mengulang)
   useEffect(() => {
@@ -124,7 +128,7 @@ export function PemutarTerpadu({ judul, youtubeId, mode, ubahMode, slotId, onTut
   let gaya: React.CSSProperties;
   let kelas = "a-card flex flex-col overflow-hidden";
   if (mode === "inline") {
-    gaya = kotak ? { position: "fixed", left: kotak.l, top: kotak.t, width: kotak.w, height: kotak.h, zIndex: 20, borderRadius: 0, border: 0 } : { position: "fixed", visibility: "hidden", zIndex: 20 };
+    gaya = { position: "absolute", zIndex: 15, borderRadius: 0, border: 0 };
     kelas = "flex flex-col overflow-hidden bg-black";
   } else if (mode === "mini") {
     gaya = { position: "fixed", zIndex: 65, width: "min(20rem, calc(100vw - 1.5rem))", ...(pos ? { left: pos.x, top: pos.y } : { right: 12, bottom: 12 }) };
@@ -197,12 +201,10 @@ export function PemutarTerpadu({ judul, youtubeId, mode, ubahMode, slotId, onTut
             referrerPolicy="strict-origin-when-cross-origin"
             onLoad={langganan}
           />
-          {bersih && (
-            <div key="sampul" className="pointer-events-none absolute inset-0 z-[5] bg-black">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={`https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg`} alt="" className="h-full w-full object-cover opacity-50" />
-            </div>
-          )}
+          <div key="sampul" className={`pointer-events-none absolute inset-0 z-[5] bg-black transition-opacity duration-500 ${bersih ? "opacity-100" : "opacity-0"}`}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={`https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg`} alt="" decoding="async" className="h-full w-full object-cover opacity-50" />
+          </div>
           <button type="button" aria-label={main ? "Jeda" : "Putar"} onClick={klikVideo} className="absolute inset-0 z-10 cursor-pointer" />
           <div className={`absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/85 to-transparent px-2 pb-1 pt-8 text-white transition-opacity duration-200 ${tap || !main ? "opacity-100" : "pointer-events-none opacity-0 group-hover:pointer-events-auto group-hover:opacity-100"}`}>
             <Bilah pos={info.currentTime ?? 0} dur={info.duration ?? 0} muat={Math.min(100, (info.videoLoadedFraction ?? 0) * 100)} onCari={cari} />

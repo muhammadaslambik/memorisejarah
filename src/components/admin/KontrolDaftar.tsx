@@ -1,6 +1,6 @@
 // PAKET-15I: kontrol bersama daftar CMS (Video, Gambar): saring kategori, jumlah per halaman (sama seperti Artikel), dan penomoran halaman.
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { PILIHAN } from "@/lib/pilihan-halaman";
 
 export type Kat = { id: number; name: string };
@@ -60,5 +60,41 @@ export function Pager({ hal, jumlah, ubah }: { hal: number; jumlah: number; ubah
       <span className="a-muted">Halaman {hal} dari {jumlah}</span>
       {hal < jumlah ? <button type="button" onClick={() => ubah(hal + 1)} className="a-btn-soft">Berikutnya &rarr;</button> : <span />}
     </div>
+  );
+}
+
+// PAKET-18: bilah daftar yang menempel di bawah header CMS saat digulir dan meringkas dirinya dari dua baris menjadi satu baris.
+// Tinggi tempatnya tidak berubah (versi lengkap tetap menahan ruang, tersembunyi), jadi isi di bawahnya tidak melompat.
+export function BarDaftar({ judul, saring, tampilan, kontrol }: { judul: ReactNode; saring: ReactNode; tampilan: ReactNode; kontrol: ReactNode }) {
+  const penanda = useRef<HTMLDivElement>(null);
+  const [rapat, setRapat] = useState(false);
+  useEffect(() => {
+    const el = penanda.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => setRapat(!e.isIntersecting && e.boundingClientRect.top < 64), { rootMargin: "-64px 0px 0px 0px", threshold: 0 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return (
+    <>
+      <div ref={penanda} aria-hidden="true" className="h-px" />
+      <div className={`a-sticky ${rapat ? "pointer-events-none !bg-transparent" : ""}`} style={rapat ? { backdropFilter: "none" } : undefined}>
+        <div className={rapat ? "invisible" : ""} aria-hidden={rapat || undefined}>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            {judul}
+            <div className="flex flex-wrap items-center gap-2">{saring}{tampilan}</div>
+          </div>
+          <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">{kontrol}</div>
+        </div>
+        {rapat && (
+          <div className="pointer-events-auto absolute inset-x-4 top-[0.6rem] lg:inset-x-8">
+            <div className="a-card flex items-center gap-2 overflow-x-auto whitespace-nowrap p-2 [scrollbar-width:none] md:px-3">
+              {saring}{tampilan}
+              <div className="ml-auto flex items-center gap-4 pl-2">{kontrol}</div>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
   );
 }

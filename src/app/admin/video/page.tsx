@@ -7,6 +7,8 @@ import { saveVideo, deleteVideo } from "@/lib/video-actions";
 import { AGENDA } from "@/lib/agenda";
 import { SumberVideo } from "@/components/admin/SumberVideo";
 import { VideoDaftar } from "@/components/admin/VideoDaftar";
+import { PageHeader } from "@/components/admin/PageHeader";
+import { IkonAdmin } from "@/components/admin/ikon-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -16,9 +18,9 @@ const errors: Record<string, string> = {
 };
 const oks: Record<string, string> = { simpan: "Video disimpan.", hapus: "Video dihapus." };
 
-export default async function AdminVideo({ searchParams }: { searchParams: Promise<{ edit?: string; error?: string; ok?: string }> }) {
+export default async function AdminVideo({ searchParams }: { searchParams: Promise<{ edit?: string; error?: string; ok?: string; baru?: string }> }) {
   await requireReviewer();
-  const { edit, error, ok } = await searchParams;
+  const { edit, error, ok, baru } = await searchParams;
   const editId = Number(edit) || null;
   const d = db();
   const [list, cats, cur] = await Promise.all([
@@ -30,14 +32,16 @@ export default async function AdminVideo({ searchParams }: { searchParams: Promi
   const input = "mt-1 w-full rounded border p-2";
   return (
     <div className="mx-auto max-w-5xl px-5">
-      <div className="flex items-center justify-between">
-        <h1 className="font-serif text-3xl">Video</h1>
-        <Link href="/admin" className="rounded border px-4 py-2">&larr; Artikel</Link>
-      </div>
+      <PageHeader
+        ikon="video"
+        judul="Video"
+        deskripsi="Kelola video YouTube yang tampil di situs."
+        aksi={<Link href="/admin/video?baru=1" className="a-btn"><IkonAdmin nama="tambah" className="h-4 w-4" /> Video Baru</Link>}
+      />
       {error && <p className="mt-4 rounded bg-red-50 p-3 text-sm text-red-700">{errors[error] ?? "Terjadi kesalahan."}</p>}
       {ok && <p className="mt-4 rounded bg-green-50 p-3 text-sm text-green-800">{oks[ok] ?? "Berhasil."}</p>}
 
-      <form key={v?.id ?? "baru"} action={saveVideo} className="mt-6 space-y-4 rounded bg-white/70 p-5">
+      {(v || baru === "1" || error) && <form key={v?.id ?? "baru"} action={saveVideo} className="mt-6 space-y-4 rounded bg-white/70 p-5">
         <h2 className="font-medium">{v ? "Ubah video" : "Tambah video"}</h2>
         {v && <input type="hidden" name="id" value={v.id} />}
         <label className="block text-sm">Judul
@@ -81,7 +85,7 @@ export default async function AdminVideo({ searchParams }: { searchParams: Promi
           <button className="rounded bg-gold px-4 py-2 text-white">{v ? "Simpan perubahan" : "Tambah video"}</button>
           {v && <Link href="/admin/video" className="rounded border px-4 py-2">Batal</Link>}
         </div>
-      </form>
+      </form>}
 
       <VideoDaftar items={list.map((x) => ({ id: x.id, title: x.title, status: x.status, featured: x.featured, youtubeId: x.youtubeId, categoryId: x.categoryId }))} hapus={deleteVideo} cats={cats.map((c) => ({ id: c.id, name: c.name }))} />
     </div>

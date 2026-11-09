@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PageHeader } from "@/components/admin/PageHeader";
 import { requireUser, ROLE_LABEL, type Role } from "@/lib/auth";
 import { PasswordInput } from "@/components/PasswordInput";
 import { changeOwnPassword, updateOwnName } from "@/lib/account-actions";
@@ -24,11 +25,7 @@ export default async function Akun({ searchParams }: { searchParams: Promise<{ e
   const input = "rounded border p-2 text-sm";
   return (
     <div className="mx-auto max-w-2xl px-5">
-      <div className="flex items-center justify-between">
-        <h1 className="font-serif text-3xl">Akun Saya</h1>
-        <Link href="/admin" className="rounded border px-4 py-2">← Artikel</Link>
-      </div>
-      <p className="mt-2 text-sm text-charcoal/60">{me.email} · {ROLE_LABEL[me.role as Role]}</p>
+      <PageHeader ikon="akun" judul="Akun Saya" deskripsi={<>{me.email} · {ROLE_LABEL[me.role as Role]}</>} aksi={<Link href="/admin" className="rounded border px-4 py-2">← Artikel</Link>} />
       {error && <p className="mt-4 rounded bg-red-50 p-3 text-sm text-red-700">{errors[error] ?? "Terjadi kesalahan."}</p>}
       {ok && <p className="mt-4 rounded bg-green-50 p-3 text-sm text-green-800">{oks[ok] ?? "Berhasil."}</p>}
 

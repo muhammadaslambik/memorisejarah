@@ -1,5 +1,6 @@
 // PAKET-2B
 import { InformasiBlok } from "@/components/home/InformasiBlok";
+import { InformasiTerbaru } from "@/components/home/InformasiTerbaru";
 import { AgendaKartu } from "@/components/home/AgendaKartu";
 import { SectionTitle } from "@/components/home/SectionTitle";
 
@@ -11,8 +12,10 @@ export default function Informasi() {
       <section className="mx-auto max-w-[90rem] px-6 pt-12 md:px-10 lg:px-16">
         <h1 className="font-serif text-2xl sm:text-4xl font-bold md:text-5xl">Informasi</h1>
         <p className="mt-3 max-w-2xl text-ms-cream/70">Kumpulan informasi terkait kegiatan Memori Sejarah.</p>
-        <div className="mt-10"><SectionTitle>Informasi Terbaru</SectionTitle></div>
+        <div className="mt-10"><SectionTitle>Informasi Pilihan</SectionTitle></div>
         <InformasiBlok />
+        <div className="mt-14"><SectionTitle>Informasi Terbaru</SectionTitle></div>
+        <InformasiTerbaru mode="grid" />
         <div className="mt-14"><SectionTitle>Program Kegiatan</SectionTitle></div>
         <AgendaKartu />
       </section>

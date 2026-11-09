@@ -92,7 +92,8 @@ export function PemutarTerpadu({ judul, youtubeId, mode, ubahMode, slotId, onTut
       id = requestAnimationFrame(tik);
     };
     tik();
-    return () => { cancelAnimationFrame(id); ["left", "top", "width", "height"].forEach((k) => el.style.removeProperty(k)); };
+    // jangan menghapus left/top/width/height di sini: React sudah menuliskan gaya bentuk berikutnya (jendela/mini) sebelum pembersihan ini berjalan
+    return () => cancelAnimationFrame(id);
   }, [mode, slotId]);
 
   // layar penuh sungguhan untuk wadah yang sama (iframe tidak dipindah, jadi video tidak mengulang)
@@ -131,13 +132,13 @@ export function PemutarTerpadu({ judul, youtubeId, mode, ubahMode, slotId, onTut
     gaya = { position: "absolute", zIndex: 15, borderRadius: 0, border: 0 };
     kelas = "flex flex-col overflow-hidden bg-black";
   } else if (mode === "mini") {
-    gaya = { position: "fixed", zIndex: 65, width: "min(20rem, calc(100vw - 1.5rem))", ...(pos ? { left: pos.x, top: pos.y } : { right: 12, bottom: 12 }) };
+    gaya = { position: "fixed", zIndex: 65, width: "min(20rem, calc(100vw - 1.5rem))", height: "auto", ...(pos ? { left: pos.x, top: pos.y } : { left: "auto", top: "auto", right: 12, bottom: 12 }) };
     kelas += " shadow-2xl";
   } else if (penuh) {
     gaya = { position: "fixed", inset: 0, zIndex: 80, width: "100%", height: "100%", maxWidth: "none", borderRadius: 0 };
     kelas += " shadow-2xl";
   } else {
-    gaya = { position: "fixed", left: "50%", top: "50%", transform: "translate(-50%, -50%)", zIndex: 75, width: `min(${LEBAR[ukuran as "kecil" | "besar"]}, calc((100vh - 7.5rem) * 16 / 9), calc(100vw - 1.5rem))` };
+    gaya = { position: "fixed", left: "50%", top: "50%", height: "auto", transform: "translate(-50%, -50%)", zIndex: 75, width: `min(${LEBAR[ukuran as "kecil" | "besar"]}, calc((100vh - 7.5rem) * 16 / 9), calc(100vw - 1.5rem))` };
     kelas += " shadow-2xl";
   }
 

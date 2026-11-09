@@ -1,35 +1,76 @@
-// PAKET-3C2: ubah teks bagian Informasi Terbaru (beranda dan halaman Informasi)
+// PAKET-3C2/19: menu Informasi di CMS. Tab "Informasi Pilihan": editor langsung (sama dengan tampilan situs). Tab "Informasi Terbaru": daftar kartu pendek.
+import Link from "next/link";
+import { desc } from "drizzle-orm";
+import { db, infoItems } from "@/db";
 import { PageHeader } from "@/components/admin/PageHeader";
+import { IkonAdmin } from "@/components/admin/ikon-admin";
+import { IkonEdit, IkonHapus } from "@/components/admin/TombolAksi";
+import { InformasiEditor } from "@/components/admin/InformasiEditor";
 import { requireReviewer } from "@/lib/auth";
-import { getInformasi, INFORMASI_FIELDS } from "@/lib/pengaturan";
+import { getInformasi } from "@/lib/pengaturan";
 import { saveInformasi } from "@/lib/pengaturan-actions";
+import { deleteInfoItem } from "@/lib/info-actions";
+import { kecil } from "@/lib/gambar-url";
 
 export const dynamic = "force-dynamic";
-const input = "mt-1 w-full rounded-lg border p-2";
+const oks: Record<string, string> = { "1": "Perubahan disimpan.", simpan: "Informasi disimpan.", hapus: "Informasi dihapus." };
 
-export default async function AdminInformasi({ searchParams }: { searchParams: Promise<{ ok?: string }> }) {
+export default async function AdminInformasi({ searchParams }: { searchParams: Promise<{ ok?: string; tab?: string }> }) {
   await requireReviewer();
-  const { ok } = await searchParams;
-  const data = (await getInformasi()) as unknown as Record<string, Record<string, string>>;
+  const { ok, tab } = await searchParams;
+  const terbaru = tab === "terbaru";
+  const [d, items] = await Promise.all([
+    getInformasi(),
+    terbaru ? db().select().from(infoItems).orderBy(desc(infoItems.updatedAt)).catch(() => null) : Promise.resolve([]),
+  ]);
   return (
     <div>
-      <PageHeader ikon="informasi" judul="Informasi" deskripsi={<>Teks pada bagian Informasi Terbaru. Kosongkan sebuah kolom untuk kembali ke teks bawaan.</>} />
-      {ok && <p className="mt-4 rounded-lg bg-green-50 p-3 text-sm text-green-800">Perubahan disimpan.</p>}
-      <form action={saveInformasi} className="mt-6 space-y-5">
-        {INFORMASI_FIELDS.map((g) => (
-          <fieldset key={g.grup} className="space-y-3 rounded-xl bg-white/70 p-5">
-            <legend className="px-1 text-sm font-medium">{g.judul}</legend>
-            {g.fields.map((f) => (
-              <label key={f.key} className="block text-sm">{f.label}
-                {f.area
-                  ? <textarea name={`${g.grup}__${f.key}`} rows={3} defaultValue={data[g.grup][f.key]} className={input} />
-                  : <input name={`${g.grup}__${f.key}`} defaultValue={data[g.grup][f.key]} className={input} />}
-              </label>
-            ))}
-          </fieldset>
-        ))}
-        <button className="rounded-lg bg-gold px-5 py-2 text-white">Simpan</button>
-      </form>
+      <PageHeader
+        ikon="informasi"
+        judul="Informasi"
+        deskripsi="Kelola bagian Informasi di Beranda dan halaman Informasi."
+        aksi={<Link href="/admin/informasi/baru" className="a-btn"><IkonAdmin nama="tambah" className="h-4 w-4" /> Informasi Baru</Link>}
+      />
+      <div className="a-tab-baris mb-5 w-fit" role="tablist" aria-label="Bagian informasi">
+        <Link href="/admin/informasi" className="a-tab" aria-current={!terbaru ? "page" : undefined}>Informasi Pilihan</Link>
+        <Link href="/admin/informasi?tab=terbaru" className="a-tab" aria-current={terbaru ? "page" : undefined}>Informasi Terbaru{Array.isArray(items) && <span className="a-tab-n">{items.length}</span>}</Link>
+      </div>
+      {ok && <p className="mb-4 rounded-lg bg-green-50 p-3 text-sm text-green-800">{oks[ok] ?? "Berhasil."}</p>}
+
+      {!terbaru ? (
+        <InformasiEditor d={d} aksi={saveInformasi} />
+      ) : items === null ? (
+        <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900">Tabel Informasi Terbaru belum dibuat. Jalankan: <code>npx tsx --env-file=.env.local scripts\tambah-informasi.ts</code></p>
+      ) : items.length === 0 ? (
+        <div className="a-card p-8 text-center">
+          <p className="a-muted">Belum ada Informasi Terbaru. Klik <strong>Informasi Baru</strong> untuk menambahkan.</p>
+        </div>
+      ) : (
+        <ul className="a-card a-daftar">
+          {items.map((x) => (
+            <li key={x.id} className="flex flex-wrap items-center gap-3 p-4">
+              {x.imageUrl
+                // eslint-disable-next-line @next/next/no-img-element
+                ? <img src={kecil(x.imageUrl, 160)} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" className="h-12 w-20 shrink-0 rounded object-cover" />
+                : <span className="a-ico h-12 w-20 shrink-0 rounded"><IkonAdmin nama="informasi" className="h-5 w-5" /></span>}
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-medium">{x.title}</p>
+                <p className="mt-1 flex flex-wrap items-center gap-1.5">
+                  <span className={`a-chip ${x.status === "published" ? "a-chip-hijau" : "a-chip-abu"}`}>{x.status === "published" ? "terbit" : "draft"}</span>
+                  {x.label && <span className="a-chip a-chip-abu">{x.label}</span>}
+                </p>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <IkonEdit href={`/admin/informasi/${x.id}`} label="Edit informasi" />
+                <form action={deleteInfoItem}>
+                  <input type="hidden" name="id" value={x.id} />
+                  <IkonHapus label="Hapus informasi" pesan={`Hapus informasi "${x.title}"? Tindakan ini tidak bisa dibatalkan.`} />
+                </form>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

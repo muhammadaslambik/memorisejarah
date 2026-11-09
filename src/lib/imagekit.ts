@@ -104,6 +104,7 @@ async function masihDipakai(jalur: string): Promise<boolean> {
     or exists(select 1 from images where url ilike ${pola})
     or exists(select 1 from redaksi where foto_url ilike ${pola})
     or exists(select 1 from users where photo_url ilike ${pola})
+    or exists(select 1 from info_items where image_url ilike ${pola})
     or exists(select 1 from settings where value ilike ${pola})
     or exists(select 1 from site_settings where value ilike ${pola})
   ) as dipakai`);
@@ -144,6 +145,7 @@ export async function rincianPemakaian(urls: string[], kecualiPostId: number | n
       exists(select 1 from images where url ilike ${pola})
       or exists(select 1 from redaksi where foto_url ilike ${pola})
       or exists(select 1 from users where photo_url ilike ${pola})
+      or exists(select 1 from info_items where image_url ilike ${pola})
       or exists(select 1 from settings where value ilike ${pola})
       or exists(select 1 from site_settings where value ilike ${pola})
     ) as lain`);

@@ -156,3 +156,16 @@ export const gambarBerkas = pgTable("gambar_berkas", {
   tinggi: integer("tinggi"),
   dibuat: timestamp("dibuat").defaultNow().notNull(),
 });
+
+// PAKET-19: Informasi Terbaru (kartu pendek di Beranda dan halaman Informasi), dibuat dari menu Informasi di CMS
+export const infoItems = pgTable("info_items", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  summary: text("summary").default("").notNull(),
+  imageUrl: text("image_url").default("").notNull(),
+  linkUrl: text("link_url").default("").notNull(),
+  label: text("label").default("").notNull(),
+  status: text("status", { enum: ["draft", "published"] }).default("draft").notNull(),
+  publishedAt: timestamp("published_at"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});

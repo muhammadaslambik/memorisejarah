@@ -8,6 +8,7 @@ import { PostCardMini } from "@/components/content/PostCardMini";
 import { HeroCarousel } from "@/components/home/HeroCarousel";
 import { SectionTitle } from "@/components/home/SectionTitle";
 import { InformasiBlok } from "@/components/home/InformasiBlok";
+import { InformasiTerbaru } from "@/components/home/InformasiTerbaru";
 import { AgendaKartu } from "@/components/home/AgendaKartu";
 import { VideoStrip } from "@/components/home/VideoStrip";
 import { VideoCard } from "@/components/content/VideoCard";
@@ -105,8 +106,10 @@ export default async function Home() {
       </section>
 
       <section className={`${wadah} pt-14`}>
-        <SectionTitle>Informasi Terbaru</SectionTitle>
+        <SectionTitle>Informasi Pilihan</SectionTitle>
         <InformasiBlok />
+        <div className="mt-12"><SectionTitle>Informasi Terbaru</SectionTitle></div>
+        <InformasiTerbaru mode="jalur" />
         <div className="mt-8 flex justify-end">
           <Link href="/informasi" className={tombol}>Informasi Lainnya &rarr;</Link>
         </div>

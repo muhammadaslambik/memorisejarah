@@ -3,12 +3,15 @@
 import { useEffect, useState } from "react";
 import { IkonEdit, IkonHapus } from "@/components/admin/TombolAksi";
 import { PemutarTerpadu, type ModePemutar } from "@/components/admin/PemutarTerpadu";
-import { BarDaftar, PilihKategori, PilihJumlah, Pager, useHalaman, potong, cocokKat, type Kat } from "@/components/admin/KontrolDaftar";
+import { MenuIkon } from "@/components/admin/MenuIkon";
+import { PILIHAN } from "@/lib/pilihan-halaman";
+import { BarDaftar, Pager, useHalaman, potong, cocokKat, type Kat } from "@/components/admin/KontrolDaftar";
 
 export type ItemVideo = { id: number; title: string; status: string; featured: boolean; youtubeId: string; categoryId: number | null };
 type Mode = "baris" | "kolom";
 type Saring = "semua" | "terbit" | "pilihan";
 const KUNCI = "adm-video-tampil";
+const gi = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round" } as const;
 const g = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round" } as const;
 
 export function VideoDaftar({ items, hapus, cats }: { items: ItemVideo[]; hapus: (fd: FormData) => void | Promise<void>; cats: Kat[] }) {
@@ -54,27 +57,45 @@ export function VideoDaftar({ items, hapus, cats }: { items: ItemVideo[]; hapus:
     <div>
       <BarDaftar
         judul={<h2 className="font-medium">{judulDaftar} ({terfilter.length})</h2>}
-        saring={<div className="a-tab-baris" role="group" aria-label="Saring video">
-          <button type="button" className="a-tab" aria-current={saring === "semua" ? "page" : undefined} onClick={() => ubahSaring("semua")}>
-            <svg {...g} className="h-4 w-4"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" /></svg>Semua <span className="a-tab-n">{items.length}</span>
-          </button>
-          <button type="button" className="a-tab" aria-current={saring === "terbit" ? "page" : undefined} onClick={() => ubahSaring("terbit")}>
-            <svg {...g} className="h-4 w-4"><circle cx="12" cy="12" r="9" /><path d="M8 12.5l3 3 5-6" /></svg>Video terbit <span className="a-tab-n">{nTerbit}</span>
-          </button>
-          <button type="button" className="a-tab" aria-current={saring === "pilihan" ? "page" : undefined} onClick={() => ubahSaring("pilihan")}>
-            <svg {...g} className="h-4 w-4"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.8 6.8 19.6l1-5.8L3.5 9.7l5.9-.9z" /></svg>Video pilihan <span className="a-tab-n">{nPilihan}</span>
-          </button>
-        </div>}
-        tampilan={<div className="a-tab-baris" role="group" aria-label="Tampilan daftar video">
-          <button type="button" className="a-tab" aria-current={mode === "baris" ? "page" : undefined} onClick={() => pilih("baris")}>
-            <svg {...g} className="h-4 w-4"><path d="M4 6h16M4 12h16M4 18h16" /></svg>Baris
-          </button>
-          <button type="button" className="a-tab" aria-current={mode === "kolom" ? "page" : undefined} onClick={() => pilih("kolom")}>
-            <svg {...g} className="h-4 w-4"><rect x="4" y="4" width="7" height="7" rx="1" /><rect x="13" y="4" width="7" height="7" rx="1" /><rect x="4" y="13" width="7" height="7" rx="1" /><rect x="13" y="13" width="7" height="7" rx="1" /></svg>Kolom
-          </button>
-        </div>}
-        kontrol={<><PilihKategori kats={cats} nilai={kat} ubah={(v) => { setKat(v); setHal(1); }} />
-        <PilihJumlah per={per} ubah={setPer} /></>}
+        menu={<>
+          <MenuIkon
+            judul="Saring video"
+            ikon={<svg {...gi} className="h-5 w-5"><path d="M3 5h18l-7 8v6l-4-2v-4z" /></svg>}
+            label={judulDaftar}
+            opsi={[
+              { label: "Semua", aktif: saring === "semua", n: items.length, klik: () => ubahSaring("semua") },
+              { label: "Video terbit", aktif: saring === "terbit", n: nTerbit, klik: () => ubahSaring("terbit") },
+              { label: "Video pilihan", aktif: saring === "pilihan", n: nPilihan, klik: () => ubahSaring("pilihan") },
+            ]}
+          />
+          <MenuIkon
+            judul="Tampilan daftar"
+            ikon={<svg {...gi} className="h-5 w-5"><rect x="4" y="4" width="7" height="7" rx="1" /><rect x="13" y="4" width="7" height="7" rx="1" /><rect x="4" y="13" width="7" height="7" rx="1" /><rect x="13" y="13" width="7" height="7" rx="1" /></svg>}
+            label={mode === "baris" ? "Baris" : "Kolom"}
+            opsi={[
+              { label: "Baris", aktif: mode === "baris", ikon: <svg {...gi} className="h-4 w-4"><path d="M4 6h16M4 12h16M4 18h16" /></svg>, klik: () => pilih("baris") },
+              { label: "Kolom", aktif: mode === "kolom", ikon: <svg {...gi} className="h-4 w-4"><rect x="4" y="4" width="7" height="7" rx="1" /><rect x="13" y="4" width="7" height="7" rx="1" /><rect x="4" y="13" width="7" height="7" rx="1" /><rect x="13" y="13" width="7" height="7" rx="1" /></svg>, klik: () => pilih("kolom") },
+            ]}
+          />
+          <MenuIkon
+            judul="Saring kategori"
+            ikon={<svg {...gi} className="h-5 w-5"><path d="M3 12V4h8l10 10-8 8z" /><circle cx="7.5" cy="8.5" r="1" fill="currentColor" /></svg>}
+            label={kat === "semua" ? "Semua kategori" : kat === "0" ? "Tanpa kategori" : (cats.find((c) => String(c.id) === kat)?.name ?? "Kategori")}
+            opsi={[
+              { label: "Semua kategori", aktif: kat === "semua", klik: () => { setKat("semua"); setHal(1); } },
+              ...cats.map((c) => ({ label: c.name, aktif: kat === String(c.id), klik: () => { setKat(String(c.id)); setHal(1); } })),
+              { label: "(tanpa kategori)", aktif: kat === "0", klik: () => { setKat("0"); setHal(1); } },
+            ]}
+            kanan
+          />
+          <MenuIkon
+            judul="Jumlah per halaman"
+            ikon={<svg {...gi} className="h-5 w-5"><path d="M4 6h16M4 12h16M4 18h10" /></svg>}
+            label={per === 0 ? "Semua" : `${per} / hal.`}
+            opsi={PILIHAN.map((n) => ({ label: n === 0 ? "Semua" : `${n} per halaman`, aktif: per === n, klik: () => setPer(n) }))}
+            kanan
+          />
+        </>}
       />
 
       {tampil.length === 0 ? (

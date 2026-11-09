@@ -6,12 +6,16 @@ import { PasswordInput } from "@/components/PasswordInput";
 
 export const dynamic = "force-dynamic";
 
-export default async function Login({ searchParams }: { searchParams: Promise<{ error?: string; ok?: string }> }) {
-  const { error, ok } = await searchParams;
+export default async function Login({ searchParams }: { searchParams: Promise<{ error?: string; ok?: string; alasan?: string }> }) {
+  const { error, ok, alasan } = await searchParams;
   const canRegister = await registrationOpen();
   return (
     <form action={login} className="mx-auto mt-20 max-w-sm space-y-4 rounded-2xl border border-ms-line bg-ms-surface p-8 text-ms-cream shadow-xl">
       <h1 className="font-serif text-2xl">Masuk CMS</h1>
+      {alasan === "sesi" && <p className="text-sm text-amber-300">Sesi login tidak ditemukan (cookie hilang atau dihapus peramban). Silakan masuk lagi.</p>}
+      {alasan === "habis" && <p className="text-sm text-amber-300">Sesi login sudah berakhir. Silakan masuk lagi.</p>}
+      {alasan === "tidak-valid" && <p className="text-sm text-amber-300">Sesi login tidak valid (kunci sesi berubah atau cookie rusak). Silakan masuk lagi.</p>}
+      {alasan === "akun" && <p className="text-sm text-amber-300">Akun tidak ditemukan atau sedang dinonaktifkan. Silakan masuk lagi atau hubungi admin.</p>}
       {ok === "terdaftar" && <p className="text-sm text-emerald-400">Pendaftaran berhasil. Silakan masuk.</p>}
       {error === "locked" && <p className="text-sm text-rose-400">Terlalu banyak percobaan gagal. Coba lagi dalam 15 menit.</p>}
       {error === "pending" && <p className="text-sm text-rose-400">Akun Anda masih menunggu persetujuan admin.</p>}

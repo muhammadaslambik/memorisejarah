@@ -53,7 +53,7 @@ export default async function Home() {
 
   return (
     <div className="-mb-16 min-h-[70vh] bg-ms-bg pb-24 text-ms-cream">
-      <section className={`${wadah} pt-6`}>
+      <section className="mx-auto max-w-[90rem] px-1 pt-4 sm:px-6 sm:pt-6 md:px-10 lg:px-16">
         <HeroCarousel slides={slides} />
       </section>
 

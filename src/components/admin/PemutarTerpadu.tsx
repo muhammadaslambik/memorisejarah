@@ -7,6 +7,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ikutiSlot, mulaiIkuti } from "@/lib/ikuti-slot";
 import { Bilah, waktu } from "@/components/video/PemutarGlobal";
+import { usePerangkatSentuh } from "@/lib/sentuh";
 
 export type ModePemutar = "inline" | "modal" | "mini";
 type Ukuran = "kecil" | "besar" | "penuh";
@@ -25,10 +26,18 @@ export function PemutarTerpadu({ judul, youtubeId, mode, ubahMode, slotId, onTut
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null); // mini player: null = pojok kanan bawah
   const wadah = useRef<HTMLDivElement>(null);
   const tarik = useRef<{ dx: number; dy: number } | null>(null);
+  const [ukr, setUkr] = useState<{ w: number; h: number } | null>(null); // ukuran mini player yang diatur pengguna
+  const ubahUkr = useRef<{ arah: string; x: number; y: number; w: number; h: number; px: number; py: number } | null>(null);
   const penuh = mode === "modal" && ukuran === "penuh";
   const bingkai = useRef<HTMLIFrameElement>(null);
   const [info, setInfo] = useState<{ playerState?: number; currentTime?: number; duration?: number; muted?: boolean; videoLoadedFraction?: number }>({});
   const [tap, setTap] = useState(false);
+  const sentuh = usePerangkatSentuh();
+  const [pernahMain, setPernahMain] = useState(false);
+  useEffect(() => { if (info.playerState === 1) setPernahMain(true); }, [info.playerState]);
+  // Ponsel: peramban hanya mau memutar bila ketukan jatuh LANGSUNG pada pemutar YouTube. Sebelum video pernah berjalan, lapisan klik dan kontrol kita
+  // dibuat tembus ketuk supaya ketukan pertama mengenai tombol putar YouTube; setelah itu kontrol kita bekerja seperti biasa.
+  const tembus = sentuh && !pernahMain;
   const main = info.playerState === 1 || info.playerState === 3;
   const bersih = info.playerState === 2 || info.playerState === 0; // hanya saat dijeda/selesai: sampul menutup judul dan saran YouTube (3 detik awal dibiarkan apa adanya)
   const src = useMemo(() => {
@@ -132,7 +141,7 @@ export function PemutarTerpadu({ judul, youtubeId, mode, ubahMode, slotId, onTut
     gaya = { position: "absolute", zIndex: 15, borderRadius: 0, border: 0 };
     kelas = "flex flex-col overflow-hidden bg-black";
   } else if (mode === "mini") {
-    gaya = { position: "fixed", zIndex: 65, width: "min(20rem, calc(100vw - 1.5rem))", height: "auto", ...(pos ? { left: pos.x, top: pos.y } : { left: "auto", top: "auto", right: 12, bottom: 12 }) };
+    gaya = { position: "fixed", zIndex: 65, width: ukr ? ukr.w : "min(20rem, calc(100vw - 1.5rem))", height: ukr ? ukr.h : "auto", ...(pos ? { left: pos.x, top: pos.y } : { left: "auto", top: "auto", right: 12, bottom: 12 }) };
     kelas += " shadow-2xl";
   } else if (penuh) {
     gaya = { position: "fixed", inset: 0, zIndex: 80, width: "100%", height: "100%", maxWidth: "none", borderRadius: 0 };
@@ -154,6 +163,48 @@ export function PemutarTerpadu({ judul, youtubeId, mode, ubahMode, slotId, onTut
     tarik.current = null;
     if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId);
   };
+  // ubah ukuran mini player dari sisi/sudut mana pun (utara, selatan, timur, barat, dan keempat sudut)
+  const mulaiUkr = (arah: string) => (e: React.PointerEvent<HTMLElement>) => {
+    e.stopPropagation(); e.preventDefault();
+    const r = wadah.current?.getBoundingClientRect();
+    if (!r) return;
+    ubahUkr.current = { arah, x: r.left, y: r.top, w: r.width, h: r.height, px: e.clientX, py: e.clientY };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+  const geserUkr = (e: React.PointerEvent<HTMLElement>) => {
+    const u = ubahUkr.current;
+    if (!u) return;
+    const dx = e.clientX - u.px, dy = e.clientY - u.py;
+    const MINW = 240, MINH = 170, MAXW = window.innerWidth - 8, MAXH = window.innerHeight - 8;
+    let { x, y, w, h } = u;
+    if (u.arah.includes("e")) w = u.w + dx;
+    if (u.arah.includes("s")) h = u.h + dy;
+    if (u.arah.includes("w")) { w = u.w - dx; x = u.x + dx; }
+    if (u.arah.includes("n")) { h = u.h - dy; y = u.y + dy; }
+    if (w < MINW) { if (u.arah.includes("w")) x -= MINW - w; w = MINW; }
+    if (w > MAXW) { if (u.arah.includes("w")) x += w - MAXW; w = MAXW; }
+    if (h < MINH) { if (u.arah.includes("n")) y -= MINH - h; h = MINH; }
+    if (h > MAXH) { if (u.arah.includes("n")) y += h - MAXH; h = MAXH; }
+    x = Math.min(Math.max(0, x), Math.max(0, window.innerWidth - w));
+    y = Math.min(Math.max(0, y), Math.max(0, window.innerHeight - h));
+    setPos({ x, y });
+    setUkr({ w, h });
+  };
+  const akhiriUkr = (e: React.PointerEvent<HTMLElement>) => {
+    ubahUkr.current = null;
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId);
+  };
+  const pegangan = (arah: string, kelasPos: string, kursor: string) => (
+    <div
+      key={arah}
+      onPointerDown={mulaiUkr(arah)}
+      onPointerMove={geserUkr}
+      onPointerUp={akhiriUkr}
+      onPointerCancel={akhiriUkr}
+      aria-hidden="true"
+      className={`absolute z-40 touch-none ${kelasPos} ${kursor}`}
+    />
+  );
   const ganti = () => setUkuran(BERIKUT[ukuran]);
   const tuju = BERIKUT[ukuran];
 
@@ -192,7 +243,7 @@ export function PemutarTerpadu({ judul, youtubeId, mode, ubahMode, slotId, onTut
             </button>
           </div>
         )}
-        <div key="media" className={`group relative w-full overflow-hidden bg-black ${mode === "inline" || penuh ? "min-h-0 flex-1" : "aspect-video"}`}>
+        <div key="media" className={`group relative w-full overflow-hidden bg-black ${mode === "inline" || penuh || (mode === "mini" && ukr) ? "min-h-0 flex-1" : "aspect-video"}`}>
           <iframe
             ref={bingkai}
             src={src}
@@ -206,8 +257,8 @@ export function PemutarTerpadu({ judul, youtubeId, mode, ubahMode, slotId, onTut
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={`https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg`} alt="" decoding="async" className="h-full w-full object-cover opacity-50" />
           </div>
-          <button type="button" aria-label={main ? "Jeda" : "Putar"} onClick={klikVideo} className="absolute inset-0 z-10 cursor-pointer" />
-          <div className={`absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/85 to-transparent px-2 pb-1 pt-8 text-white transition-opacity duration-200 ${tap || !main ? "opacity-100" : "pointer-events-none opacity-0 group-hover:pointer-events-auto group-hover:opacity-100"}`}>
+          <button type="button" aria-label={main ? "Jeda" : "Putar"} onClick={klikVideo} className={`absolute inset-0 z-10 cursor-pointer ${tembus ? "pointer-events-none" : ""}`} />
+          <div className={`absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/85 to-transparent px-2 pb-1 pt-8 text-white transition-opacity duration-200 ${tembus ? "pointer-events-none opacity-0" : tap || !main ? "opacity-100" : "pointer-events-none opacity-0 group-hover:pointer-events-auto group-hover:opacity-100"}`}>
             <Bilah pos={info.currentTime ?? 0} dur={info.duration ?? 0} muat={Math.min(100, (info.videoLoadedFraction ?? 0) * 100)} onCari={cari} />
             <div className="-mt-1 flex items-center gap-1">
               <button type="button" onClick={jeda} className="grid h-8 w-8 place-items-center rounded-full hover:bg-white/20" aria-label={main ? "Jeda" : "Putar"}>
@@ -227,6 +278,18 @@ export function PemutarTerpadu({ judul, youtubeId, mode, ubahMode, slotId, onTut
             </div>
           </div>
         </div>
+        {mode === "mini" && (
+          <>
+            {pegangan("n", "inset-x-3 top-0 h-1.5", "cursor-ns-resize")}
+            {pegangan("s", "inset-x-3 bottom-0 h-1.5", "cursor-ns-resize")}
+            {pegangan("w", "inset-y-3 left-0 w-1.5", "cursor-ew-resize")}
+            {pegangan("e", "inset-y-3 right-0 w-1.5", "cursor-ew-resize")}
+            {pegangan("nw", "left-0 top-0 h-3 w-3", "cursor-nwse-resize")}
+            {pegangan("ne", "right-0 top-0 h-3 w-3", "cursor-nesw-resize")}
+            {pegangan("sw", "bottom-0 left-0 h-3 w-3", "cursor-nesw-resize")}
+            {pegangan("se", "bottom-0 right-0 h-3 w-3", "cursor-nwse-resize")}
+          </>
+        )}
       </div>
     </>
   );

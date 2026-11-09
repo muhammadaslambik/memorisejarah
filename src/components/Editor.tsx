@@ -8,6 +8,7 @@ import { unggahGambarArtikel } from "@/lib/unggah-actions";
 import { hashBerkas } from "@/lib/gambar-klien";
 import { GaleriGambar } from "@/components/admin/GaleriGambar";
 import { AlatBahasa } from "@/components/admin/AlatBahasa";
+import { MenuIkon, type Opsi } from "@/components/admin/MenuIkon";
 import { ekstensiEditorLengkap } from "@/components/admin/figure-editor";
 import { cariBahasa } from "@/lib/bahasa";
 import { posisiCatatan, sisipCatatanKaki as sisipNomorCatatan } from "@/lib/catatan-kaki";
@@ -66,6 +67,7 @@ export function Editor({ initial, name = "content", catatanKaki = false, tinggi 
   const aksiTautan = useRef<() => void>(() => {});
   const aksiCatatan = useRef<() => void>(() => {});
   const [galeri, setGaleri] = useState(false);
+  const [penuh, setPenuh] = useState(false); // mode menulis layar penuh
   const [catatanBaru, setCatatanBaru] = useState<number | null>(null);
   const editor = useEditor({
     extensions: ekstensiEditorLengkap,
@@ -73,7 +75,7 @@ export function Editor({ initial, name = "content", catatanKaki = false, tinggi 
     immediatelyRender: false,
     onUpdate: ({ editor }) => setHtml(editor.getHTML()),
     editorProps: {
-      attributes: { lang: "id", class: "prose prose-stone max-w-none rounded-b-lg border bg-white p-4 text-charcoal focus:outline-none", style: `min-height:${tinggi}px` },
+      attributes: { lang: "id", class: "prose prose-stone max-w-none rounded-b-lg border bg-white p-4 text-charcoal focus:outline-none", style: `min-height:max(${tinggi}px, 55dvh)` },
       handleKeyDown: (_v, e) => {
         if (catatanKaki && (e.ctrlKey || e.metaKey) && e.altKey && e.code === "KeyF") { e.preventDefault(); aksiCatatan.current(); return true; }
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); aksiTautan.current(); return true; }
@@ -89,6 +91,14 @@ export function Editor({ initial, name = "content", catatanKaki = false, tinggi 
       dom?.setAttribute("lang", cariBahasa(bahasa).lang);
     } catch { /* editor belum terpasang */ }
   }, [editor, ejaan, bahasa]);
+  useEffect(() => {
+    if (!penuh) return;
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setPenuh(false); };
+    const awalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", esc);
+    return () => { document.body.style.overflow = awalOverflow; document.removeEventListener("keydown", esc); };
+  }, [penuh]);
   const c = () => editor?.chain().focus();
   const ya = (nama: string, attrs?: Record<string, unknown>) => !!editor?.isActive(nama, attrs);
   const rata = (a: string) => !!editor?.isActive({ textAlign: a });
@@ -146,21 +156,18 @@ export function Editor({ initial, name = "content", catatanKaki = false, tinggi 
   const gaya = ya("heading", { level: 2 }) ? "2" : ya("heading", { level: 3 }) ? "3" : ya("heading", { level: 4 }) ? "4" : "p";
 
   return (
-    <div className="editor-kaya">
-      <div className="sticky top-[var(--adm-lengket,4rem)] z-10 flex flex-wrap items-center gap-0.5 rounded-t-lg border border-b-0 bg-cream-dark p-1.5" role="toolbar" aria-label="Pemformatan teks">
+    <div className={`editor-kaya ${penuh ? "editor-penuh fixed inset-0 z-[45] overflow-y-auto p-2 sm:p-5" : ""}`} style={penuh ? { background: "var(--a-bg, #fff)" } : undefined}>
+      <div className={`sticky z-10 flex flex-wrap items-center gap-0.5 rounded-t-lg border border-b-0 bg-cream-dark p-1 sm:p-1.5 ${penuh ? "top-0" : "top-[var(--adm-lengket,4rem)]"}`} role="toolbar" aria-label="Pemformatan teks">
         {awal}
-        {/* pemisah di samping ikon kembali kini digambar oleh komponennya sendiri */}
-        <select
-          aria-label="Gaya paragraf"
-          value={gaya}
-          onChange={(e) => { const v = e.target.value; if (v === "p") c()?.setParagraph().run(); else c()?.setHeading({ level: Number(v) as 2 | 3 | 4 }).run(); }}
-          className="mr-1 h-8 rounded-md border border-black/10 bg-white px-2 text-sm"
-        >
-          <option value="p">Paragraf</option>
-          <option value="2">Judul besar</option>
-          <option value="3">Judul sedang</option>
-          <option value="4">Judul kecil</option>
-        </select>
+        <MenuIkon
+          tanpaFokus
+          judul="Gaya paragraf"
+          ikon={<svg {...garis} className="h-4 w-4"><path d="M13 4v16M17 4v16M13 4H9.5a4.5 4.5 0 000 9H13" /></svg>}
+          opsi={([["p", "Paragraf"], ["2", "Judul besar"], ["3", "Judul sedang"], ["4", "Judul kecil"]] as const).map(([v, n]): Opsi => ({
+            label: n, aktif: gaya === v,
+            klik: () => { if (v === "p") c()?.setParagraph().run(); else c()?.setHeading({ level: Number(v) as 2 | 3 | 4 }).run(); },
+          }))}
+        />
         <Pemisah />
         <Tombol judul="Tebal (Ctrl+B)" aktif={ya("bold")} onClick={() => c()?.toggleBold().run()}><span className="font-bold">B</span></Tombol>
         <Tombol judul="Miring (Ctrl+I)" aktif={ya("italic")} onClick={() => c()?.toggleItalic().run()}><span className="font-serif italic">I</span></Tombol>
@@ -175,30 +182,55 @@ export function Editor({ initial, name = "content", catatanKaki = false, tinggi 
         </Tombol>
         <Tombol judul="Kutipan" aktif={ya("blockquote")} onClick={() => c()?.toggleBlockquote().run()}><span className="font-serif text-lg leading-none">&ldquo;</span></Tombol>
         <Pemisah />
-        <Tombol judul="Rata kiri (Ctrl+Shift+L)" aktif={rata("left")} onClick={() => c()?.setTextAlign("left").run()}>
-          <svg {...garis} className="h-4 w-4"><path d="M4 6h16M4 10h10M4 14h16M4 18h10" /></svg>
+        <MenuIkon
+          tanpaFokus
+          judul="Perataan teks"
+          ikon={rata("center")
+            ? <svg {...garis} className="h-4 w-4"><path d="M4 6h16M7 10h10M4 14h16M7 18h10" /></svg>
+            : rata("right")
+              ? <svg {...garis} className="h-4 w-4"><path d="M4 6h16M10 10h10M4 14h16M10 18h10" /></svg>
+              : rata("justify")
+                ? <svg {...garis} className="h-4 w-4"><path d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
+                : <svg {...garis} className="h-4 w-4"><path d="M4 6h16M4 10h10M4 14h16M4 18h10" /></svg>}
+          opsi={[
+            { label: "Rata kiri", aktif: rata("left"), ikon: <svg {...garis} className="h-4 w-4"><path d="M4 6h16M4 10h10M4 14h16M4 18h10" /></svg>, klik: () => c()?.setTextAlign("left").run() },
+            { label: "Rata tengah", aktif: rata("center"), ikon: <svg {...garis} className="h-4 w-4"><path d="M4 6h16M7 10h10M4 14h16M7 18h10" /></svg>, klik: () => c()?.setTextAlign("center").run() },
+            { label: "Rata kanan", aktif: rata("right"), ikon: <svg {...garis} className="h-4 w-4"><path d="M4 6h16M10 10h10M4 14h16M10 18h10" /></svg>, klik: () => c()?.setTextAlign("right").run() },
+            { label: "Rata kiri-kanan", aktif: rata("justify"), ikon: <svg {...garis} className="h-4 w-4"><path d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>, klik: () => c()?.setTextAlign("justify").run() },
+          ]}
+        />
+        <Tombol judul="Tautan (Ctrl+K)" aktif={ya("link")} onClick={() => aksiTautan.current()}>
+          <svg {...garis} className="h-4 w-4"><path d="M10 13a5 5 0 007.07 0l2.83-2.83a5 5 0 00-7.07-7.07L11.5 4.5M14 11a5 5 0 00-7.07 0L4.1 13.83a5 5 0 007.07 7.07L12.5 19.5" /></svg>
         </Tombol>
-        <Tombol judul="Rata tengah (Ctrl+Shift+E)" aktif={rata("center")} onClick={() => c()?.setTextAlign("center").run()}>
-          <svg {...garis} className="h-4 w-4"><path d="M4 6h16M7 10h10M4 14h16M7 18h10" /></svg>
-        </Tombol>
-        <Tombol judul="Rata kanan (Ctrl+Shift+R)" aktif={rata("right")} onClick={() => c()?.setTextAlign("right").run()}>
-          <svg {...garis} className="h-4 w-4"><path d="M4 6h16M10 10h10M4 14h16M10 18h10" /></svg>
-        </Tombol>
-        <Tombol judul="Rata kiri-kanan (Ctrl+Shift+J)" aktif={rata("justify")} onClick={() => c()?.setTextAlign("justify").run()}>
-          <svg {...garis} className="h-4 w-4"><path d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
-        </Tombol>
-        <Pemisah />
-        <Tombol judul="Tautan (Ctrl+K)" aktif={ya("link")} lebar onClick={() => aksiTautan.current()}>Tautan</Tombol>
-        <Tombol judul="Unggah gambar dari perangkat (otomatis dikecilkan)" lebar disabled={sibuk} onClick={() => berkas.current?.click()}>{sibuk ? "Memproses..." : "Gambar"}</Tombol>
-        <Tombol judul="Sisipkan gambar dari alamat https" lebar onClick={gambarUrl}>Gambar (URL)</Tombol>
-        <Tombol judul="Pilih gambar yang sudah ada di galeri" lebar onClick={() => setGaleri(true)}>Galeri</Tombol>
-        <Tombol judul="Garis pemisah" lebar onClick={() => c()?.setHorizontalRule().run()}>&mdash;</Tombol>
-        {catatanKaki && <Tombol judul="Sisipkan catatan kaki (Ctrl+Alt+F)" lebar onClick={sisipCatatanKaki}>Catatan kaki</Tombol>}
+        <MenuIkon
+          tanpaFokus
+          judul="Sisipkan gambar"
+          ikon={<svg {...garis} className="h-4 w-4"><rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="9" cy="10" r="1.6" /><path d="M21 16l-5-5-8 8" /></svg>}
+          opsi={[
+            { label: sibuk ? "Memproses..." : "Unggah dari perangkat", nonaktif: sibuk, klik: () => berkas.current?.click() },
+            { label: "Dari alamat (URL https)", klik: gambarUrl },
+            { label: "Dari galeri", klik: () => setGaleri(true) },
+          ]}
+        />
+        <MenuIkon
+          tanpaFokus
+          judul="Lainnya"
+          ikon={<svg {...garis} className="h-4 w-4"><circle cx="5" cy="12" r="1.2" fill="currentColor" /><circle cx="12" cy="12" r="1.2" fill="currentColor" /><circle cx="19" cy="12" r="1.2" fill="currentColor" /></svg>}
+          opsi={[
+            { label: "Garis pemisah", klik: () => c()?.setHorizontalRule().run() },
+            ...(catatanKaki ? [{ label: "Sisipkan catatan kaki", klik: sisipCatatanKaki }] : []),
+            { label: "Hapus semua pemformatan", klik: () => c()?.unsetAllMarks().clearNodes().run() },
+          ]}
+        />
         <Pemisah />
         <Tombol judul="Urungkan (Ctrl+Z)" disabled={!editor?.can().undo()} onClick={() => c()?.undo().run()}>&#8630;</Tombol>
         <Tombol judul="Ulangi (Ctrl+Y)" disabled={!editor?.can().redo()} onClick={() => c()?.redo().run()}>&#8631;</Tombol>
-        <Tombol judul="Hapus semua pemformatan" lebar onClick={() => c()?.unsetAllMarks().clearNodes().run()}>Bersihkan</Tombol>
         <AlatBahasa editor={editor} bahasa={bahasa} setBahasa={setBahasa} ejaan={ejaan} setEjaan={setEjaan} />
+        <Tombol judul={penuh ? "Keluar dari layar penuh (Esc)" : "Menulis layar penuh"} aktif={penuh} onClick={() => setPenuh((b) => !b)}>
+          {penuh
+            ? <svg {...garis} className="h-4 w-4"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" /></svg>
+            : <svg {...garis} className="h-4 w-4"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></svg>}
+        </Tombol>
         <input
           ref={berkas}
           type="file"

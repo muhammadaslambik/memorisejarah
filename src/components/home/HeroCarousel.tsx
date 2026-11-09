@@ -83,7 +83,7 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
           >
             {s.coverUrl && <img src={s.coverUrl} alt="" draggable={false} className="absolute inset-0 h-full w-full select-none object-cover" />}
             <div className="absolute inset-0 bg-gradient-to-t from-ms-bg via-ms-bg/55 to-transparent" />
-            <div className="absolute inset-x-0 bottom-0 px-6 pb-10 sm:px-16 md:pb-12">
+            <div className="absolute inset-x-0 bottom-0 px-4 pb-10 sm:px-16 md:pb-12">
               <div className="flex flex-wrap items-center gap-3 text-xs text-ms-cream/80">
                 {s.kategori && <span className="rounded-full bg-ms-gold px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-ms-bg">{s.kategori}</span>}
                 <span>{[s.tanggal, s.penulis].filter(Boolean).join(" \u2022 ")}</span>
@@ -97,7 +97,7 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
         <>
           <button type="button" aria-label="Sebelumnya" onClick={() => { sentuh(); ke(i - 1); }} className={`${bulat} left-3 sm:left-5`}>&lsaquo;</button>
           <button type="button" aria-label="Berikutnya" onClick={() => { sentuh(); ke(i + 1); }} className={`${bulat} right-3 sm:right-5`}>&rsaquo;</button>
-          <div className="absolute bottom-4 right-6 z-20 flex items-center gap-3 sm:right-16">
+          <div className="absolute bottom-4 right-4 z-20 flex items-center gap-3 sm:right-16">
             <button
               type="button" aria-label={jeda ? "Putar" : "Jeda"} onClick={() => setJeda(!jeda)}
               className="flex h-8 w-8 items-center justify-center rounded-full border border-ms-line bg-ms-bg/80 text-[11px] text-ms-cream hover:border-ms-gold hover:text-ms-gold"

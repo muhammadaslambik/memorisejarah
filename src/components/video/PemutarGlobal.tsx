@@ -7,6 +7,7 @@ import Link from "next/link";
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ikutiSlot, mulaiIkuti, type PosisiIkuti } from "@/lib/ikuti-slot";
+import { usePerangkatSentuh } from "@/lib/sentuh";
 
 export type VideoMini = { slug: string; title: string; youtubeId: string };
 type Pesan = { event?: string; info?: unknown };
@@ -237,6 +238,12 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
   const [penuh, setPenuh] = useState(false);
 
   const main = info.playerState === 1 || info.playerState === 3;
+  const sentuh = usePerangkatSentuh();
+  const [pernahMain, setPernahMain] = useState(false);
+  useEffect(() => { if (info.playerState === 1) setPernahMain(true); }, [info.playerState]);
+  // Ponsel: peramban hanya mau memutar bila ketukan jatuh LANGSUNG pada pemutar YouTube. Sebelum video pernah berjalan, lapisan klik dan kontrol kita
+  // dibuat tembus ketuk supaya ketukan pertama mengenai tombol putar YouTube; setelah itu kontrol kita bekerja seperti biasa.
+  const tembus = sentuh && !pernahMain;
   // mini player: di luar halaman video, saat slot tergulir keluar layar, dibuka manual, atau saat yang diputar bukan video halaman ini.
   // Tetap mini walaupun dijeda: tidak hilang dan tidak berpindah sendiri ke halaman video.
   const mini = !slot || paksa || !terlihat || !sama;
@@ -458,14 +465,14 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
               if (mini) { if (ktlMini) setKtlMini(false); else tampilMini(true); } else jeda();
             }}
             onDoubleClick={mini ? undefined : layarPenuh}
-            className="absolute inset-0 z-10 cursor-pointer"
+            className={`absolute inset-0 z-10 cursor-pointer ${tembus ? "pointer-events-none" : ""}`}
           />
         )}
 
         {/* kontrol mini player di dalam video */}
         {mini && !bar && (
-          <div key="kontrolMini" className={`pointer-events-none absolute inset-0 z-20 flex flex-col justify-between text-white transition-opacity duration-200 ${miniTampil ? "opacity-100" : "opacity-0"}`}>
-            <div className={`flex items-center gap-0.5 bg-gradient-to-b from-black/80 to-transparent px-2 pb-5 pt-1.5 ${miniTampil ? "pointer-events-auto" : ""}`}>
+          <div key="kontrolMini" className={`pointer-events-none absolute inset-0 z-20 flex flex-col justify-between text-white transition-opacity duration-200 ${miniTampil && !tembus ? "opacity-100" : "opacity-0"}`}>
+            <div className={`flex items-center gap-0.5 bg-gradient-to-b from-black/80 to-transparent px-2 pb-5 pt-1.5 ${miniTampil && !tembus ? "pointer-events-auto" : ""}`}>
               <Link href={`/video/${video.slug}`} className="min-w-0 flex-1 truncate px-1 text-xs font-semibold hover:text-[#d9a441]" title={video.title}>{video.title}</Link>
               <button type="button" onClick={kembali} className={tombolMini} title="Kembali ke halaman video">
                 <svg {...g} className="h-4 w-4"><path d="M14 4h6v6M20 4l-8 8M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4" /></svg>
@@ -477,7 +484,7 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
                 <svg {...g} className="h-4 w-4"><path d="M6 6l12 12M18 6L6 18" /></svg>
               </button>
             </div>
-            <div className={`flex items-center justify-center gap-2 ${miniTampil ? "pointer-events-auto" : ""}`}>
+            <div className={`flex items-center justify-center gap-2 ${miniTampil && !tembus ? "pointer-events-auto" : ""}`}>
               <button type="button" onClick={klikSebelumnya} className="grid h-10 w-10 place-items-center rounded-full bg-black/55 hover:bg-black/75" title={(info.currentTime ?? 0) > 3 || !adaSebelumnya ? "Ulangi dari awal" : "Video sebelumnya"}>
                 <svg {...g} className="h-5 w-5" fill="currentColor" stroke="none"><path d="M18 5l-9 7 9 7zM5 5h2v14H5z" /></svg>
               </button>
@@ -486,7 +493,7 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
                 <svg {...g} className="h-5 w-5" fill="currentColor" stroke="none"><path d="M6 5l9 7-9 7zM17 5h2v14h-2z" /></svg>
               </button>
             </div>
-            <div className={`bg-gradient-to-t from-black/85 to-transparent px-2 pb-1 pt-4 ${miniTampil ? "pointer-events-auto" : ""}`}>
+            <div className={`bg-gradient-to-t from-black/85 to-transparent px-2 pb-1 pt-4 ${miniTampil && !tembus ? "pointer-events-auto" : ""}`}>
               <Bilah pos={pos} dur={dur} muat={muat} onCari={cari} />
               <div className="-mt-1 flex items-center gap-0.5">
                 <span className="mr-auto text-[11px] tabular-nums text-white">{waktu(pos)} / {waktu(dur)}</span>
@@ -508,7 +515,7 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
 
         {/* kontrol penuh (di halaman video) */}
         {!mini && (
-          <div className={`absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/80 to-transparent px-3 pb-2 pt-10 text-white transition-opacity duration-200 ${kontrolTampil ? "opacity-100" : "pointer-events-none opacity-0"}`}>
+          <div className={`absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/80 to-transparent px-3 pb-2 pt-10 text-white transition-opacity duration-200 ${kontrolTampil && !tembus ? "opacity-100" : "pointer-events-none opacity-0"}`}>
             <div className="mb-1"><Bilah pos={pos} dur={dur} muat={muat} onCari={cari} /></div>
             <div className="flex items-center gap-0.5 sm:gap-1">
               <button type="button" onClick={() => { if ((info.currentTime ?? 0) > 3 || !adaSebelumnya) { cari(0); return; } const p = onSebelumnyaHalaman(); if (p) router.push(`/video/${p.slug}`); }} className={tombolKtl} title={(info.currentTime ?? 0) > 3 || !adaSebelumnya ? "Ulangi dari awal" : "Video sebelumnya"}>

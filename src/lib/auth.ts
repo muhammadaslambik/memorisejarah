@@ -1,4 +1,5 @@
-import { SignJWT, jwtVerify } from "jose";
+import { jwtVerify } from "jose";
+import { buatToken, kunciSesi, opsiCookieSesi } from "./sesi";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
@@ -7,12 +8,10 @@ import { db, users } from "@/db";
 
 export { hashPassword, verifyPassword } from "./password";
 
-const key = () => new TextEncoder().encode(process.env.SESSION_SECRET!);
+const key = kunciSesi;
 
 export async function createSession(userId: number) {
-  const token = await new SignJWT({ uid: userId }).setProtectedHeader({ alg: "HS256" })
-    .setExpirationTime("7d").sign(key());
-  (await cookies()).set("session", token, { httpOnly: true, secure: true, sameSite: "lax", path: "/", maxAge: 604800 });
+  (await cookies()).set("session", await buatToken(userId), opsiCookieSesi);
 }
 
 export async function getSession() {
@@ -32,8 +31,10 @@ async function ambilPenggunaSaatIni() {
 }
 
 export async function requireUser() {
+  // alasan dicatat di alamat login supaya jelas kenapa pengguna diminta masuk lagi (cookie hilang, akun nonaktif, dst.)
+  if (!(await getSession())) redirect("/admin/login?alasan=sesi");
   const u = await getCurrentUser();
-  if (!u) redirect("/admin/login");
+  if (!u) redirect("/admin/login?alasan=akun");
   return u;
 }
 

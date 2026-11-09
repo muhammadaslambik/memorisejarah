@@ -62,11 +62,11 @@ export function GaleriGambar({ tutup, pilih }: { tutup: () => void; pilih: (url:
           />
         </div>
         {galat && <p className="mb-2 rounded bg-amber-50 px-3 py-1.5 text-amber-900">{galat}</p>}
-        <div className="grid min-h-0 flex-1 grid-cols-1 content-start gap-4 overflow-y-auto pr-1 sm:grid-cols-2">
+        <div className="grid min-h-0 flex-1 auto-rows-max grid-cols-1 content-start gap-4 overflow-y-auto pr-1 sm:grid-cols-2">
           {tampil.map((g) => (
-            <button key={g.url} type="button" onClick={() => pilih(g.url)} title={g.judul || g.nama} className="group overflow-hidden rounded-lg border text-left focus-visible:outline focus-visible:outline-2">
+            <button key={g.url} type="button" onClick={() => pilih(g.url)} title={g.judul || g.nama} className="group block h-auto shrink-0 overflow-hidden rounded-lg border text-left focus-visible:outline focus-visible:outline-2">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={kecil(g.url, 800)} alt={g.judul || g.nama} loading="lazy" className="aspect-video w-full bg-black/20 object-cover transition group-hover:opacity-90" />
+              <img src={kecil(g.url, 800)} alt={g.judul || g.nama} loading="lazy" className="block h-48 w-full bg-black/20 object-cover transition group-hover:opacity-90 sm:h-44" />
               <span className="block truncate px-3 py-2 text-sm">{g.judul || g.nama}</span>
             </button>
           ))}

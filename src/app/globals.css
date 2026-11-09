@@ -245,9 +245,13 @@ body { top: 0 !important; }
 .tonton-pemutar { grid-area: pemutar; }
 .tonton-info { grid-area: info; }
 .tonton-samping { grid-area: samping; }
+.tonton-horizontal { display: none; }
+.tonton-band-kosong { background: transparent !important; }
 @media (min-width: 1024px) {
   .tonton-grid { grid-template-columns: minmax(0, 1fr) 24rem; grid-template-rows: auto 1fr; grid-template-areas: "pemutar samping" "info samping"; }
-  html[data-teater] .tonton-grid { grid-template-rows: auto auto; grid-template-areas: "pemutar pemutar" "info samping"; }
+  html[data-teater] .tonton-grid { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto; grid-template-areas: "pemutar" "info"; }
+  html[data-teater] .tonton-samping { display: none; }
+  html[data-teater] .tonton-horizontal { display: block; }
   html[data-teater] .tonton-pemutar { width: 100vw; margin-left: calc(50% - 50vw); margin-top: -1.5rem; }
   html[data-teater] .tonton-band { display: flex; justify-content: center; background: #141414; height: clamp(20rem, min(56.25vw, calc(100vh - 14rem)), 100vh); }
   html[data-teater] .tonton-slot { height: 100%; width: auto; max-width: 100%; border-radius: 0; margin: 0 auto; }

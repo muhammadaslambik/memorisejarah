@@ -1,8 +1,11 @@
+// PAKET-17: video di CMS memakai kontrol sendiri (tanpa judul/logo/tulisan YouTube): bilah emas, waktu putih, tombol muncul saat kursor di atas video
+// atau saat diketuk (ponsel); di luar itu video tampil bersih. Sampul menutup saran/judul YouTube saat dijeda atau selesai.
 // PAKET-15L: SATU pemutar yang berpindah bentuk tanpa memuat ulang video: di kartu (inline), jendela (kecil/besar/layar penuh), atau mini player.
 // Elemen iframe tidak pernah dibuat ulang saat bentuk berganti, sehingga video terus berlanjut dari detik yang sama.
 // (Memuat ulang hanya terjadi bila video yang diputar berganti; induk memakai key = id video.)
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Bilah, waktu } from "@/components/video/PemutarGlobal";
 
 export type ModePemutar = "inline" | "modal" | "mini";
 type Ukuran = "kecil" | "besar" | "penuh";
@@ -23,6 +26,52 @@ export function PemutarTerpadu({ judul, youtubeId, mode, ubahMode, slotId, onTut
   const wadah = useRef<HTMLDivElement>(null);
   const tarik = useRef<{ dx: number; dy: number } | null>(null);
   const penuh = mode === "modal" && ukuran === "penuh";
+  const bingkai = useRef<HTMLIFrameElement>(null);
+  const [info, setInfo] = useState<{ playerState?: number; currentTime?: number; duration?: number; muted?: boolean; videoLoadedFraction?: number }>({});
+  const [tap, setTap] = useState(false);
+  const main = info.playerState === 1 || info.playerState === 3;
+  const bersih = info.playerState === 2 || info.playerState === 0; // dijeda/selesai: YouTube menampilkan judul dan saran, ditutup sampul
+  const src = useMemo(() => {
+    const asal = typeof window !== "undefined" ? `&origin=${encodeURIComponent(window.location.origin)}` : "";
+    return `https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&controls=0&fs=0&rel=0&modestbranding=1&iv_load_policy=3&enablejsapi=1&playsinline=1${asal}`;
+  }, [youtubeId]);
+  const perintah = useCallback((func: string, args: unknown[] = []) => {
+    bingkai.current?.contentWindow?.postMessage(JSON.stringify({ event: "command", func, args }), "*");
+  }, []);
+  const langganan = useCallback(() => {
+    const w = bingkai.current?.contentWindow;
+    if (!w) return;
+    w.postMessage(JSON.stringify({ event: "listening", id: 1, channel: "widget" }), "*");
+    w.postMessage(JSON.stringify({ event: "command", func: "addEventListener", args: ["onStateChange"] }), "*");
+  }, []);
+  useEffect(() => {
+    const saat = (e: MessageEvent) => {
+      if (e.source !== bingkai.current?.contentWindow) return;
+      let d: { event?: string; info?: unknown } | null = null;
+      try { d = typeof e.data === "string" ? JSON.parse(e.data) : e.data; } catch { return; }
+      if (!d) return;
+      if (d.event === "onStateChange" && typeof d.info === "number") setInfo((p) => ({ ...p, playerState: d!.info as number }));
+      else if (d.event === "infoDelivery" && d.info && typeof d.info === "object") setInfo((p) => ({ ...p, ...(d!.info as object) }));
+    };
+    window.addEventListener("message", saat);
+    const t = [600, 1800, 3500].map((ms) => setTimeout(langganan, ms));
+    return () => { window.removeEventListener("message", saat); t.forEach(clearTimeout); };
+  }, [langganan]);
+  // ponsel: klik di luar area video menyembunyikan tombol
+  useEffect(() => {
+    if (!tap) return;
+    const turun = (e: PointerEvent) => { if (!wadah.current?.contains(e.target as Node)) setTap(false); };
+    document.addEventListener("pointerdown", turun, true);
+    return () => document.removeEventListener("pointerdown", turun, true);
+  }, [tap]);
+  const jeda = () => perintah(main ? "pauseVideo" : "playVideo");
+  const bisu = () => { const m = !!info.muted; perintah(m ? "unMute" : "mute"); setInfo((p) => ({ ...p, muted: !m })); };
+  const cari = (d: number) => { perintah("seekTo", [d, true]); setInfo((p) => ({ ...p, currentTime: d })); };
+  const layarPenuhSungguhan = () => { if (document.fullscreenElement) void document.exitFullscreen(); else void wadah.current?.requestFullscreen?.().catch(() => undefined); };
+  const klikVideo = (e: React.MouseEvent) => {
+    const jenis = (e.nativeEvent as PointerEvent).pointerType;
+    if (jenis === "touch" || jenis === "pen") setTap((b) => !b); else jeda();
+  };
 
   // bentuk jendela selalu dimulai dari Kecil
   useEffect(() => { if (mode === "modal") setUkuran("kecil"); }, [mode]);
@@ -138,13 +187,42 @@ export function PemutarTerpadu({ judul, youtubeId, mode, ubahMode, slotId, onTut
             </button>
           </div>
         )}
-        <div key="media" className={`w-full bg-black ${mode === "inline" || penuh ? "min-h-0 flex-1" : "aspect-video"}`}>
+        <div key="media" className={`group relative w-full overflow-hidden bg-black ${mode === "inline" || penuh ? "min-h-0 flex-1" : "aspect-video"}`}>
           <iframe
-            src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&rel=0`}
+            ref={bingkai}
+            src={src}
             title={judul}
             className="h-full w-full"
             allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+            referrerPolicy="strict-origin-when-cross-origin"
+            onLoad={langganan}
           />
+          {bersih && (
+            <div key="sampul" className="pointer-events-none absolute inset-0 z-[5] bg-black">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={`https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg`} alt="" className="h-full w-full object-cover opacity-50" />
+            </div>
+          )}
+          <button type="button" aria-label={main ? "Jeda" : "Putar"} onClick={klikVideo} className="absolute inset-0 z-10 cursor-pointer" />
+          <div className={`absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/85 to-transparent px-2 pb-1 pt-8 text-white transition-opacity duration-200 ${tap || !main ? "opacity-100" : "pointer-events-none opacity-0 group-hover:pointer-events-auto group-hover:opacity-100"}`}>
+            <Bilah pos={info.currentTime ?? 0} dur={info.duration ?? 0} muat={Math.min(100, (info.videoLoadedFraction ?? 0) * 100)} onCari={cari} />
+            <div className="-mt-1 flex items-center gap-1">
+              <button type="button" onClick={jeda} className="grid h-8 w-8 place-items-center rounded-full hover:bg-white/20" aria-label={main ? "Jeda" : "Putar"}>
+                {main
+                  ? <svg {...g} className="h-4 w-4" fill="currentColor" stroke="none"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" /></svg>
+                  : <svg {...g} className="h-4 w-4" fill="currentColor" stroke="none"><path d="M8 5v14l11-7z" /></svg>}
+              </button>
+              <button type="button" onClick={bisu} className="grid h-8 w-8 place-items-center rounded-full hover:bg-white/20" aria-label={info.muted ? "Suarakan" : "Bisukan"}>
+                {info.muted
+                  ? <svg {...g} className="h-4 w-4"><path d="M11 5L6 9H3v6h3l5 4zM16 9l5 6M21 9l-5 6" /></svg>
+                  : <svg {...g} className="h-4 w-4"><path d="M11 5L6 9H3v6h3l5 4zM15.5 8.5a5 5 0 010 7M18 6a8.5 8.5 0 010 12" /></svg>}
+              </button>
+              <span className="text-xs tabular-nums text-white">{waktu(info.currentTime ?? 0)} / {waktu(info.duration ?? 0)}</span>
+              <button type="button" onClick={layarPenuhSungguhan} className="ml-auto grid h-8 w-8 place-items-center rounded-full hover:bg-white/20" aria-label="Layar penuh">
+                <svg {...g} className="h-4 w-4"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></svg>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </>

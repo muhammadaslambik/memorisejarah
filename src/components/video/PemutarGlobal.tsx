@@ -15,15 +15,19 @@ type Konteks = {
   pasang: (v: VideoMini, lain: VideoMini[], el: HTMLElement) => void;
   lepas: (el: HTMLElement) => void;
 };
+type Aktif = { aktifId: string | null; mini: boolean; kembaliKeSlot: () => void };
 const Ctx = createContext<Konteks | null>(null);
+const CtxAktif = createContext<Aktif | null>(null);
 export const usePemutar = () => useContext(Ctx);
+export const usePemutarAktif = () => useContext(CtxAktif);
+type Sub = "utama" | "cc" | "timer" | "kecepatan" | "kualitas";
 
 const g = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round" } as const;
 const KECEPATAN = [0.5, 0.75, 1, 1.25, 1.5, 2];
 const KUNCI_AUTO = "ms-autoputar";
 const tombolKtl = "grid h-9 w-9 shrink-0 place-items-center rounded-full text-white transition hover:bg-white/15 focus-visible:bg-white/15";
 
-const waktu = (d: number) => {
+export const waktu = (d: number) => {
   if (!isFinite(d) || d < 0) return "0:00";
   const j = Math.floor(d / 3600), m = Math.floor((d % 3600) / 60), s = Math.floor(d % 60);
   return j > 0 ? `${j}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}` : `${m}:${String(s).padStart(2, "0")}`;
@@ -32,53 +36,87 @@ const waktu = (d: number) => {
 export function PemutarProvider({ children }: { children: React.ReactNode }) {
   const [video, setVideo] = useState<VideoMini | null>(null);
   const [lain, setLain] = useState<VideoMini[]>([]);
+  const [riwayat, setRiwayat] = useState<VideoMini[]>([]);
   const [slot, setSlot] = useState<HTMLElement | null>(null);
+  const [slotVideo, setSlotVideo] = useState<VideoMini | null>(null);
   const [teater, setTeater] = useState(false);
-  const sedangMain = useRef(false);
+  const [paksa, setPaksa] = useState(false);
+  const [mini, setMini] = useState(false);
+  const videoRef = useRef<VideoMini | null>(null);
+  videoRef.current = video;
 
+  const ganti = useCallback((v: VideoMini) => {
+    const cur = videoRef.current;
+    if (cur && cur.youtubeId !== v.youtubeId) setRiwayat((r) => [...r, cur].slice(-30));
+    setVideo(v);
+  }, []);
   const pasang = useCallback((v: VideoMini, l: VideoMini[], el: HTMLElement) => {
-    setVideo((p) => (p && p.youtubeId === v.youtubeId ? p : v));
+    if (!videoRef.current || videoRef.current.youtubeId !== v.youtubeId) ganti(v);
     setLain(l);
     setSlot(el);
-  }, []);
+    setSlotVideo(v);
+  }, [ganti]);
   const lepas = useCallback((el: HTMLElement) => {
+    // video yang sedang berjalan TIDAK dihentikan saat halaman berganti: ia menjadi mini player
     setSlot((s) => (s === el ? null : s));
-    if (!sedangMain.current) setVideo(null); // tidak sedang diputar: tidak ada yang perlu dilanjutkan
+    setSlotVideo(null);
   }, []);
   const konteks = useMemo(() => ({ pasang, lepas }), [pasang, lepas]);
 
+  useEffect(() => { setPaksa(false); }, [video?.youtubeId]);
   useEffect(() => {
     document.documentElement.toggleAttribute("data-teater", teater && !!slot);
     return () => document.documentElement.removeAttribute("data-teater");
   }, [teater, slot]);
 
   const muatBerikut = useCallback((n: VideoMini) => {
-    setLain((l) => [...l.filter((x) => x.slug !== n.slug), ...(video ? [video] : [])]);
-    setVideo(n);
-  }, [video]);
+    const cur = videoRef.current;
+    setLain((l) => [...l.filter((x) => x.slug !== n.slug), ...(cur ? [cur] : [])]);
+    ganti(n);
+  }, [ganti]);
+  const sebelumnya = useCallback(() => {
+    const prev = riwayat[riwayat.length - 1];
+    if (!prev) return;
+    const cur = videoRef.current;
+    setRiwayat((r) => r.slice(0, -1));
+    setLain((l) => [...(cur ? [cur] : []), ...l.filter((x) => x.slug !== prev.slug)]);
+    setVideo(prev);
+  }, [riwayat]);
+  const kembaliKeSlot = useCallback(() => {
+    setPaksa(false);
+    if (slotVideo && videoRef.current && videoRef.current.youtubeId !== slotVideo.youtubeId) ganti(slotVideo);
+  }, [slotVideo, ganti]);
+  const aktif = useMemo(() => ({ aktifId: video?.youtubeId ?? null, mini: !!video && mini, kembaliKeSlot }), [video, mini, kembaliKeSlot]);
 
   return (
     <Ctx.Provider value={konteks}>
-      {children}
-      {video && (
-        <Pemutar
-          key={video.youtubeId}
-          video={video}
-          lain={lain.filter((x) => x.youtubeId !== video.youtubeId)}
-          slot={slot}
-          teater={teater}
-          setTeater={setTeater}
-          onMain={(b) => { sedangMain.current = b; }}
-          onTutup={() => { sedangMain.current = false; setVideo(null); }}
-          onMuat={muatBerikut}
-        />
-      )}
+      <CtxAktif.Provider value={aktif}>
+        {children}
+        {video && (
+          <Pemutar
+            key={video.youtubeId}
+            video={video}
+            lain={lain.filter((x) => x.youtubeId !== video.youtubeId)}
+            slot={slot}
+            sama={!!slotVideo && slotVideo.youtubeId === video.youtubeId}
+            teater={teater}
+            setTeater={setTeater}
+            paksa={paksa}
+            setPaksa={setPaksa}
+            adaSebelumnya={riwayat.length > 0}
+            onSebelumnya={sebelumnya}
+            onMini={setMini}
+            onTutup={() => { setVideo(null); setMini(false); }}
+            onMuat={muatBerikut}
+          />
+        )}
+      </CtxAktif.Provider>
     </Ctx.Provider>
   );
 }
 
 // bilah geser buatan sendiri: jalur tipis, bagian termuat, bagian terputar, dan bulatan penunjuk (tanpa kotak)
-function Bilah({ pos, dur, muat, onCari }: { pos: number; dur: number; muat: number; onCari: (d: number) => void }) {
+export function Bilah({ pos, dur, muat, onCari }: { pos: number; dur: number; muat: number; onCari: (d: number) => void }) {
   const pct = dur > 0 ? Math.min(100, Math.max(0, (pos / dur) * 100)) : 0;
   return (
     <div className="group relative h-5 w-full cursor-pointer">
@@ -96,24 +134,85 @@ const IkonJeda = ({ main, c = "h-5 w-5" }: { main: boolean; c?: string }) => mai
   ? <svg {...g} className={c} fill="currentColor" stroke="none"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" /></svg>
   : <svg {...g} className={c} fill="currentColor" stroke="none"><path d="M8 5v14l11-7z" /></svg>;
 
-function Pemutar({ video, lain, slot, teater, setTeater, onMain, onTutup, onMuat }: {
-  video: VideoMini; lain: VideoMini[]; slot: HTMLElement | null; teater: boolean; setTeater: (f: (b: boolean) => boolean) => void;
-  onMain: (b: boolean) => void; onTutup: () => void; onMuat: (v: VideoMini) => void;
+const KUALITAS: [string, string][] = [["auto", "Otomatis"], ["hd1080", "1080p"], ["hd720", "720p"], ["large", "480p"], ["medium", "360p"], ["small", "240p"]];
+const TIMER = [0, 5, 10, 15, 30, 45, 60];
+
+// ikon YouTube: mode teater = persegi panjang lebar bergaris tebal; saat aktif = "tampilan default" (persegi panjang lebih sempit)
+const IkonTeater = ({ aktif, c = "h-7 w-7" }: { aktif: boolean; c?: string }) => aktif
+  ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinejoin="round" className={c}><rect x="5" y="6" width="14" height="12" rx="2.4" /></svg>
+  : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinejoin="round" className={c}><rect x="2" y="7" width="20" height="10" rx="2.4" /></svg>;
+
+// panel pengaturan bergaya YouTube: daftar menu (Subtitel/CC, Timer tidur, Kecepatan pemutaran, Kualitas) dengan submenu dan tombol kembali
+function PanelAtur({ sub, setSub, kecilUkuran, teks, onTeks, laju, onLaju, timer, onTimer, kual, onKual, labelKual }: {
+  sub: Sub; setSub: (s: Sub) => void; kecilUkuran: boolean; teks: boolean; onTeks: (b: boolean) => void; laju: number; onLaju: (r: number) => void;
+  timer: number; onTimer: (m: number) => void; kual: string; onKual: (q: string) => void; labelKual: string;
+}) {
+  const baris = "flex w-full items-center gap-3 px-3 text-left hover:bg-white/10 " + (kecilUkuran ? "py-1.5 text-xs" : "py-2.5 text-sm");
+  const Ikon = ({ d }: { d: string }) => <svg {...g} className="h-5 w-5 shrink-0 opacity-90"><path d={d} /></svg>;
+  const Centang = () => <svg {...g} className="ml-auto h-4 w-4 shrink-0"><path d="M5 12l5 5L20 7" /></svg>;
+  const Panah = () => <svg {...g} className="h-4 w-4 shrink-0 opacity-70"><path d="M9 6l6 6-6 6" /></svg>;
+  const judul: Record<Sub, string> = { utama: "", cc: "Subtitel/CC", timer: "Timer tidur", kecepatan: "Kecepatan pemutaran", kualitas: "Kualitas" };
+  const Pilih = ({ ok, teksPilih, klik }: { ok: boolean; teksPilih: string; klik: () => void }) => (
+    <button type="button" onClick={klik} className={`${baris} ${ok ? "font-semibold" : ""}`}><span className="w-5 shrink-0" />{teksPilih}{ok && <Centang />}</button>
+  );
+  return (
+    <div
+      data-atur
+      className={`absolute z-40 overflow-y-auto rounded-xl bg-[rgba(28,28,28,0.96)] py-1.5 text-white shadow-2xl [scrollbar-width:thin] ${kecilUkuran ? "inset-x-2 bottom-[5.5rem] top-2" : "bottom-16 right-3 w-[min(18rem,calc(100%-1.5rem))] max-h-[calc(100%-5rem)]"}`}
+    >
+      {sub === "utama" ? (
+        <>
+          <button type="button" onClick={() => setSub("cc")} className={baris}>
+            <Ikon d="M3 7a3 3 0 013-3h12a3 3 0 013 3v10a3 3 0 01-3 3H6a3 3 0 01-3-3zM7 11h3M7 15h5M14 11h3M15 15h2" /><span className="flex-1">Subtitel/CC</span><span className="opacity-70">{teks ? "Aktif" : "Nonaktif"}</span><Panah />
+          </button>
+          <button type="button" onClick={() => setSub("timer")} className={baris}>
+            <Ikon d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z" /><span className="flex-1">Timer tidur</span><span className="opacity-70">{timer ? `${timer} menit` : "Nonaktif"}</span><Panah />
+          </button>
+          <button type="button" onClick={() => setSub("kecepatan")} className={baris}>
+            <Ikon d="M12 14l4-4M3.5 17a9 9 0 1117 0" /><span className="flex-1">Kecepatan pemutaran</span><span className="opacity-70">{laju === 1 ? "Normal" : `${laju}x`}</span><Panah />
+          </button>
+          <button type="button" onClick={() => setSub("kualitas")} className={baris}>
+            <Ikon d="M4 6h10M18 6h2M4 12h2M10 12h10M4 18h12M20 18h0M14 4v4M8 10v4M16 16v4" /><span className="flex-1">Kualitas</span><span className="opacity-70">{labelKual}</span><Panah />
+          </button>
+        </>
+      ) : (
+        <>
+          <button type="button" onClick={() => setSub("utama")} className={`${baris} border-b border-white/10 font-semibold`}>
+            <svg {...g} className="h-4 w-4 shrink-0"><path d="M15 6l-6 6 6 6" /></svg>{judul[sub]}
+          </button>
+          {sub === "cc" && (<><Pilih ok={!teks} teksPilih="Nonaktif" klik={() => onTeks(false)} /><Pilih ok={teks} teksPilih="Indonesia (bila tersedia)" klik={() => onTeks(true)} /></>)}
+          {sub === "timer" && TIMER.map((m) => <Pilih key={m} ok={timer === m} teksPilih={m === 0 ? "Nonaktif" : `${m} menit`} klik={() => onTimer(m)} />)}
+          {sub === "kecepatan" && KECEPATAN.map((r) => <Pilih key={r} ok={laju === r} teksPilih={r === 1 ? "Normal" : `${r}x`} klik={() => onLaju(r)} />)}
+          {sub === "kualitas" && KUALITAS.map(([k, n]) => <Pilih key={k} ok={kual === k} teksPilih={n} klik={() => onKual(k)} />)}
+        </>
+      )}
+    </div>
+  );
+}
+
+function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, adaSebelumnya, onSebelumnya, onMini, onTutup, onMuat }: {
+  video: VideoMini; lain: VideoMini[]; slot: HTMLElement | null; sama: boolean; teater: boolean; setTeater: (f: (b: boolean) => boolean) => void;
+  paksa: boolean; setPaksa: (b: boolean) => void; adaSebelumnya: boolean; onSebelumnya: () => void; onMini: (b: boolean) => void; onTutup: () => void; onMuat: (v: VideoMini) => void;
 }) {
   const router = useRouter();
   const kotak = useRef<HTMLDivElement>(null);
   const bingkai = useRef<HTMLIFrameElement>(null);
   const timerKtl = useRef<ReturnType<typeof setTimeout> | null>(null);
   const timerCatat = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timerTidurRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timerMini = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const barusTutup = useRef(false);
   const terakhir = useRef("");
 
-  const [info, setInfo] = useState<Info>({});
+  const [info, setInfo] = useState<Info & { playbackQuality?: string }>({});
   const [terlihat, setTerlihat] = useState(true);
   const [bar, setBar] = useState(false);       // mini player diperkecil menjadi bilah kecil (video tetap berjalan)
-  const [paksa, setPaksa] = useState(false);   // mini player dibuka manual di halaman video
-  const [ktl, setKtl] = useState(true);        // kontrol terlihat
+  const [ktl, setKtl] = useState(true);        // kontrol terlihat (halaman video)
+  const [ktlMini, setKtlMini] = useState(false);
   const [lainnya, setLainnya] = useState(false);
-  const [menuKecepatan, setMenuKecepatan] = useState(false);
+  const [atur, setAtur] = useState<Sub | null>(null);
+  const [timer, setTimer] = useState(0);
+  const [kual, setKual] = useState("auto");
   const [teks, setTeks] = useState(false);
   const [mulai, setMulai] = useState(0);
   const [catatan, setCatatan] = useState("");
@@ -121,9 +220,11 @@ function Pemutar({ video, lain, slot, teater, setTeater, onMain, onTutup, onMuat
   const [penuh, setPenuh] = useState(false);
 
   const main = info.playerState === 1 || info.playerState === 3;
-  const mini = !slot || paksa || (main && !terlihat);
+  // mini player: di luar halaman video, saat slot tergulir keluar layar, dibuka manual, atau saat yang diputar bukan video halaman ini.
+  // Tetap mini walaupun dijeda: tidak hilang dan tidak berpindah sendiri ke halaman video.
+  const mini = !slot || paksa || !terlihat || !sama;
   const berikut = lain[0];
-  useEffect(() => { onMain(main); }, [main, onMain]);
+  useEffect(() => { onMini(mini); }, [mini, onMini]);
 
   const src = useMemo(() => {
     const asal = typeof window !== "undefined" ? `&origin=${encodeURIComponent(window.location.origin)}` : "";
@@ -134,14 +235,13 @@ function Pemutar({ video, lain, slot, teater, setTeater, onMain, onTutup, onMuat
     bingkai.current?.contentWindow?.postMessage(JSON.stringify({ event: "command", func, args }), "*");
   }, []);
 
-  // posisi: di atas slot (halaman video) atau mini player di pojok kanan bawah
+  const miniRef = useRef(mini);
+  miniRef.current = mini;
   const posisi = useCallback(() => {
     const el = kotak.current;
-    if (!el || document.fullscreenElement) return;
-    if (!slot) return;
+    if (!el || document.fullscreenElement || !slot) return;
     const r = slot.getBoundingClientRect();
-    const tinggiLayar = window.innerHeight;
-    const tampak = Math.max(0, Math.min(r.bottom, tinggiLayar) - Math.max(r.top, 0));
+    const tampak = Math.max(0, Math.min(r.bottom, window.innerHeight) - Math.max(r.top, 0));
     const ok = r.height > 0 && tampak / r.height >= 0.25;
     setTerlihat((p) => (p === ok ? p : ok));
     if (miniRef.current) return;
@@ -150,8 +250,6 @@ function Pemutar({ video, lain, slot, teater, setTeater, onMain, onTutup, onMuat
     terakhir.current = s;
     el.style.top = `${r.top}px`; el.style.left = `${r.left}px`; el.style.width = `${r.width}px`; el.style.height = `${r.height}px`;
   }, [slot]);
-  const miniRef = useRef(mini);
-  miniRef.current = mini;
   useLayoutEffect(() => {
     const el = kotak.current;
     if (el && (mini || !slot)) ["top", "left", "width", "height"].forEach((p) => el.style.removeProperty(p));
@@ -165,7 +263,6 @@ function Pemutar({ video, lain, slot, teater, setTeater, onMain, onTutup, onMuat
     return () => cancelAnimationFrame(id);
   }, [posisi]);
 
-  // pesan status dari YouTube
   useEffect(() => {
     const saat = (e: MessageEvent) => {
       if (e.source !== bingkai.current?.contentWindow) return;
@@ -189,90 +286,120 @@ function Pemutar({ video, lain, slot, teater, setTeater, onMain, onTutup, onMuat
     return () => t.forEach(clearTimeout);
   }, [langganan, src]);
 
-  // putar otomatis: setelah video selesai lanjut ke video Memori Sejarah berikutnya
   useEffect(() => { try { setAuto(localStorage.getItem(KUNCI_AUTO) !== "0"); } catch { /* abaikan */ } }, []);
+  // putar otomatis: di halaman video pindah ke halaman video berikutnya; sebagai mini player cukup memutar video berikutnya di tempat
   useEffect(() => {
     if (info.playerState !== 0 || !auto || !berikut) return;
-    if (slot) router.push(`/video/${berikut.slug}`); else onMuat(berikut);
-  }, [info.playerState, auto, berikut, slot, router, onMuat]);
+    if (!mini) router.push(`/video/${berikut.slug}`); else onMuat(berikut);
+  }, [info.playerState, auto, berikut, mini, router, onMuat]);
 
-  // layar penuh
   useEffect(() => {
     const ubah = () => { setPenuh(document.fullscreenElement === kotak.current); terakhir.current = ""; };
     document.addEventListener("fullscreenchange", ubah);
     return () => document.removeEventListener("fullscreenchange", ubah);
   }, []);
 
-  // kontrol tampil saat kursor bergerak; sembunyi otomatis saat sedang diputar
+  // klik di luar menu pengaturan menutupnya (klik di area video hanya menutup, tidak menjeda); klik di luar pemutar menutup juga daftar Video lainnya
+  useEffect(() => {
+    if (!atur && !lainnya) return;
+    const turun = (e: PointerEvent) => {
+      const t = e.target as Element | null;
+      if (!t) return;
+      const dalamKotak = !!kotak.current?.contains(t);
+      if (atur && !t.closest("[data-atur]")) {
+        setAtur(null);
+        if (dalamKotak) { barusTutup.current = true; setTimeout(() => { barusTutup.current = false; }, 400); }
+      }
+      if (lainnya && !dalamKotak) setLainnya(false);
+    };
+    document.addEventListener("pointerdown", turun, true);
+    return () => document.removeEventListener("pointerdown", turun, true);
+  }, [atur, lainnya]);
+
   const tampilKtl = useCallback(() => {
     setKtl(true);
     if (timerKtl.current) clearTimeout(timerKtl.current);
     timerKtl.current = setTimeout(() => setKtl(false), 3000);
   }, []);
-  useEffect(() => () => { if (timerKtl.current) clearTimeout(timerKtl.current); if (timerCatat.current) clearTimeout(timerCatat.current); }, []);
-  const kontrolTampil = ktl || !main || menuKecepatan || lainnya;
-
-  const jeda = () => perintah(main ? "pauseVideo" : "playVideo");
-  const cari = (d: number) => { perintah("seekTo", [d, true]); setInfo((p) => ({ ...p, currentTime: d })); };
-  const atasVolume = (v: number) => { perintah("setVolume", [v]); perintah(v === 0 ? "mute" : "unMute"); setInfo((p) => ({ ...p, volume: v, muted: v === 0 })); };
-  const bisu = () => { const m = !!info.muted; perintah(m ? "unMute" : "mute"); setInfo((p) => ({ ...p, muted: !m })); };
-  const lajuUbah = (r: number) => { perintah("setPlaybackRate", [r]); setInfo((p) => ({ ...p, playbackRate: r })); setMenuKecepatan(false); };
-  const ubahAuto = () => { const b = !auto; setAuto(b); try { localStorage.setItem(KUNCI_AUTO, b ? "1" : "0"); } catch { /* abaikan */ } };
-  const layarPenuh = () => { if (document.fullscreenElement) void document.exitFullscreen(); else void kotak.current?.requestFullscreen?.().catch(() => undefined); };
-  // teks (CC): perintah postMessage "captions" tidak andal di semua peramban, jadi pemutar dimuat ulang dari menit yang sama dengan parameter teks
-  const ubahTeks = () => {
-    const b = !teks;
-    setMulai(Math.floor(info.currentTime ?? 0));
-    setTeks(b);
-    setCatatan(b ? "Teks (CC) diaktifkan. Hanya tampil bila video ini menyediakan teks di YouTube." : "Teks (CC) dimatikan.");
-    if (timerCatat.current) clearTimeout(timerCatat.current);
-    timerCatat.current = setTimeout(() => setCatatan(""), 4500);
-  };
-
-  const bukaMini = () => { setPaksa(true); };
-  const kembali = () => {
-    setPaksa(false);
-    if (slot) slot.scrollIntoView({ behavior: "smooth", block: "center" });
-    else router.push(`/video/${video.slug}`);
-  };
-
-  // kontrol mini player: tampil saat kursor di atasnya atau saat diketuk; klik pada video TIDAK menjeda
-  const [ktlMini, setKtlMini] = useState(false);
-  const timerMini = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tampilMini = useCallback((otomatisSembunyi = true) => {
     setKtlMini(true);
     if (timerMini.current) clearTimeout(timerMini.current);
     if (otomatisSembunyi) timerMini.current = setTimeout(() => setKtlMini(false), 3500);
   }, []);
-  useEffect(() => () => { if (timerMini.current) clearTimeout(timerMini.current); }, []);
-  const miniTampil = ktlMini || !main;
+  useEffect(() => () => {
+    [timerKtl, timerCatat, timerTidurRef, timerMini].forEach((t) => { if (t.current) clearTimeout(t.current); });
+  }, []);
+  const kontrolTampil = ktl || !main || !!atur || lainnya;
+  const miniTampil = ktlMini || !main || !!atur;
+
+  const jeda = () => perintah(main ? "pauseVideo" : "playVideo");
+  const cari = (d: number) => { perintah("seekTo", [d, true]); setInfo((p) => ({ ...p, currentTime: d })); };
+  const atasVolume = (v: number) => { perintah("setVolume", [v]); perintah(v === 0 ? "mute" : "unMute"); setInfo((p) => ({ ...p, volume: v, muted: v === 0 })); };
+  const bisu = () => { const m = !!info.muted; perintah(m ? "unMute" : "mute"); setInfo((p) => ({ ...p, muted: !m })); };
+  const lajuUbah = (r: number) => { perintah("setPlaybackRate", [r]); setInfo((p) => ({ ...p, playbackRate: r })); setAtur("utama"); };
+  const ubahAuto = () => { const b = !auto; setAuto(b); try { localStorage.setItem(KUNCI_AUTO, b ? "1" : "0"); } catch { /* abaikan */ } };
+  const layarPenuh = () => { if (document.fullscreenElement) void document.exitFullscreen(); else void kotak.current?.requestFullscreen?.().catch(() => undefined); };
+  const aturTimer = (m: number) => {
+    if (timerTidurRef.current) clearTimeout(timerTidurRef.current);
+    setTimer(m);
+    if (m > 0) timerTidurRef.current = setTimeout(() => { perintah("pauseVideo"); setTimer(0); }, m * 60000);
+    setAtur("utama");
+  };
+  const aturKual = (q: string) => { perintah("setPlaybackQuality", [q === "auto" ? "default" : q]); setKual(q); setAtur("utama"); };
+  const labelKual = kual === "auto" ? "Otomatis" : (KUALITAS.find(([k]) => k === kual)?.[1] ?? "Otomatis");
+  // teks (CC): perintah postMessage "captions" tidak andal, jadi pemutar dimuat ulang dari menit yang sama dengan parameter teks
+  const setTeksNyala = (b: boolean) => {
+    if (b === teks) { setAtur("utama"); return; }
+    setMulai(Math.floor(info.currentTime ?? 0));
+    setTeks(b);
+    setAtur("utama");
+    setCatatan(b ? "Teks (CC) diaktifkan. Hanya tampil bila video ini menyediakan teks di YouTube." : "Teks (CC) dimatikan.");
+    if (timerCatat.current) clearTimeout(timerCatat.current);
+    timerCatat.current = setTimeout(() => setCatatan(""), 4500);
+  };
+
+  const kembali = () => {
+    setPaksa(false);
+    if (slot && sama) slot.scrollIntoView({ behavior: "smooth", block: "center" });
+    else router.push(`/video/${video.slug}`);
+  };
+  const keTeater = () => { setTeater(() => true); kembali(); };
+  const klikSebelumnya = () => { if ((info.currentTime ?? 0) > 3 || !adaSebelumnya) cari(0); else onSebelumnya(); };
 
   const dur = info.duration ?? 0;
   const pos = info.currentTime ?? 0;
   const laju = info.playbackRate ?? 1;
   const vol = info.muted ? 0 : (info.volume ?? 100);
   const muat = Math.min(100, Math.max(0, (info.videoLoadedFraction ?? 0) * 100));
+  const selesai = info.playerState === 0;
 
-  const lebarMini = "w-[min(22rem,calc(100vw-1.5rem))]";
+  const lebarMini = "w-[min(24rem,calc(100vw-1.5rem))]";
   const kelasKotak = !mini
     ? `fixed z-30 overflow-hidden bg-black ${penuh || teater ? "" : "rounded-xl border border-ms-line"}`
     : bar
       ? `fixed bottom-3 right-3 z-30 ${lebarMini} overflow-hidden rounded-full border border-ms-line bg-ms-bg shadow-2xl`
       : `fixed bottom-3 right-3 z-30 ${lebarMini} overflow-hidden rounded-xl border border-ms-line bg-black shadow-2xl`;
-  const kelasVideo = !mini ? "absolute inset-0 bg-black" : bar ? "fixed -left-[9999px] top-0 h-[180px] w-[320px]" : "relative aspect-video w-full bg-black";
+  const kelasVideo = penuh ? "absolute inset-0 bg-black" : !mini ? "absolute inset-0 bg-black" : bar ? "fixed -left-[9999px] top-0 h-[180px] w-[320px]" : "relative aspect-video w-full bg-black";
+  const tombolMini = "grid h-7 w-7 place-items-center rounded-full hover:bg-white/20";
+
+  const panel = atur && (
+    <PanelAtur
+      sub={atur} setSub={setAtur} kecilUkuran={mini && !penuh} teks={teks} onTeks={setTeksNyala} laju={laju} onLaju={lajuUbah}
+      timer={timer} onTimer={aturTimer} kual={kual} onKual={aturKual} labelKual={labelKual}
+    />
+  );
 
   return (
     <div
       ref={kotak}
       onPointerMove={mini ? undefined : tampilKtl}
+      onPointerEnter={(e) => { if (!mini) tampilKtl(); else if (!bar && e.pointerType === "mouse") tampilMini(false); }}
       onPointerLeave={(e) => {
         if (!mini) { if (main) setKtl(false); }
         else if (!bar && e.pointerType === "mouse") tampilMini(true);
       }}
-      onPointerEnter={mini && !bar ? (e) => { if (e.pointerType === "mouse") tampilMini(false); } : undefined}
       className={kelasKotak}
     >
-      {/* bilah kecil (mini player diperkecil) */}
       {mini && bar && (
         <div key="bilah" className="flex items-center gap-1 px-3 py-1.5 text-ms-cream">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -298,12 +425,22 @@ function Pemutar({ video, lain, slot, teater, setTeater, onMain, onTutup, onMuat
           referrerPolicy="strict-origin-when-cross-origin"
           onLoad={langganan}
         />
-        {/* lapisan klik: di halaman video klik = putar/jeda dan klik dua kali = layar penuh; di mini player klik menampilkan tombol */}
+        {/* setelah video selesai YouTube menampilkan saran video miliknya; ditutup dengan sampul */}
+        {selesai && !bar && (
+          <div key="sampul" className="pointer-events-none absolute inset-0 z-[5] bg-black">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={`https://i.ytimg.com/vi/${video.youtubeId}/hqdefault.jpg`} alt="" className="h-full w-full object-cover opacity-50" />
+          </div>
+        )}
+        {/* lapisan klik: di halaman video klik = putar/jeda, klik dua kali = layar penuh; di mini player klik menampilkan tombol (tidak menjeda) */}
         {!bar && (
           <button
             type="button"
             aria-label={mini ? "Tampilkan kontrol" : main ? "Jeda" : "Putar"}
-            onClick={mini ? () => (ktlMini ? setKtlMini(false) : tampilMini(true)) : jeda}
+            onClick={() => {
+              if (barusTutup.current) { barusTutup.current = false; return; }
+              if (mini) { if (ktlMini) setKtlMini(false); else tampilMini(true); } else jeda();
+            }}
             onDoubleClick={mini ? undefined : layarPenuh}
             className="absolute inset-0 z-10 cursor-pointer"
           />
@@ -312,30 +449,44 @@ function Pemutar({ video, lain, slot, teater, setTeater, onMain, onTutup, onMuat
         {/* kontrol mini player di dalam video */}
         {mini && !bar && (
           <div key="kontrolMini" className={`pointer-events-none absolute inset-0 z-20 flex flex-col justify-between text-white transition-opacity duration-200 ${miniTampil ? "opacity-100" : "opacity-0"}`}>
-            <div className={`flex items-center gap-0.5 bg-gradient-to-b from-black/80 to-transparent px-2 pb-6 pt-1.5 ${miniTampil ? "pointer-events-auto" : ""}`}>
+            <div className={`flex items-center gap-0.5 bg-gradient-to-b from-black/80 to-transparent px-2 pb-5 pt-1.5 ${miniTampil ? "pointer-events-auto" : ""}`}>
               <Link href={`/video/${video.slug}`} className="min-w-0 flex-1 truncate px-1 text-xs font-semibold hover:text-[#d9a441]" title={video.title}>{video.title}</Link>
-              <button type="button" onClick={kembali} className="grid h-8 w-8 place-items-center rounded-full hover:bg-white/20" title="Kembali ke halaman video">
+              <button type="button" onClick={kembali} className={tombolMini} title="Kembali ke halaman video">
                 <svg {...g} className="h-4 w-4"><path d="M14 4h6v6M20 4l-8 8M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4" /></svg>
               </button>
-              <button type="button" onClick={() => { setBar(true); setPaksa(false); }} className="grid h-8 w-8 place-items-center rounded-full hover:bg-white/20" title="Perkecil (video tetap berjalan)">
+              <button type="button" onClick={() => { setBar(true); setPaksa(false); setAtur(null); }} className={tombolMini} title="Perkecil (video tetap berjalan)">
                 <svg {...g} className="h-4 w-4"><path d="M5 19h14" /></svg>
               </button>
-              <button type="button" onClick={onTutup} className="grid h-8 w-8 place-items-center rounded-full hover:bg-white/20" title="Tutup pemutar">
+              <button type="button" onClick={onTutup} className={tombolMini} title="Tutup pemutar">
                 <svg {...g} className="h-4 w-4"><path d="M6 6l12 12M18 6L6 18" /></svg>
               </button>
             </div>
             <div className={`flex items-center justify-center gap-2 ${miniTampil ? "pointer-events-auto" : ""}`}>
+              <button type="button" onClick={klikSebelumnya} className="grid h-10 w-10 place-items-center rounded-full bg-black/55 hover:bg-black/75" title={(info.currentTime ?? 0) > 3 || !adaSebelumnya ? "Ulangi dari awal" : "Video sebelumnya"}>
+                <svg {...g} className="h-5 w-5" fill="currentColor" stroke="none"><path d="M18 5l-9 7 9 7zM5 5h2v14H5z" /></svg>
+              </button>
               <button type="button" onClick={jeda} className="grid h-12 w-12 place-items-center rounded-full bg-black/55 hover:bg-black/75" title={main ? "Jeda" : "Putar"}><IkonJeda main={main} c="h-6 w-6" /></button>
-              {berikut && (
-                <button type="button" onClick={() => router.push(`/video/${berikut.slug}`)} className="grid h-10 w-10 place-items-center rounded-full bg-black/55 hover:bg-black/75" title={`Video berikutnya: ${berikut.title}`}>
-                  <svg {...g} className="h-5 w-5" fill="currentColor" stroke="none"><path d="M6 5l9 7-9 7zM17 5h2v14h-2z" /></svg>
-                </button>
-              )}
+              <button type="button" disabled={!berikut} onClick={() => berikut && onMuat(berikut)} className="grid h-10 w-10 place-items-center rounded-full bg-black/55 hover:bg-black/75 disabled:opacity-40" title={berikut ? `Video berikutnya: ${berikut.title}` : "Tidak ada video berikutnya"}>
+                <svg {...g} className="h-5 w-5" fill="currentColor" stroke="none"><path d="M6 5l9 7-9 7zM17 5h2v14h-2z" /></svg>
+              </button>
             </div>
-            <div className={`bg-gradient-to-t from-black/80 to-transparent px-2 pb-1 pt-5 ${miniTampil ? "pointer-events-auto" : ""}`}>
+            <div className={`bg-gradient-to-t from-black/85 to-transparent px-2 pb-1 pt-4 ${miniTampil ? "pointer-events-auto" : ""}`}>
               <Bilah pos={pos} dur={dur} muat={muat} onCari={cari} />
-              <p className="-mt-1 text-[11px] tabular-nums text-white/90">{waktu(pos)} / {waktu(dur)}</p>
+              <div className="-mt-1 flex items-center gap-0.5">
+                <span className="mr-auto text-[11px] tabular-nums text-white">{waktu(pos)} / {waktu(dur)}</span>
+                <button type="button" onClick={ubahAuto} className={`${tombolMini} w-auto px-1`} title={auto ? "Putar otomatis: aktif" : "Putar otomatis: mati"} aria-pressed={auto}>
+                  <span className={`relative inline-block h-3.5 w-7 rounded-full transition ${auto ? "bg-[#d9a441]" : "bg-white/35"}`}><span className={`absolute top-0.5 h-2.5 w-2.5 rounded-full bg-white transition-all ${auto ? "left-[1.1rem]" : "left-0.5"}`} /></span>
+                </button>
+                <button type="button" data-atur onClick={() => setAtur((a) => (a ? null : "utama"))} className={tombolMini} title="Pengaturan" aria-expanded={!!atur}>
+                  <svg {...g} className="h-4 w-4"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z" /></svg>
+                </button>
+                <button type="button" onClick={keTeater} className={tombolMini} title="Mode teater (buka di halaman video)"><IkonTeater aktif={false} c="h-5 w-5" /></button>
+                <button type="button" onClick={layarPenuh} className={tombolMini} title="Layar penuh">
+                  <svg {...g} className="h-4 w-4"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></svg>
+                </button>
+              </div>
             </div>
+            {panel}
           </div>
         )}
 
@@ -356,41 +507,26 @@ function Pemutar({ video, lain, slot, teater, setTeater, onMain, onTutup, onMuat
                   : <svg {...g} className="h-5 w-5"><path d="M11 5L6 9H3v6h3l5 4zM15.5 8.5a5 5 0 010 7M18 6a8.5 8.5 0 010 12" /></svg>}
               </button>
               <input type="range" min={0} max={100} value={vol} onChange={(e) => atasVolume(Number(e.target.value))} aria-label="Volume" className="hidden h-1 w-16 cursor-pointer accent-[#d9a441] sm:block" />
-              <span className="ml-1 whitespace-nowrap text-xs tabular-nums sm:ml-2 sm:text-sm">{waktu(pos)} / {waktu(dur)}</span>
+              <span className="ml-1 whitespace-nowrap text-xs tabular-nums text-white sm:ml-2 sm:text-sm">{waktu(pos)} / {waktu(dur)}</span>
 
               <div className="ml-auto flex items-center gap-0.5 sm:gap-1">
-                <button type="button" onClick={() => { setLainnya((b) => !b); setMenuKecepatan(false); }} className="mr-1 inline-flex h-9 items-center gap-1.5 rounded-full bg-white/15 px-3 text-xs font-semibold hover:bg-white/25 sm:text-sm" title="Video lainnya dari Memori Sejarah" aria-expanded={lainnya}>
+                <button type="button" onClick={() => { setLainnya((b) => !b); setAtur(null); }} className="mr-1 inline-flex h-9 items-center gap-1.5 rounded-full bg-white/15 px-3 text-xs font-semibold hover:bg-white/25 sm:text-sm" title="Video lainnya dari Memori Sejarah" aria-expanded={lainnya}>
                   <svg {...g} className="h-4 w-4"><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M7 20h10" /></svg><span className="hidden sm:inline">Video lainnya</span>
                 </button>
                 <button type="button" onClick={ubahAuto} className={`${tombolKtl} w-auto gap-1.5 px-2`} title={auto ? "Putar otomatis: aktif" : "Putar otomatis: mati"} aria-pressed={auto}>
                   <span className={`relative inline-block h-4 w-8 rounded-full transition ${auto ? "bg-[#d9a441]" : "bg-white/35"}`}><span className={`absolute top-0.5 h-3 w-3 rounded-full bg-white transition-all ${auto ? "left-[1.1rem]" : "left-0.5"}`} /></span>
                 </button>
-                <button type="button" onClick={ubahTeks} className={`${tombolKtl} ${teks ? "bg-white/20" : ""}`} title={teks ? "Teks (CC): aktif" : "Teks (CC)"} aria-pressed={teks}>
+                <button type="button" onClick={() => setTeksNyala(!teks)} className={`${tombolKtl} ${teks ? "bg-white/20" : ""}`} title={teks ? "Teks (CC): aktif" : "Teks (CC)"} aria-pressed={teks}>
                   <svg {...g} className="h-5 w-5"><rect x="3" y="5" width="18" height="14" rx="3" /><path d="M10.5 10.2a2.2 2.2 0 100 3.6M17 10.2a2.2 2.2 0 100 3.6" /></svg>
                 </button>
-                <div className="relative">
-                  <button type="button" onClick={() => { setMenuKecepatan((b) => !b); setLainnya(false); }} className={tombolKtl} title={`Kecepatan putar: ${laju}x`} aria-expanded={menuKecepatan}>
-                    <svg {...g} className="h-5 w-5"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z" /></svg>
-                  </button>
-                  {menuKecepatan && (
-                    <div className="absolute bottom-11 right-0 z-30 w-36 rounded-xl border border-white/10 bg-black/90 p-1.5 shadow-2xl">
-                      <p className="px-2 py-1 text-[11px] uppercase tracking-wider text-white/60">Kecepatan putar</p>
-                      {KECEPATAN.map((r) => (
-                        <button key={r} type="button" onClick={() => lajuUbah(r)} className={`flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left text-sm hover:bg-white/10 ${r === laju ? "text-[#d9a441]" : ""}`}>
-                          {r === 1 ? "Normal" : `${r}x`}{r === laju && <span aria-hidden="true">{"\u2713"}</span>}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <button type="button" onClick={bukaMini} className={tombolKtl} title="Mini player">
+                <button type="button" data-atur onClick={() => { setAtur((a) => (a ? null : "utama")); setLainnya(false); }} className={tombolKtl} title="Pengaturan" aria-expanded={!!atur}>
+                  <svg {...g} className="h-5 w-5"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z" /></svg>
+                </button>
+                <button type="button" onClick={() => setPaksa(true)} className={tombolKtl} title="Mini player">
                   <svg {...g} className="h-5 w-5"><path d="M21 12V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h6" /><rect x="13" y="13" width="8" height="6" rx="1" fill="currentColor" /></svg>
                 </button>
-                {/* ikon mode teater seperti YouTube: persegi panjang lebar; saat aktif menjadi persegi panjang yang lebih kecil (kembali ke tampilan biasa) */}
                 <button type="button" onClick={() => setTeater((b) => !b)} className={`${tombolKtl} hidden lg:grid`} title={teater ? "Tampilan default" : "Mode teater"} aria-pressed={teater}>
-                  {teater
-                    ? <svg {...g} className="h-6 w-6"><rect x="5" y="7.5" width="14" height="9" rx="2" /></svg>
-                    : <svg {...g} className="h-6 w-6"><rect x="2.5" y="6" width="19" height="12" rx="3" /></svg>}
+                  <IkonTeater aktif={teater} />
                 </button>
                 <button type="button" onClick={layarPenuh} className={tombolKtl} title={penuh ? "Keluar dari layar penuh" : "Layar penuh"}>
                   {penuh
@@ -401,6 +537,7 @@ function Pemutar({ video, lain, slot, teater, setTeater, onMain, onTutup, onMuat
             </div>
           </div>
         )}
+        {!mini && panel}
 
         {!mini && catatan && <p className="pointer-events-none absolute inset-x-0 top-3 z-20 mx-auto w-fit max-w-[90%] rounded-lg bg-black/80 px-3 py-1.5 text-center text-xs text-white">{catatan}</p>}
 

@@ -7,6 +7,7 @@ import { and, desc, eq, ne } from "drizzle-orm";
 import { db, videos } from "@/db";
 import { ProgramBlok } from "@/components/home/ProgramBlok";
 import { PemutarMenonton } from "@/components/video/PemutarMenonton";
+import { VideoStrip } from "@/components/home/VideoStrip";
 import { BagikanVideo } from "@/components/video/BagikanVideo";
 import { DeskripsiVideo } from "@/components/video/DeskripsiVideo";
 
@@ -61,6 +62,14 @@ export default async function VideoPage({ params }: { params: Promise<{ slug: st
           </aside>
         )}
       </div>
+
+      {/* mode teater: Video Lainnya berpindah ke baris horizontal di bawah video utama (di atas bagian program), bisa digeser kanan-kiri */}
+      {lain.length > 0 && (
+        <section aria-label="Video lainnya" className="tonton-horizontal mx-auto mt-10 max-w-[90rem] px-3 sm:px-6 lg:px-10">
+          <h2 className="font-serif text-xl font-bold sm:text-2xl">Video Lainnya</h2>
+          <div className="mt-4"><VideoStrip items={lain.map((x) => ({ slug: x.slug, title: x.title, youtubeId: x.youtubeId }))} /></div>
+        </section>
+      )}
 
       <div className="mx-auto mt-12 max-w-[90rem] space-y-14 px-3 sm:px-6 lg:px-10">
         <ProgramBlok />

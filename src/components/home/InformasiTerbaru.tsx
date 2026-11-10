@@ -33,9 +33,11 @@ function Kartu({ x, kelas }: { x: Item; kelas: string }) {
 }
 
 export async function InformasiTerbaru({ mode }: { mode: "jalur" | "grid" }) {
-  const items = await db().select().from(infoItems).where(eq(infoItems.status, "published"))
-    .orderBy(desc(infoItems.publishedAt), desc(infoItems.id)).limit(mode === "jalur" ? 12 : 60)
-    .catch(() => [] as Item[]); // tabel belum dibuat: tampil kosong, situs tetap jalan
+  let items: Item[] = [];
+  try {
+    items = await db().select().from(infoItems).where(eq(infoItems.status, "published"))
+      .orderBy(desc(infoItems.publishedAt), desc(infoItems.id)).limit(mode === "jalur" ? 12 : 60);
+  } catch { /* tanpa database (mis. saat build) atau tabel belum dibuat: tampil kosong, situs tetap jalan */ }
   if (items.length === 0) return <p className="mt-6 text-sm text-ms-cream/60">Belum ada informasi terbaru.</p>;
   if (mode === "jalur") {
     return (

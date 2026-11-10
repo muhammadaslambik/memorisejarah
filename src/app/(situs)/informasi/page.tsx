@@ -4,6 +4,8 @@ import { InformasiTerbaru } from "@/components/home/InformasiTerbaru";
 import { AgendaKartu } from "@/components/home/AgendaKartu";
 import { SectionTitle } from "@/components/home/SectionTitle";
 
+// Isi Informasi Pilihan dan Informasi Terbaru berasal dari database: dirender saat diminta, bukan saat build (di Cloudflare tidak ada DATABASE_URL saat build).
+export const dynamic = "force-dynamic";
 export const metadata = { title: "Informasi" };
 
 export default function Informasi() {

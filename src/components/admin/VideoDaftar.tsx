@@ -101,7 +101,7 @@ export function VideoDaftar({ items, hapus, cats }: { items: ItemVideo[]; hapus:
       {tampil.length === 0 ? (
         <p className="a-muted mt-2 text-sm">{items.length === 0 ? "Belum ada video." : "Tidak ada video pada pilihan ini."}</p>
       ) : mode === "baris" ? (
-        <ul className="a-card a-daftar mt-3">
+        <ul className="a-card a-bleed a-daftar mt-3">
           {tampil.map((x) => (
             <li key={x.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
               <div className="min-w-0 flex-1">
@@ -113,7 +113,7 @@ export function VideoDaftar({ items, hapus, cats }: { items: ItemVideo[]; hapus:
           ))}
         </ul>
       ) : (
-        <div className="mt-3 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="a-bleed-grid mt-3 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {tampil.map((x) => (
             <div key={x.id} className="a-card flex flex-col">
               <div id={`slot-video-${x.id}`} className="relative aspect-video w-full overflow-hidden rounded-t-[inherit] bg-black">

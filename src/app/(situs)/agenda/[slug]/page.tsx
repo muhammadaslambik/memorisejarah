@@ -22,7 +22,7 @@ export default async function AgendaDetail({ params }: { params: Promise<{ slug:
     .orderBy(desc(videos.publishedAt));
   return (
     <div className="-mb-16 min-h-[70vh] bg-ms-bg pb-24 text-ms-cream">
-      <section className="mx-auto max-w-[90rem] px-6 pt-12 md:px-10 lg:px-16">
+      <section className="hp-mepet mx-auto max-w-[90rem] px-1 pt-12 sm:px-6 md:px-10 lg:px-16">
         <Link href="/agenda" className="text-sm text-ms-gold">&larr; Agenda Kegiatan</Link>
         <div className={`mt-4 rounded-3xl border bg-gradient-to-br p-8 ${a.kelas}`}>
           <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-black/30 text-2xl sm:text-3xl">{a.emoji}</span>

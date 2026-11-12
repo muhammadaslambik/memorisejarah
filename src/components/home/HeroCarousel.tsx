@@ -59,7 +59,7 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
   const bulat = "absolute top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-ms-line bg-ms-bg/80 text-xl sm:text-2xl leading-none text-ms-cream transition hover:border-ms-gold hover:text-ms-gold max-sm:hidden";
   return (
     <div
-      className="relative overflow-hidden rounded-3xl border border-ms-line bg-ms-surface"
+      className="relative overflow-hidden rounded-xl border sm:rounded-3xl border border-ms-line bg-ms-surface"
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >

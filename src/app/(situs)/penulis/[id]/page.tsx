@@ -27,7 +27,7 @@ export default async function TulisanPenulis({ params }: { params: Promise<{ id:
     .where(and(eq(posts.authorId, p.id), eq(posts.status, "published"))).orderBy(desc(posts.publishedAt)).limit(60);
   return (
     <div className="-mb-16 min-h-[70vh] bg-ms-bg pb-24 text-ms-cream">
-      <section className="mx-auto max-w-[90rem] px-6 pt-12 md:px-10 lg:px-16">
+      <section className="hp-mepet mx-auto max-w-[90rem] px-1 pt-12 sm:px-6 md:px-10 lg:px-16">
         <Link href="/artikel" className="text-sm text-ms-cream/60 hover:text-ms-gold">&larr; Semua artikel</Link>
         <div className="mt-6 flex items-center gap-5">
           <Avatar nama={p.nama} url={p.foto} ukuran={84} />

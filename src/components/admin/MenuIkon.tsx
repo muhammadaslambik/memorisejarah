@@ -17,8 +17,15 @@ export function MenuIkon({ judul, ikon, label, opsi, kanan, tanpaFokus, aktif }:
     const luar = (e: PointerEvent) => { if (!akar.current?.contains(e.target as Node)) setBuka(false); };
     const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setBuka(false); };
     document.addEventListener("pointerdown", luar, true);
+    document.addEventListener("mousedown", luar as unknown as EventListener, true);
+    document.addEventListener("touchstart", luar as unknown as EventListener, true);
     document.addEventListener("keydown", esc);
-    return () => { document.removeEventListener("pointerdown", luar, true); document.removeEventListener("keydown", esc); };
+    return () => {
+      document.removeEventListener("pointerdown", luar, true);
+      document.removeEventListener("mousedown", luar as unknown as EventListener, true);
+      document.removeEventListener("touchstart", luar as unknown as EventListener, true);
+      document.removeEventListener("keydown", esc);
+    };
   }, [buka]);
   return (
     <div ref={akar} className="relative shrink-0">
@@ -30,7 +37,7 @@ export function MenuIkon({ judul, ikon, label, opsi, kanan, tanpaFokus, aktif }:
         aria-expanded={buka}
         onMouseDown={tanpaFokus ? (e) => e.preventDefault() : undefined}
         onClick={() => setBuka((b) => !b)}
-        className={`inline-flex h-9 items-center gap-1 rounded-lg px-2 text-sm transition ${hover} ${buka || aktif ? "bg-[color-mix(in_srgb,currentColor_12%,transparent)]" : ""}`}
+        className={`inline-flex h-9 items-center gap-0.5 rounded-lg px-1.5 text-sm transition sm:gap-1 sm:px-2 ${hover} ${buka || aktif ? "bg-[color-mix(in_srgb,currentColor_12%,transparent)]" : ""}`}
       >
         {ikon}
         {label && <span className="hidden max-w-[9rem] truncate sm:inline">{label}</span>}

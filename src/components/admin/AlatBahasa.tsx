@@ -31,10 +31,17 @@ export function AlatBahasa({ editor, bahasa, setBahasa, ejaan, setEjaan }: Props
   useEffect(() => {
     if (!buka) return;
     const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setBuka(false); };
-    const luar = (e: MouseEvent) => { if (!akar.current?.contains(e.target as Node)) setBuka(false); };
+    const luar = (e: Event) => { if (!akar.current?.contains(e.target as Node)) setBuka(false); };
     document.addEventListener("keydown", esc);
-    document.addEventListener("mousedown", luar);
-    return () => { document.removeEventListener("keydown", esc); document.removeEventListener("mousedown", luar); };
+    document.addEventListener("pointerdown", luar, true);
+    document.addEventListener("mousedown", luar, true);
+    document.addEventListener("touchstart", luar, true);
+    return () => {
+      document.removeEventListener("keydown", esc);
+      document.removeEventListener("pointerdown", luar, true);
+      document.removeEventListener("mousedown", luar, true);
+      document.removeEventListener("touchstart", luar, true);
+    };
   }, [buka]);
 
   // Mencegah terjemahan tersimpan tanpa sengaja
@@ -97,7 +104,7 @@ export function AlatBahasa({ editor, bahasa, setBahasa, ejaan, setEjaan }: Props
         aria-expanded={buka}
         aria-label="Alat bahasa"
         title="Alat bahasa: periksa ejaan dan terjemahan"
-        className={`flex items-center gap-1 rounded px-2 py-1 text-sm hover:bg-black/10 ${aktif || ejaan ? "bg-black/10 font-semibold" : ""}`}
+        className={`flex h-8 items-center gap-0.5 rounded px-1.5 text-sm hover:bg-black/10 sm:gap-1 sm:px-2 ${aktif || ejaan ? "bg-black/10 font-semibold" : ""}`}
       >
         <svg {...g} className="h-4 w-4" aria-hidden="true">
           <circle cx="12" cy="12" r="9" />

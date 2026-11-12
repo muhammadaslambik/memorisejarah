@@ -580,7 +580,7 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
                 <Link key={x.slug} href={`/video/${x.slug}`} className="group block overflow-hidden rounded-lg bg-white/5 hover:bg-white/10">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={`https://i.ytimg.com/vi/${x.youtubeId}/mqdefault.jpg`} alt="" loading="lazy" className="aspect-video w-full object-cover" />
-                  <span className="line-clamp-2 block px-2 py-1.5 text-xs font-semibold leading-snug group-hover:text-[#d9a441]">{x.title}</span>
+                  <span className="block px-2 py-1.5"><span className="line-clamp-2 block text-xs font-semibold leading-snug group-hover:text-[#d9a441]">{x.title}</span></span>
                 </Link>
               ))}
               {lain.length === 0 && <p className="col-span-full text-sm text-white/70">Belum ada video lain.</p>}

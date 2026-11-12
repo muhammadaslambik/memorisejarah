@@ -29,7 +29,7 @@ export function VideoStrip({ items }: { items: V[] }) {
                 <span className="flex h-9 w-9 items-center justify-center rounded-full bg-ms-bg/80 text-sm text-ms-gold">&#9654;</span>
               </span>
             </div>
-            <h3 className="line-clamp-3 p-3 font-serif text-sm font-bold leading-snug group-hover:text-ms-gold">{v.title}</h3>
+            <div className="p-3"><h3 className="line-clamp-3 font-serif text-sm font-bold leading-snug group-hover:text-ms-gold">{v.title}</h3></div>
           </Link>
         ))}
       </div>

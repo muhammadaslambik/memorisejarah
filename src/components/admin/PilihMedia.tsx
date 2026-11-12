@@ -133,7 +133,7 @@ export function PilihMedia({ gambarAwal = "", videoAwal = "", galeriVideo = [] }
                 <button key={v.id} type="button" onClick={() => { setVideo(`https://www.youtube.com/watch?v=${v.youtubeId}`); setGaleriV(false); setPesan(""); }} className="overflow-hidden rounded-lg border text-left hover:ring-2 hover:ring-amber-400">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={`https://i.ytimg.com/vi/${v.youtubeId}/mqdefault.jpg`} alt="" loading="lazy" decoding="async" className="block h-32 w-full object-cover" />
-                  <span className="line-clamp-2 block p-2">{v.title}</span>
+                  <span className="block p-2"><span className="line-clamp-2 block">{v.title}</span></span>
                 </button>
               ))}
             </div>

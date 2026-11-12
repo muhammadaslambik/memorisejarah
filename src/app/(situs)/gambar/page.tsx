@@ -18,7 +18,7 @@ export default async function Gambar({ searchParams }: { searchParams: Promise<{
   const tombol = "inline-flex items-center gap-2 rounded-full border border-ms-line px-5 py-2.5 text-sm text-ms-cream/80 transition hover:border-ms-gold hover:text-ms-gold";
   return (
     <div className="-mb-16 min-h-[70vh] bg-ms-bg pb-24 text-ms-cream">
-      <section className="mx-auto max-w-[90rem] px-6 pt-12 md:px-10 lg:px-16">
+      <section className="hp-mepet mx-auto max-w-[90rem] px-1 pt-12 sm:px-6 md:px-10 lg:px-16">
         <h1 className="font-serif text-2xl sm:text-4xl font-bold md:text-5xl">Gambar</h1>
         <p className="mt-3 max-w-2xl text-ms-cream/70">Foto, lukisan, dan arsip visual dari perjalanan sejarah.</p>
         {tampil.length > 0 ? (

@@ -89,19 +89,19 @@ export default async function DaftarArtikel({ searchParams }: { searchParams: Pr
         </div>
       </div>
 
-      <div className="a-card mt-3 p-4 md:p-5">
+      <div className="a-card a-bleed mt-3 p-4 md:p-5">
         {tampil.length === 0 ? (
           <p className="a-muted py-12 text-center text-sm">Tidak ada artikel yang cocok.{(q || status) && <> <Link href={DASAR} className="a-link">Reset pencarian</Link></>}</p>
         ) : (
           <ul className="a-daftar mt-3">
             {tampil.map(({ post: p, author }) => (
-              <li key={p.id} className="flex items-center gap-3 py-3">
+              <li key={p.id} className="flex items-center gap-3 py-3 max-sm:flex-col max-sm:items-stretch max-sm:gap-1.5">
                 <Link href={`/admin/artikel/${p.id}`} className="flex min-w-0 flex-1 items-center gap-3">
                   {p.coverUrl
                     ? <img src={kecil(p.coverUrl, 140)} alt="" loading="lazy" referrerPolicy="no-referrer" className="h-14 w-20 shrink-0 rounded-lg object-cover" />
                     : <span className="a-ico h-14 w-20 shrink-0 rounded-lg" style={{ ["--c" as string]: "var(--a-accent)" }}><IkonAdmin nama="artikel" /></span>}
                   <span className="min-w-0">
-                    <span className="block truncate font-semibold">{p.title}</span>
+                    <span className="block truncate font-semibold max-sm:line-clamp-2 max-sm:whitespace-normal max-sm:text-[13px] max-sm:leading-snug">{p.title}</span>
                     <span className="a-muted mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs">
                       <span className={`a-chip ${CHIP[p.status]}`}>{LABEL[p.status]}</span>
                       {p.categoryId && nama.get(p.categoryId) && <span>{nama.get(p.categoryId)}</span>}
@@ -111,7 +111,7 @@ export default async function DaftarArtikel({ searchParams }: { searchParams: Pr
                     </span>
                   </span>
                 </Link>
-                <div className="flex shrink-0 items-center gap-1">
+                <div className="flex shrink-0 items-center gap-1 max-sm:justify-end">
                   {p.status === "published" && <Link href={`/artikel/${p.slug}`} target="_blank" className="a-ikon-btn" title="Lihat di situs" aria-label="Lihat di situs"><IkonAdmin nama="mata" /></Link>}
                   {rev && (
                     <form action={toggleFeatured}>

@@ -17,7 +17,7 @@ export function TombolKembali({ label = "Kembali ke daftar artikel" }: { label?:
   useEffect(() => {
     const hitung = () => {
       const form = akar.current?.closest("form");
-      if (!form) { setLuar(null); return; }
+      if (!form || akar.current?.closest(".editor-penuh")) { setLuar(null); return; }
       const ham = document.querySelector<HTMLElement>('[data-adm-ham]')?.getBoundingClientRect();
       const tampak = !!ham && ham.width > 0; // tombol hamburger hanya ada di layar sempit
       const sisi = document.querySelector<HTMLElement>(".a-side")?.getBoundingClientRect();
@@ -35,7 +35,11 @@ export function TombolKembali({ label = "Kembali ke daftar artikel" }: { label?:
     window.addEventListener("resize", hitung);
     const ro = new ResizeObserver(hitung);
     ro.observe(document.body);
-    return () => { window.removeEventListener("resize", hitung); ro.disconnect(); };
+    // mode layar penuh menambah/menghapus kelas "editor-penuh" tanpa mengubah ukuran jendela
+    const edit = akar.current?.closest(".editor-kaya");
+    const mo = edit ? new MutationObserver(hitung) : null;
+    if (edit && mo) mo.observe(edit, { attributes: true, attributeFilter: ["class"] });
+    return () => { window.removeEventListener("resize", hitung); ro.disconnect(); mo?.disconnect(); };
   }, []);
 
   const kembali = () => {
@@ -67,7 +71,7 @@ export function TombolKembali({ label = "Kembali ke daftar artikel" }: { label?:
           <path d="M10 6h11M10 12h11M10 18h11" />
         </svg>
       </button>
-      {!luar && <span className="mx-1 h-5 w-px bg-black/15" aria-hidden="true" />}
+      {!luar && <span className="mx-1 h-5 w-px bg-black/15 max-sm:hidden" aria-hidden="true" />}
       <span
         role="tooltip"
         className={`pointer-events-none absolute z-50 whitespace-nowrap rounded-md bg-black/85 px-2.5 py-1 text-xs font-normal text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 ${luar ? "left-full top-1/2 ml-2 -translate-y-1/2" : "left-0 top-full mt-1.5"}`}

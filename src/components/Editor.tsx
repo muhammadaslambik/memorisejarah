@@ -27,13 +27,13 @@ function Tombol(p: { judul: string; aktif?: boolean; disabled?: boolean; onClick
       disabled={p.disabled}
       onMouseDown={(e) => e.preventDefault()}
       onClick={p.onClick}
-      className={`grid h-8 place-items-center rounded-md text-sm transition disabled:opacity-30 ${p.lebar ? "px-2.5" : "w-8"} ${p.aktif ? "bg-charcoal text-cream" : "text-charcoal/80 hover:bg-black/5"}`}
+      className={`grid h-8 place-items-center rounded-md text-sm transition disabled:opacity-30 ${p.lebar ? "px-2.5" : "w-7 sm:w-8"} ${p.aktif ? "bg-charcoal text-cream" : "text-charcoal/80 hover:bg-black/5"}`}
     >
       {p.children}
     </button>
   );
 }
-const Pemisah = () => <span className="mx-1 h-5 w-px bg-black/15" aria-hidden="true" />;
+const Pemisah = () => <span className="mx-1 h-5 w-px bg-black/15 max-sm:hidden" aria-hidden="true" />;
 
 // Mengecilkan gambar besar di perangkat pengguna (bukan di server): maksimal 2000 px, format WebP. GIF dibiarkan agar tetap bergerak.
 export async function perkecil(file: File): Promise<File> {
@@ -156,8 +156,8 @@ export function Editor({ initial, name = "content", catatanKaki = false, tinggi 
   const gaya = ya("heading", { level: 2 }) ? "2" : ya("heading", { level: 3 }) ? "3" : ya("heading", { level: 4 }) ? "4" : "p";
 
   return (
-    <div className={`editor-kaya ${penuh ? "editor-penuh fixed inset-0 z-[45] overflow-y-auto p-2 sm:p-5" : ""}`} style={penuh ? { background: "var(--a-bg, #fff)" } : undefined}>
-      <div className={`sticky z-10 flex flex-wrap items-center gap-0.5 rounded-t-lg border border-b-0 bg-cream-dark p-1 sm:p-1.5 ${penuh ? "top-0" : "top-[var(--adm-lengket,4rem)]"}`} role="toolbar" aria-label="Pemformatan teks">
+    <div className={`editor-kaya ${penuh ? "editor-penuh fixed inset-0 z-[45] overflow-y-auto" : ""}`} style={penuh ? { background: "var(--a-bg, #fff)" } : undefined}>
+      <div className={`sticky z-10 flex flex-wrap items-center gap-0 rounded-t-lg border border-b-0 bg-cream-dark p-1 sm:gap-0.5 sm:p-1.5 ${penuh ? "top-0 !rounded-none !border-x-0 !border-t-0 !border-b" : "top-[var(--adm-lengket,4rem)]"}`} role="toolbar" aria-label="Pemformatan teks">
         {awal}
         <MenuIkon
           tanpaFokus
@@ -239,6 +239,7 @@ export function Editor({ initial, name = "content", catatanKaki = false, tinggi 
           onChange={(e) => { const f = e.target.files?.[0]; if (f) unggah(f); e.target.value = ""; }}
         />
       </div>
+      <div className={penuh ? "mx-auto w-full max-w-5xl p-2 sm:p-5" : undefined}>
       {pesan && <p className="border border-b-0 bg-amber-50 px-3 py-1.5 text-sm text-amber-900" role="status">{pesan}</p>}
       {catatanBaru !== null && (
         <p className="border border-b-0 bg-amber-50 px-3 py-1.5 text-sm text-amber-900" role="status">
@@ -248,6 +249,7 @@ export function Editor({ initial, name = "content", catatanKaki = false, tinggi 
         </p>
       )}
       <EditorContent editor={editor} />
+      </div>
       <input type="hidden" name={name} value={html} />
       {galeri && <GaleriGambar tutup={() => setGaleri(false)} pilih={(u) => { setGaleri(false); sisipGambar(u); }} />}
     </div>

@@ -300,3 +300,15 @@ body { top: 0 !important; }
 .adm .info-kanvas textarea:hover, .adm .info-kanvas input:hover { box-shadow: 0 0 0 1px rgba(255,255,255,.28) !important; }
 .adm .info-kanvas textarea:focus, .adm .info-kanvas input:focus { box-shadow: 0 0 0 2px rgba(245,185,66,.85) !important; }
 .adm .info-kanvas input.info-tautan { border: 1px solid rgba(255,255,255,.25) !important; background: rgba(0,0,0,.25) !important; padding: 0.25rem 0.5rem !important; font-size: 0.75rem !important; }
+
+/* PAKET-23: tampilan HP — kolom mepet kiri-kanan layar, editor selebar layar */
+@media (max-width: 639px) {
+  .hp-mepet > :is(h1, h2, p, .hp-pad) { padding-left: 0.75rem; padding-right: 0.75rem; }
+  .adm main .a-bleed, .adm main .a-bleed-grid { margin-left: -0.75rem; margin-right: -0.75rem; }
+  .adm main .a-bleed { border-radius: 0.8rem; }
+  .adm .a-sticky { padding-left: 0.25rem; padding-right: 0.25rem; }
+  .adm .editor-kaya:not(.editor-penuh) { width: 100vw; max-width: 100vw; margin-left: calc(50% - 50vw); margin-right: 0; }
+  .adm .editor-kaya:not(.editor-penuh) [role="toolbar"],
+  .adm .editor-kaya:not(.editor-penuh) .ProseMirror { border-radius: 0; border-left-width: 0; border-right-width: 0; }
+}
+

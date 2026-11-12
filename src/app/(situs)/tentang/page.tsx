@@ -17,8 +17,8 @@ export default async function Tentang() {
   const biasa = bagian.filter((b) => b.kunci !== "logo");
   return (
     <div className="-mb-16 min-h-[70vh] bg-ms-bg pb-24 text-ms-cream">
-      <section className="mx-auto max-w-[90rem] px-6 pt-12 md:px-10 lg:px-16">
-        <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center">
+      <section className="hp-mepet mx-auto max-w-[90rem] px-1 pt-12 sm:px-6 md:px-10 lg:px-16">
+        <div className="hp-pad flex flex-col items-start gap-6 sm:flex-row sm:items-center">
           <img src="/brand/logo-memori-sejarah-kecil.png" alt="Logo Memori Sejarah" className="h-24 w-24 rounded-full" />
           <div>
             <h1 className="font-serif text-2xl sm:text-4xl font-bold md:text-5xl">Tentang Memori Sejarah</h1>

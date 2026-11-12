@@ -29,7 +29,7 @@ export default async function Redaksi() {
 
   return (
     <div className="-mb-16 min-h-[70vh] bg-ms-bg pb-24 text-ms-cream">
-      <section className="mx-auto max-w-[90rem] px-6 pt-12 md:px-10 lg:px-16">
+      <section className="hp-mepet mx-auto max-w-[90rem] px-1 pt-12 sm:px-6 md:px-10 lg:px-16">
         <h1 className="font-serif text-2xl sm:text-4xl font-bold md:text-5xl">Susunan Redaksi</h1>
         <p className="mt-3 text-ms-cream/70">Klik nama untuk melihat profil anggota.</p>
         {anggota.length === 0 && <p className="mt-8 text-ms-cream/60">Susunan redaksi belum diatur.</p>}

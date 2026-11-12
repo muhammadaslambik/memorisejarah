@@ -17,7 +17,7 @@ export const dynamic = "force-dynamic";
 
 const badge = "rounded-full bg-ms-gold px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-ms-bg";
 const tombol = "inline-flex items-center gap-2 rounded-full border border-ms-line px-5 py-2.5 text-sm text-ms-cream/80 transition hover:border-ms-gold hover:text-ms-gold";
-const wadah = "mx-auto max-w-[90rem] px-6 md:px-10 lg:px-16";
+const wadah = "hp-mepet mx-auto max-w-[90rem] px-1 sm:px-6 md:px-10 lg:px-16";
 
 export default async function Home() {
   const d = db();
@@ -100,7 +100,7 @@ export default async function Home() {
         {baris3.length > 0 && (
           <div className={grid5}>{baris3.map((p) => <PostCardMini key={p.id} p={p} kategori={kat(p.categoryId)} />)}</div>
         )}
-        <div className="mt-8 flex justify-end">
+        <div className="hp-pad mt-8 flex justify-end">
           <Link href="/artikel" className={tombol}>Artikel Lainnya &rarr;</Link>
         </div>
       </section>
@@ -110,7 +110,7 @@ export default async function Home() {
         <InformasiBlok />
         <div className="mt-12"><SectionTitle>Informasi Terbaru</SectionTitle></div>
         <InformasiTerbaru mode="jalur" />
-        <div className="mt-8 flex justify-end">
+        <div className="hp-pad mt-8 flex justify-end">
           <Link href="/informasi" className={tombol}>Informasi Lainnya &rarr;</Link>
         </div>
       </section>
@@ -118,7 +118,7 @@ export default async function Home() {
       <section className={`${wadah} pt-14`}>
         <SectionTitle>Agenda Kegiatan</SectionTitle>
         <AgendaKartu />
-        <div className="mt-8 flex justify-end">
+        <div className="hp-pad mt-8 flex justify-end">
           <Link href="/agenda" className={tombol}>Agenda Kegiatan Lainnya &rarr;</Link>
         </div>
       </section>
@@ -132,7 +132,7 @@ export default async function Home() {
           {vidStrip.length > 0 && (
             <div className="mt-6"><VideoStrip items={vidStrip.map((v) => ({ slug: v.slug, title: v.title, youtubeId: v.youtubeId }))} /></div>
           )}
-          <div className="mt-8 flex justify-end">
+          <div className="hp-pad mt-8 flex justify-end">
             <Link href="/video" className={tombol}>Video Lainnya &rarr;</Link>
           </div>
         </section>

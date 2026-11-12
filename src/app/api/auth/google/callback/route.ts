@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { sql } from "drizzle-orm";
 import { db, users } from "@/db";
-import { createSession } from "@/lib/auth";
+import { createSession, getCurrentUser } from "@/lib/auth";
 import { callbackUrl, googleConfigured, siteBase } from "@/lib/google";
 
 export const dynamic = "force-dynamic";
@@ -11,17 +11,24 @@ export const dynamic = "force-dynamic";
 // Hanya email yang SUDAH terdaftar (dan aktif) yang boleh masuk; akun tidak dibuat otomatis.
 export async function GET(req: Request) {
   const base = siteBase(req);
-  const fail = (code: string): never => redirect(`${base}/admin/login?error=${code}`);
-  if (!googleConfigured()) fail("google-gagal");
+  // r = alasan rinci (ikut di alamat) supaya penyebab gagal bisa dibaca di halaman masuk
+  const fail = (code: string, r = ""): never => redirect(`${base}/admin/login?error=${code}${r ? `&r=${r}` : ""}`);
+  if (!googleConfigured()) fail("google-gagal", "belum-diatur");
 
   const url = new URL(req.url);
   const jar = await cookies();
   const saved = jar.get("g_oauth")?.value;
   jar.delete("g_oauth"); // sekali pakai
   const code = url.searchParams.get("code");
-  if (url.searchParams.get("error") || !code || !saved) fail("google-gagal");
+  // PAKET-22: peramban ponsel kadang memanggil alamat ini dua kali. Panggilan pertama berhasil dan membuat sesi; panggilan kedua
+  // (kode sudah terpakai) dulu menampilkan "Masuk dengan Google gagal" padahal pengguna sudah masuk. Bila sesi sudah ada, langsung ke CMS.
+  const sudahMasuk = await getCurrentUser().catch(() => null);
+  if (sudahMasuk) redirect(`${base}/admin`);
+  if (url.searchParams.get("error")) fail("google-gagal", "ditolak");
+  if (!code) fail("google-gagal", "tanpa-kode");
+  if (!saved) fail("google-gagal", "tanpa-cookie");
   const [state, verifier] = saved!.split(".");
-  if (!state || !verifier || state !== url.searchParams.get("state")) fail("google-gagal");
+  if (!state || !verifier || state !== url.searchParams.get("state")) fail("google-gagal", "state");
 
   let email = "";
   try {
@@ -33,18 +40,18 @@ export async function GET(req: Request) {
       }),
     });
     const t = (await tr.json()) as { access_token?: string };
-    if (!t.access_token) fail("google-gagal");
+    if (!t.access_token) fail("google-gagal", "token");
     const ur = await fetch("https://openidconnect.googleapis.com/v1/userinfo", {
       headers: { Authorization: `Bearer ${t.access_token}` },
     });
     const info = (await ur.json()) as { email?: string; email_verified?: boolean };
     // Email harus sudah diverifikasi oleh Google
-    if (!info.email || info.email_verified !== true) fail("google-gagal");
+    if (!info.email || info.email_verified !== true) fail("google-gagal", "email");
     email = info.email!.toLowerCase();
   } catch (e) {
     // redirect() melempar error khusus; teruskan apa adanya
     if (e && typeof e === "object" && "digest" in e) throw e;
-    fail("google-gagal");
+    fail("google-gagal", "jaringan");
   }
 
   const [u] = await db().select().from(users).where(sql`lower(${users.email}) = ${email}`).limit(1);

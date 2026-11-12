@@ -6,8 +6,8 @@ import { PasswordInput } from "@/components/PasswordInput";
 
 export const dynamic = "force-dynamic";
 
-export default async function Login({ searchParams }: { searchParams: Promise<{ error?: string; ok?: string; alasan?: string }> }) {
-  const { error, ok, alasan } = await searchParams;
+export default async function Login({ searchParams }: { searchParams: Promise<{ error?: string; ok?: string; alasan?: string; r?: string }> }) {
+  const { error, ok, alasan, r } = await searchParams;
   const canRegister = await registrationOpen();
   return (
     <form action={login} className="mx-auto mt-20 max-w-sm space-y-4 rounded-2xl border border-ms-line bg-ms-surface p-8 text-ms-cream shadow-xl">
@@ -21,7 +21,7 @@ export default async function Login({ searchParams }: { searchParams: Promise<{ 
       {error === "pending" && <p className="text-sm text-rose-400">Akun Anda masih menunggu persetujuan admin.</p>}
       {error === "google-belum" && <p className="text-sm text-rose-400">Email Google itu belum terdaftar. Minta admin menambahkannya, atau daftar lebih dulu.</p>}
       {error === "google-nonaktif" && <p className="text-sm text-rose-400">Akun untuk email itu sedang dinonaktifkan.</p>}
-      {error === "google-gagal" && <p className="text-sm text-rose-400">Masuk dengan Google gagal. Coba lagi.</p>}
+      {error === "google-gagal" && <p className="text-sm text-rose-400">Masuk dengan Google gagal. Coba lagi.{r ? ` (kode: ${r.replace(/[^a-z-]/g, "").slice(0, 20)})` : ""}</p>}
       {error === "1" && <p className="text-sm text-rose-400">Email atau password salah.</p>}
       <input name="email" type="email" placeholder="Email" required className="w-full rounded border border-ms-line bg-ms-bg p-2 text-ms-cream placeholder:text-ms-cream/40" />
       <PasswordInput name="password" placeholder="Password" className="rounded border border-ms-line bg-ms-bg p-2 text-ms-cream placeholder:text-ms-cream/40" />

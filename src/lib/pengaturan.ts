@@ -1,6 +1,7 @@
 // PAKET-3C2: pengaturan tampilan situs. Nilai dari CMS menimpa isi bawaan; bila kosong, isi bawaan dipakai.
 import { eq } from "drizzle-orm";
 import { db, siteSettings } from "@/db";
+import { bersihkanTata, type TataInformasi } from "./informasi-tata";
 import { AGENDA, type Program } from "./agenda";
 import { PUSTAKA } from "./pustaka";
 import { semuaPengaturan } from "./data-situs";
@@ -87,6 +88,11 @@ export async function getInformasi(): Promise<Informasi> {
 }
 
 // ---------- Pustaka ----------
+// PAKET-21: tata letak per blok Informasi Pilihan
+export async function getInformasiTata(): Promise<TataInformasi> {
+  return bersihkanTata(await getSetting<unknown>("informasi_tata", null));
+}
+
 export type PustakaItem = { kunci: string; nama: string; id: string; ket: string; url: string };
 
 export async function getPustaka(): Promise<PustakaItem[]> {

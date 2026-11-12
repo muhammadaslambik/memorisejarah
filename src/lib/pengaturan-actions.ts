@@ -1,5 +1,6 @@
 // PAKET-3C2: aksi server untuk pengaturan tampilan situs (admin dan editor)
 "use server";
+import { bersihkanTata } from "./informasi-tata";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireReviewer } from "./auth";
@@ -35,6 +36,7 @@ export async function saveInformasi(fd: FormData) {
     for (const f of g.fields) hasil[g.grup][f.key] = teks(fd, `${g.grup}__${f.key}`, 800);
   }
   await setSetting("informasi", hasil);
+  try { await setSetting("informasi_tata", bersihkanTata(JSON.parse(String(fd.get("tata") ?? "null")))); } catch { /* tata letak tidak valid: biarkan yang lama */ }
   revalidatePath("/", "layout");
   redirect("/admin/informasi?ok=1");
 }

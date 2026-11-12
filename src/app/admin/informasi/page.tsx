@@ -7,7 +7,7 @@ import { IkonAdmin } from "@/components/admin/ikon-admin";
 import { IkonEdit, IkonHapus } from "@/components/admin/TombolAksi";
 import { InformasiEditor } from "@/components/admin/InformasiEditor";
 import { requireReviewer } from "@/lib/auth";
-import { getInformasi } from "@/lib/pengaturan";
+import { getInformasi, getInformasiTata } from "@/lib/pengaturan";
 import { saveInformasi } from "@/lib/pengaturan-actions";
 import { deleteInfoItem } from "@/lib/info-actions";
 import { kecil } from "@/lib/gambar-url";
@@ -19,8 +19,9 @@ export default async function AdminInformasi({ searchParams }: { searchParams: P
   await requireReviewer();
   const { ok, tab } = await searchParams;
   const terbaru = tab === "terbaru";
-  const [d, items] = await Promise.all([
+  const [d, tata, items] = await Promise.all([
     getInformasi(),
+    getInformasiTata(),
     terbaru ? db().select().from(infoItems).orderBy(desc(infoItems.updatedAt)).catch(() => null) : Promise.resolve([]),
   ]);
   return (
@@ -38,7 +39,7 @@ export default async function AdminInformasi({ searchParams }: { searchParams: P
       {ok && <p className="mb-4 rounded-lg bg-green-50 p-3 text-sm text-green-800">{oks[ok] ?? "Berhasil."}</p>}
 
       {!terbaru ? (
-        <InformasiEditor d={d} aksi={saveInformasi} />
+        <InformasiEditor d={d} tata={tata} aksi={saveInformasi} />
       ) : items === null ? (
         <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900">Tabel Informasi Terbaru belum dibuat. Jalankan: <code>npx tsx --env-file=.env.local scripts\tambah-informasi.ts</code></p>
       ) : items.length === 0 ? (

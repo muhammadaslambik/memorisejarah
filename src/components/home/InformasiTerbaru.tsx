@@ -1,35 +1,47 @@
-// PAKET-19: Informasi Terbaru (dari menu Informasi di CMS). Beranda: satu baris yang digeser. Halaman Informasi: kolom yang lebih luas.
+// PAKET-19/21: Informasi Terbaru (dari menu Informasi di CMS). Beranda: satu baris yang digeser. Halaman Informasi: kolom yang lebih luas.
+// Setiap kartu boleh berisi gambar atau video (YouTube, Instagram, TikTok, X, Facebook, Vimeo, berkas) dan animasi ringan.
 import Link from "next/link";
 import { desc, eq } from "drizzle-orm";
 import { db, infoItems } from "@/db";
 import { kecil } from "@/lib/gambar-url";
 import { tanggalLengkap } from "@/lib/tanggal";
+import { embedDariUrl } from "@/lib/embed-video";
+import { AnimasiMasuk } from "@/components/AnimasiMasuk";
 import { JalurGeser } from "./JalurGeser";
+import { MediaKartu } from "./MediaKartu";
 
 type Item = typeof infoItems.$inferSelect;
 
 function Kartu({ x, kelas }: { x: Item; kelas: string }) {
-  const isi = (
-    <>
-      <div className="relative aspect-video overflow-hidden bg-gradient-to-br from-red-900/70 to-ms-surface">
-        {x.imageUrl && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={kecil(x.imageUrl, 640)} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+  const embed = x.videoUrl ? embedDariUrl(x.videoUrl) : null;
+  const gambar = x.imageUrl ? kecil(x.imageUrl, 640) : "";
+  const judul = x.linkUrl
+    ? (x.linkUrl.startsWith("/")
+      ? <Link href={x.linkUrl} className="hover:text-ms-gold">{x.title}</Link>
+      : <a href={x.linkUrl} target="_blank" rel="noopener noreferrer" className="hover:text-ms-gold">{x.title}</a>)
+    : x.title;
+  return (
+    <AnimasiMasuk anim={x.animation} className={kelas}>
+      <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-ms-line bg-ms-surface transition hover:border-ms-gold/50">
+        {embed ? (
+          <MediaKartu embed={embed} gambar={gambar} judul={x.title} />
+        ) : (
+          <div className="relative aspect-video overflow-hidden bg-gradient-to-br from-red-900/70 to-ms-surface">
+            {gambar && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={gambar} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+            )}
+          </div>
         )}
-        {x.label && <span className="absolute left-3 top-3 rounded-full bg-ms-bg/85 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-ms-gold">{x.label}</span>}
-      </div>
-      <div className="flex flex-1 flex-col p-4">
-        <h3 className="line-clamp-2 font-serif text-base font-bold leading-snug group-hover:text-ms-gold">{x.title}</h3>
-        {x.summary && <p className="mt-2 line-clamp-3 text-sm text-ms-cream/70">{x.summary}</p>}
-        <p className="mt-auto pt-3 text-xs text-ms-cream/50">{tanggalLengkap(x.publishedAt)}</p>
-      </div>
-    </>
+        <div className="flex flex-1 flex-col p-4">
+          {x.label && <span className="mb-2 w-fit rounded-full bg-ms-bg/80 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-ms-gold">{x.label}</span>}
+          <h3 className="line-clamp-2 font-serif text-base font-bold leading-snug">{judul}</h3>
+          {x.summary && <p className="mt-2 line-clamp-3 text-sm text-ms-cream/70">{x.summary}</p>}
+          <p className="mt-auto pt-3 text-xs text-ms-cream/50">{tanggalLengkap(x.publishedAt)}</p>
+        </div>
+      </article>
+    </AnimasiMasuk>
   );
-  const dasar = `group flex flex-col overflow-hidden rounded-2xl border border-ms-line bg-ms-surface transition hover:border-ms-gold/50 ${kelas}`;
-  if (!x.linkUrl) return <article className={dasar}>{isi}</article>;
-  return x.linkUrl.startsWith("/")
-    ? <Link href={x.linkUrl} className={dasar}>{isi}</Link>
-    : <a href={x.linkUrl} target="_blank" rel="noopener noreferrer" className={dasar}>{isi}</a>;
 }
 
 export async function InformasiTerbaru({ mode }: { mode: "jalur" | "grid" }) {

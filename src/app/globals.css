@@ -5,7 +5,7 @@ body { @apply bg-cream text-charcoal font-sans antialiased; }
 
 html { scroll-padding-top: 6rem; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 /* PAKET-20: di ponsel semua ukuran (rem) sedikit diperkecil agar tampilan tidak terasa terlalu besar */
-@media (max-width: 639px) { html { font-size: 14.5px; } }
+@media (max-width: 639px) { html { font-size: 13.5px; } }
 /* PAKET-11A: tema CMS coklat (gelap/terang, terang dibuat lebih lembut). Hanya berlaku di dalam .adm */
 @layer components {
   .adm {
@@ -261,3 +261,42 @@ body { top: 0 !important; }
 
 /* PAKET-20: menulis layar penuh di editor CMS */
 .adm .editor-penuh .ProseMirror { min-height: calc(100dvh - 5.5rem) !important; }
+
+/* PAKET-21: animasi ringan (hanya transform/opacity). Dijalankan oleh AnimasiMasuk saat blok terlihat; dimatikan bila pengguna memilih kurangi gerakan. */
+.ms-anim-siap[data-anim="naik"]:not(.ms-anim-tampil), .ms-anim-siap[data-anim="kiri"]:not(.ms-anim-tampil),
+.ms-anim-siap[data-anim="kanan"]:not(.ms-anim-tampil), .ms-anim-siap[data-anim="zoom"]:not(.ms-anim-tampil) { opacity: 0; }
+.ms-anim-tampil[data-anim="naik"] { animation: ms-naik .7s cubic-bezier(.2,.7,.2,1) both; }
+.ms-anim-tampil[data-anim="kiri"] { animation: ms-kiri .7s cubic-bezier(.2,.7,.2,1) both; }
+.ms-anim-tampil[data-anim="kanan"] { animation: ms-kanan .7s cubic-bezier(.2,.7,.2,1) both; }
+.ms-anim-tampil[data-anim="zoom"] { animation: ms-zoom .6s cubic-bezier(.2,.7,.2,1) both; }
+.ms-anim-jalan[data-anim="mengambang"] { animation: ms-ambang 6s ease-in-out infinite; }
+.ms-anim-jalan[data-anim="denyut"] { animation: ms-denyut 4s ease-in-out infinite; }
+.ms-anim[data-anim="kilau"] { position: relative; overflow: hidden; }
+.ms-anim-jalan[data-anim="kilau"]::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(100deg, transparent 35%, rgba(255,255,255,.14) 50%, transparent 65%); transform: translateX(-120%); animation: ms-kilau 7s ease-in-out infinite; }
+@keyframes ms-naik { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
+@keyframes ms-kiri { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
+@keyframes ms-kanan { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+@keyframes ms-zoom { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
+@keyframes ms-ambang { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes ms-denyut { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.012); } }
+@keyframes ms-kilau { 0%, 55% { transform: translateX(-120%); } 100% { transform: translateX(120%); } }
+@media (prefers-reduced-motion: reduce) { .ms-anim, .ms-anim::after { animation: none !important; opacity: 1 !important; transform: none !important; } }
+
+/* PAKET-21: grid 12 kolom Informasi Pilihan + pengaturan teks per blok */
+.ms-grid { display: grid; gap: 1.5rem; grid-template-columns: minmax(0, 1fr); }
+.ms-blok { min-width: 0; }
+@media (min-width: 1024px) { .ms-grid { grid-template-columns: repeat(12, minmax(0, 1fr)); } .ms-blok { grid-column: span var(--span, 12); } }
+.ms-teks-paksa :is(h1, h2, h3, h4, p, span, a, li, label, input, textarea) { color: var(--ms-teks) !important; }
+.ms-font-serif :is(h1, h2, h3, h4, p, span, a, li, input, textarea) { font-family: theme('fontFamily.serif') !important; }
+.ms-font-sans :is(h1, h2, h3, h4, p, span, a, li, input, textarea) { font-family: theme('fontFamily.sans') !important; }
+.ms-font-mono :is(h1, h2, h3, h4, p, span, a, li, input, textarea) { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important; }
+
+/* PAKET-21: kanvas editor Informasi di CMS tampil SAMA PERSIS dengan situs (huruf, latar, warna), bukan gaya kolom isian CMS */
+.info-kanvas { font-family: var(--font-sans), system-ui, sans-serif; }
+.adm .info-kanvas textarea, .adm .info-kanvas input[type="text"], .adm .info-kanvas input:not([type]) {
+  background: transparent !important; border: 0 !important; box-shadow: none !important; color: inherit !important; font: inherit !important;
+  letter-spacing: inherit !important; text-transform: inherit !important; padding: 0 !important; margin: 0 !important; border-radius: 0.25rem !important; outline: none !important;
+}
+.adm .info-kanvas textarea:hover, .adm .info-kanvas input:hover { box-shadow: 0 0 0 1px rgba(255,255,255,.28) !important; }
+.adm .info-kanvas textarea:focus, .adm .info-kanvas input:focus { box-shadow: 0 0 0 2px rgba(245,185,66,.85) !important; }
+.adm .info-kanvas input.info-tautan { border: 1px solid rgba(255,255,255,.25) !important; background: rgba(0,0,0,.25) !important; padding: 0.25rem 0.5rem !important; font-size: 0.75rem !important; }

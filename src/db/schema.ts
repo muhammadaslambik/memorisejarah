@@ -164,6 +164,8 @@ export const infoItems = pgTable("info_items", {
   summary: text("summary").default("").notNull(),
   imageUrl: text("image_url").default("").notNull(),
   linkUrl: text("link_url").default("").notNull(),
+  videoUrl: text("video_url").default("").notNull(),
+  animation: text("animation").default("").notNull(),
   label: text("label").default("").notNull(),
   status: text("status", { enum: ["draft", "published"] }).default("draft").notNull(),
   publishedAt: timestamp("published_at"),

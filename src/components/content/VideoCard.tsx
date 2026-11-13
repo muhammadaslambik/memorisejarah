@@ -8,7 +8,7 @@ export function VideoCard({ v }: { v: V }) {
   return (
     <Link
       href={`/video/${v.slug}`}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-ms-line bg-ms-surface transition hover:-translate-y-1 hover:border-ms-gold/50"
+      className="group flex flex-col overflow-hidden rounded-xl border border-ms-line bg-ms-surface transition hover:-translate-y-1 hover:border-ms-gold/50"
     >
       <div className="relative aspect-video overflow-hidden bg-ms-bg">
         <img src={`https://i.ytimg.com/vi/${v.youtubeId}/hqdefault.jpg`} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />

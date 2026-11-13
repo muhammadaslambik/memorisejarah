@@ -5,8 +5,8 @@ import { getPustaka } from "@/lib/pengaturan";
 import { getSitus } from "@/lib/situs";
 import { Logo } from "./Logo";
 
-const tautan = "text-sm text-ms-cream/70 hover:text-ms-gold";
-const judul = "mb-4 text-xs font-bold uppercase tracking-[0.2em] text-ms-cream";
+const tautan = "text-[12px] text-ms-cream/70 hover:text-ms-gold sm:text-sm";
+const judul = "mb-3 text-[11px] font-bold uppercase tracking-[0.12em] text-ms-cream sm:mb-4 sm:text-xs sm:tracking-[0.2em]";
 const ikonDasar = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.7, strokeLinecap: "round", strokeLinejoin: "round" } as const;
 
 const IKON: Record<string, React.ReactNode> = {
@@ -29,28 +29,30 @@ export async function Footer() {
 
   return (
     <footer className="border-t border-ms-line bg-ms-bg text-ms-cream">
-      <div className="mx-auto grid max-w-[90rem] gap-10 px-6 py-12 md:grid-cols-2 md:px-10 lg:grid-cols-[1.5fr_1fr_1fr_1.2fr] lg:px-16">
+      <div className="mx-auto grid max-w-[90rem] gap-8 px-6 py-10 sm:gap-10 sm:py-12 md:grid-cols-2 md:px-10 lg:grid-cols-[1.5fr_1fr_1fr_1.2fr] lg:px-16">
         <div>
           <Logo />
           {s.sambutan1 && <p className="mt-4 max-w-sm text-sm text-ms-gold">{s.sambutan1}</p>}
           {s.sambutan2 && <p className="mt-3 max-w-sm text-sm text-ms-cream/60">{s.sambutan2}</p>}
         </div>
+        <div className="grid grid-cols-2 gap-5 md:contents">
         <div>
           <h3 className={judul}>Artikel</h3>
-          <ul className="space-y-2">
+          <ul className="space-y-1.5 sm:space-y-2">
             <li><Link href="/artikel" className={tautan}>Semua Artikel</Link></li>
             {cats.map((c) => <li key={c.id}><Link href={`/kategori/${c.slug}`} className={tautan}>{c.name}</Link></li>)}
           </ul>
         </div>
         <div>
           <h3 className={judul}>Pustaka &amp; Video</h3>
-          <ul className="space-y-2">
+          <ul className="space-y-1.5 sm:space-y-2">
             <li><Link href="/pustaka" className={tautan}>Pustaka</Link></li>
             {pustaka.map((p) => <li key={p.kunci}><Link href={`/pustaka?f=${p.kunci}`} className={tautan}>{p.nama}</Link></li>)}
             <li><Link href="/gambar" className={tautan}>Gambar</Link></li>
             <li><Link href="/video" className={tautan}>Video</Link></li>
             <li><Link href="/agenda" className={tautan}>Agenda Kegiatan</Link></li>
           </ul>
+        </div>
         </div>
         <div>
           <h3 className={judul}>Cari Arsip</h3>

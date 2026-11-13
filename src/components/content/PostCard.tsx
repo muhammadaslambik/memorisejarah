@@ -10,7 +10,7 @@ export function PostCard({ p, kategori }: { p: P; kategori?: string }) {
   return (
     <Link
       href={`/artikel/${p.slug}`}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-ms-line bg-ms-surface transition hover:-translate-y-1 hover:border-ms-gold/50"
+      className="group flex flex-col overflow-hidden rounded-xl border border-ms-line bg-ms-surface transition hover:-translate-y-1 hover:border-ms-gold/50"
     >
       <div className="aspect-[16/10] overflow-hidden bg-ms-bg">
         {p.coverUrl && <img src={p.coverUrl} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />}

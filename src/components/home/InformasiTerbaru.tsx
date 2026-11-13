@@ -22,7 +22,7 @@ function Kartu({ x, kelas }: { x: Item; kelas: string }) {
     : x.title;
   return (
     <AnimasiMasuk anim={x.animation} className={kelas}>
-      <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-ms-line bg-ms-surface transition hover:border-ms-gold/50">
+      <article className="flex h-full flex-col overflow-hidden rounded-xl border border-ms-line bg-ms-surface transition hover:border-ms-gold/50">
         {embed ? (
           <MediaKartu embed={embed} gambar={gambar} judul={x.title} />
         ) : (

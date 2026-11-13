@@ -312,3 +312,8 @@ body { top: 0 !important; }
   .adm .editor-kaya:not(.editor-penuh) .ProseMirror { border-radius: 0; border-left-width: 0; border-right-width: 0; }
 }
 
+/* PAKET-24: ikon putar/jeda sesaat di tengah pemutar (cepat, tidak menghalangi klik) */
+@keyframes ms-kilat-ikon { 0% { opacity: 0.95; transform: scale(0.7); } 100% { opacity: 0; transform: scale(1.3); } }
+.ms-kilat-ikon { animation: ms-kilat-ikon 0.4s ease-out forwards; }
+@media (prefers-reduced-motion: reduce) { .ms-kilat-ikon { animation-duration: 0.01s; } }
+

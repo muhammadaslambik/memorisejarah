@@ -47,14 +47,14 @@ export function InformasiTampilan({ isi, tombol, tata, bungkus, editor, gridRef 
         <p className="mt-6 rounded-xl bg-ms-bg/10 px-4 py-3 text-xs italic text-ms-bg/70">{isi("krem", "kutipan")}</p>
       </>
     )),
-    diskusi: kartu("diskusi", "flex flex-col gap-5 border border-ms-line bg-ms-surface p-5 text-ms-cream sm:flex-row", (
+    diskusi: kartu("diskusi", "flex flex-col gap-0 overflow-hidden border border-ms-line bg-ms-surface p-0 text-ms-cream sm:flex-row sm:gap-5 sm:overflow-visible sm:p-5", (
       <>
-        <div className="flex min-h-40 shrink-0 flex-col justify-between rounded-2xl border border-emerald-800/50 bg-gradient-to-br from-emerald-900 to-emerald-950 p-4 sm:w-44">
+        <div className="flex min-h-40 shrink-0 flex-col justify-between border border-emerald-800/50 bg-gradient-to-br from-emerald-900 to-emerald-950 p-4 max-sm:border-x-0 max-sm:border-t-0 sm:w-44 sm:rounded-xl">
           <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-300">{isi("diskusi", "thumbAtas")}</span>
           <span className="font-serif text-sm font-bold">{isi("diskusi", "thumbJudul")}</span>
           <span className="text-xs text-emerald-300">{isi("diskusi", "thumbBawah")}</span>
         </div>
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 max-sm:p-5">
           <span className="inline-block rounded-full border border-emerald-700 bg-emerald-950 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-emerald-300">{isi("diskusi", "badge")}</span>
           <h3 className="mt-3 font-serif text-xl font-bold leading-snug">{isi("diskusi", "judul")}</h3>
           <p className="mt-2 text-sm text-ms-cream/70">{isi("diskusi", "deskripsi")}</p>

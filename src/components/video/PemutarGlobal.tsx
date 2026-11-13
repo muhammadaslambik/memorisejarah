@@ -395,6 +395,9 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
   const vol = info.muted ? 0 : (info.volume ?? 100);
   const muat = Math.min(100, Math.max(0, (info.videoLoadedFraction ?? 0) * 100));
   const selesai = info.playerState === 0;
+  // Saat dijeda YouTube menampilkan judul, "More videos", dan logonya sendiri: ditutup dengan sampul (pemutar tidak menerima kursor sama sekali).
+  const jedaTampil = info.playerState === 2 && !tembus;
+  const [kilat, setKilat] = useState<{ n: number; jeda: boolean } | null>(null); // ikon putar/jeda sesaat di tengah layar saat diklik
 
   const lebarMini = "w-[min(24rem,calc(100vw-1.5rem))]";
   const kelasKotak = !mini
@@ -443,16 +446,16 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
           ref={bingkai}
           src={src}
           title={video.title}
-          className="h-full w-full"
+          className={`h-full w-full ${tembus ? "" : "pointer-events-none"}`}
           allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
           referrerPolicy="strict-origin-when-cross-origin"
           onLoad={langganan}
         />
         {/* setelah video selesai YouTube menampilkan saran video miliknya; ditutup dengan sampul */}
-        {selesai && !bar && (
+        {(selesai || jedaTampil) && !bar && (
           <div key="sampul" className="pointer-events-none absolute inset-0 z-[5] bg-black">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={`https://i.ytimg.com/vi/${video.youtubeId}/hqdefault.jpg`} alt="" className="h-full w-full object-cover opacity-50" />
+            <img src={`https://i.ytimg.com/vi/${video.youtubeId}/hqdefault.jpg`} alt="" className={`h-full w-full object-cover ${selesai ? "opacity-50" : "opacity-90"}`} />
           </div>
         )}
         {/* lapisan klik: di halaman video klik = putar/jeda, klik dua kali = layar penuh; di mini player klik menampilkan tombol (tidak menjeda) */}
@@ -462,11 +465,18 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
             aria-label={mini ? "Tampilkan kontrol" : main ? "Jeda" : "Putar"}
             onClick={() => {
               if (barusTutup.current) { barusTutup.current = false; return; }
-              if (mini) { if (ktlMini) setKtlMini(false); else tampilMini(true); } else jeda();
+              if (mini) { if (ktlMini) setKtlMini(false); else tampilMini(true); } else { setKilat({ n: Date.now(), jeda: main }); jeda(); }
             }}
             onDoubleClick={mini ? undefined : layarPenuh}
             className={`absolute inset-0 z-10 cursor-pointer ${tembus ? "pointer-events-none" : ""}`}
           />
+        )}
+
+        {/* ikon putar/jeda sesaat (cepat) saat layar diklik di halaman video */}
+        {kilat && !mini && (
+          <div key={kilat.n} className="pointer-events-none absolute inset-0 z-[15] grid place-items-center" aria-hidden="true">
+            <span className="ms-kilat-ikon grid h-16 w-16 place-items-center rounded-full bg-black/60 text-white"><IkonJeda main={kilat.jeda} c="h-8 w-8" /></span>
+          </div>
         )}
 
         {/* kontrol mini player di dalam video */}

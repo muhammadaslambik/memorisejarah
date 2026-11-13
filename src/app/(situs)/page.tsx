@@ -57,10 +57,10 @@ export default async function Home() {
         <HeroCarousel slides={slides} />
       </section>
 
-      <section className={`${wadah} pt-14`}>
+      <section className={`${wadah} pt-8 sm:pt-14`}>
         <SectionTitle>&#9733; Artikel Pilihan</SectionTitle>
         <div className="mt-6 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
-          <Link href={`/artikel/${utama.slug}`} className="group grid overflow-hidden rounded-3xl border border-ms-line bg-ms-surface md:grid-cols-2">
+          <Link href={`/artikel/${utama.slug}`} className="group grid overflow-hidden rounded-xl border border-ms-line bg-ms-surface md:grid-cols-2">
             <div className="relative min-h-60 bg-ms-bg">
               {utama.coverUrl && <img src={utama.coverUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />}
             </div>
@@ -75,7 +75,7 @@ export default async function Home() {
           </Link>
           <div className="flex flex-col gap-4">
             {samping.map((p, i) => (
-              <Link key={p.id} href={`/artikel/${p.slug}`} className="group flex items-center gap-4 rounded-2xl border border-ms-line bg-ms-surface p-4 transition hover:border-ms-gold/50">
+              <Link key={p.id} href={`/artikel/${p.slug}`} className="group flex items-center gap-4 rounded-xl border border-ms-line bg-ms-surface p-4 transition hover:border-ms-gold/50">
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-ms-line font-serif text-ms-gold">{i + 1}</span>
                 <span className="min-w-0">
                   <span className="block text-[11px] font-semibold uppercase tracking-wider text-ms-gold">
@@ -89,7 +89,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className={`${wadah} pt-14`}>
+      <section className={`${wadah} pt-8 sm:pt-14`}>
         <SectionTitle>Artikel Terbaru</SectionTitle>
         <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {baris1.map((p) => <PostCard key={p.id} p={p} kategori={kat(p.categoryId)} />)}
@@ -105,17 +105,17 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className={`${wadah} pt-14`}>
+      <section className={`${wadah} pt-8 sm:pt-14`}>
         <SectionTitle>Informasi Pilihan</SectionTitle>
         <InformasiBlok />
-        <div className="mt-12"><SectionTitle>Informasi Terbaru</SectionTitle></div>
+        <div className="mt-8 sm:mt-12"><SectionTitle>Informasi Terbaru</SectionTitle></div>
         <InformasiTerbaru mode="jalur" />
         <div className="hp-pad mt-8 flex justify-end">
           <Link href="/informasi" className={tombol}>Informasi Lainnya &rarr;</Link>
         </div>
       </section>
 
-      <section className={`${wadah} pt-14`}>
+      <section className={`${wadah} pt-8 sm:pt-14`}>
         <SectionTitle>Agenda Kegiatan</SectionTitle>
         <AgendaKartu />
         <div className="hp-pad mt-8 flex justify-end">
@@ -124,7 +124,7 @@ export default async function Home() {
       </section>
 
       {vids.length > 0 && (
-        <section className={`${wadah} pt-14`}>
+        <section className={`${wadah} pt-8 sm:pt-14`}>
           <SectionTitle>Video Pilihan</SectionTitle>
           <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {vidAtas.map((v) => <VideoCard key={v.id} v={v} />)}

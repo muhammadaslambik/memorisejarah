@@ -9,7 +9,7 @@ export function GambarCard({ g }: { g: G }) {
   return (
     <Link
       href={`/gambar/${g.slug}`}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-ms-line bg-ms-surface transition hover:-translate-y-1 hover:border-ms-gold/50"
+      className="group flex flex-col overflow-hidden rounded-xl border border-ms-line bg-ms-surface transition hover:-translate-y-1 hover:border-ms-gold/50"
     >
       <div className="aspect-[4/3] overflow-hidden bg-ms-bg">
         <img src={kecil(g.url)} alt={g.title} loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />

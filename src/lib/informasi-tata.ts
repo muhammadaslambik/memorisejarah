@@ -10,7 +10,7 @@ export type JenisFont = "bawaan" | "serif" | "sans" | "mono";
 export type GayaBlok = { lebar: number; tinggi: number; bentuk: Bentuk; latar: string; teks: string; font: JenisFont; skala: number; animasi: string; sembunyi: boolean };
 export type TataInformasi = { urutan: BlokId[]; gaya: Record<BlokId, GayaBlok> };
 
-export const RADIUS: Record<Bentuk, string> = { kotak: "0.25rem", sedang: "1rem", besar: "1.5rem", pil: "3rem" };
+export const RADIUS: Record<Bentuk, string> = { kotak: "0.25rem", sedang: "0.5rem", besar: "0.75rem", pil: "3rem" };
 export const LATAR: Record<string, { nama: string; css: string }> = {
   merah: { nama: "Merah tua", css: "linear-gradient(135deg,#991b1b,#450a0a)" },
   krem: { nama: "Krem", css: "#f3e9d8" },

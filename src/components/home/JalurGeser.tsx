@@ -8,7 +8,7 @@ export function JalurGeser({ children }: { children: React.ReactNode }) {
   const bulat = "absolute top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-ms-line bg-ms-bg/90 text-2xl leading-none text-ms-cream transition hover:border-ms-gold hover:text-ms-gold md:flex";
   return (
     <div className="relative">
-      <div ref={ref} className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">{children}</div>
+      <div ref={ref} className="flex snap-x snap-mandatory gap-2.5 overflow-x-auto sm:gap-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">{children}</div>
       <button type="button" aria-label="Geser ke kiri" onClick={() => geser(-1)} className={`${bulat} -left-3`}>&lsaquo;</button>
       <button type="button" aria-label="Geser ke kanan" onClick={() => geser(1)} className={`${bulat} -right-3`}>&rsaquo;</button>
     </div>

@@ -23,7 +23,7 @@ export default async function Video({ searchParams }: { searchParams: Promise<{ 
         <h1 className="font-serif text-2xl sm:text-4xl font-bold md:text-5xl">Video</h1>
         <p className="mt-3 max-w-2xl text-ms-cream/70">Diskusi, dokumenter, dan kisah sejarah dalam bentuk video.</p>
         {tampil.length > 0 ? (
-          <div className="mt-8 grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-5">
+          <div className="mt-8 grid grid-cols-2 gap-2.5 sm:gap-5 md:grid-cols-3 lg:grid-cols-5">
             {tampil.map((v) => <VideoCard key={v.id} v={v} />)}
           </div>
         ) : (

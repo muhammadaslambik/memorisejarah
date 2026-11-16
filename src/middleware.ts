@@ -6,8 +6,8 @@ import { buatToken, kunciSesi, opsiCookieSesi, PERBARUI_SETELAH_DETIK } from "@/
 export async function middleware(req: NextRequest) {
   if (req.nextUrl.pathname.startsWith("/admin/login")) return NextResponse.next();
   const token = req.cookies.get("session")?.value;
-  const ke = (alasan: string) => NextResponse.redirect(new URL(`/admin/login?alasan=${alasan}`, req.url));
-  if (!token) return ke("sesi");
+  const ke = (alasan: string, info = "") => NextResponse.redirect(new URL(`/admin/login?alasan=${alasan}${info}`, req.url));
+  if (!token) return ke("sesi", `&h=${encodeURIComponent(req.nextUrl.hostname)}&c=${req.cookies.getAll().length}`);
   try {
     const { payload } = await jwtVerify(token, kunciSesi());
     const res = NextResponse.next();

@@ -90,7 +90,7 @@ export default async function Dashboard() {
                   <Link href={`/admin/artikel/${p.id}`} className="flex items-center gap-3 py-3">
                     {p.coverUrl ? <img src={kecil(p.coverUrl, 120)} alt="" loading="lazy" referrerPolicy="no-referrer" className="h-12 w-16 shrink-0 rounded-lg object-cover" /> : <span className="a-ico h-12 w-16 shrink-0 rounded-lg" style={{ ["--c" as string]: "var(--a-accent)" }}><IkonAdmin nama="artikel" /></span>}
                     <span className="min-w-0 flex-1">
-                      <span className="line-clamp-2 block text-[13px] font-semibold leading-snug sm:text-sm">{p.title}</span>
+                      <span className="line-clamp-2 block text-[12px] font-semibold leading-snug sm:text-sm">{p.title}</span>
                       <span className="a-muted mt-0.5 flex items-center gap-2 text-xs">{tgl(p.updatedAt)}<span className={`a-chip sm:hidden ${CHIP[p.status]}`}>{LABEL[p.status]}</span></span>
                     </span>
                     <span className={`a-chip max-sm:hidden ${CHIP[p.status]}`}>{LABEL[p.status]}</span>

@@ -6,6 +6,7 @@ import { kolomKartu } from "@/lib/kolom";
 import { PostCard, tanggal } from "@/components/content/PostCard";
 import { PostCardMini } from "@/components/content/PostCardMini";
 import { HeroCarousel } from "@/components/home/HeroCarousel";
+import { getSitus } from "@/lib/situs";
 import { SectionTitle } from "@/components/home/SectionTitle";
 import { InformasiBlok } from "@/components/home/InformasiBlok";
 import { InformasiTerbaru } from "@/components/home/InformasiTerbaru";
@@ -21,11 +22,14 @@ const wadah = "hp-mepet mx-auto max-w-[90rem] px-1 sm:px-6 md:px-10 lg:px-16";
 
 export default async function Home() {
   const d = db();
-  const [hasil, cats, vids] = await Promise.all([
+  const heroN = Math.min(100, Math.max(1, Math.round(Number((await getSitus()).heroJumlah)) || 4));
+  const [hasil, cats, vids, hero] = await Promise.all([
     d.select({ p: kolomKartu, penulis: users.name }).from(posts).leftJoin(users, eq(posts.authorId, users.id))
       .where(eq(posts.status, "published")).orderBy(desc(posts.publishedAt)).limit(13),
     d.select().from(categories),
     d.select().from(videos).where(eq(videos.status, "published")).orderBy(desc(videos.featured), desc(videos.publishedAt)).limit(15),
+    d.select({ p: kolomKartu, penulis: users.name }).from(posts).leftJoin(users, eq(posts.authorId, users.id))
+      .where(eq(posts.status, "published")).orderBy(desc(posts.featured), desc(posts.publishedAt)).limit(heroN),
   ]);
   const rows = hasil.map((r) => ({ ...r.p, penulis: r.penulis ?? "" }));
   const namaKat = new Map(cats.map((c) => [c.id, c.name]));
@@ -43,13 +47,13 @@ export default async function Home() {
     return <div className="-mb-16 min-h-[60vh] bg-ms-bg px-5 py-24 text-center text-ms-cream/70">Belum ada artikel.</div>;
   }
 
-  const slides = pilihan.map((p) => ({
-    slug: p.slug, title: p.title, coverUrl: p.coverUrl, kategori: kat(p.categoryId),
-    tanggal: tanggal(p.publishedAt), penulis: p.penulis,
+  const slides = hero.map((r) => ({
+    slug: r.p.slug, title: r.p.title, coverUrl: r.p.coverUrl, kategori: kat(r.p.categoryId),
+    tanggal: tanggal(r.p.publishedAt), penulis: r.penulis ?? "",
   }));
   const vidAtas = vids.slice(0, 3);
   const vidStrip = vids.slice(3);
-  const grid5 = "mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5";
+  const grid5 = "mt-6 grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5";
 
   return (
     <div className="-mb-16 min-h-[70vh] bg-ms-bg pb-24 text-ms-cream">
@@ -59,7 +63,7 @@ export default async function Home() {
 
       <section className={`${wadah} pt-8 sm:pt-14`}>
         <SectionTitle>&#9733; Artikel Pilihan</SectionTitle>
-        <div className="mt-6 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+        <div className="mt-6 grid gap-3 sm:gap-6 lg:grid-cols-[1.4fr_1fr]">
           <Link href={`/artikel/${utama.slug}`} className="group grid overflow-hidden rounded-xl border border-ms-line bg-ms-surface md:grid-cols-2">
             <div className="relative min-h-60 bg-ms-bg">
               {utama.coverUrl && <img src={utama.coverUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />}
@@ -73,7 +77,7 @@ export default async function Home() {
               </span>
             </div>
           </Link>
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2.5 sm:gap-4">
             {samping.map((p, i) => (
               <Link key={p.id} href={`/artikel/${p.slug}`} className="group flex items-center gap-4 rounded-xl border border-ms-line bg-ms-surface p-4 transition hover:border-ms-gold/50">
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-ms-line font-serif text-ms-gold">{i + 1}</span>
@@ -91,7 +95,7 @@ export default async function Home() {
 
       <section className={`${wadah} pt-8 sm:pt-14`}>
         <SectionTitle>Artikel Terbaru</SectionTitle>
-        <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-6 grid gap-3 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
           {baris1.map((p) => <PostCard key={p.id} p={p} kategori={kat(p.categoryId)} />)}
         </div>
         {baris2.length > 0 && (
@@ -126,7 +130,7 @@ export default async function Home() {
       {vids.length > 0 && (
         <section className={`${wadah} pt-8 sm:pt-14`}>
           <SectionTitle>Video Pilihan</SectionTitle>
-          <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-6 grid gap-3 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
             {vidAtas.map((v) => <VideoCard key={v.id} v={v} />)}
           </div>
           {vidStrip.length > 0 && (

@@ -15,6 +15,7 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
   const [hover, setHover] = useState(false);
   const [disentuh, setDisentuh] = useState(false); // pengguna sedang menggeser: hentikan putar otomatis sementara
   const reda = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mulai = Math.min(Math.max(0, n - 5), Math.max(0, i - 2)); // paling banyak 5 titik terlihat, ukuran titik tetap kecil
 
   const ke = useCallback((k: number) => {
     const el = jalur.current;
@@ -81,7 +82,7 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
             aria-label={`${k + 1} dari ${n}: ${s.title}`}
             className="group relative h-full w-full shrink-0 snap-center"
           >
-            {s.coverUrl && <img src={s.coverUrl} alt="" draggable={false} className="absolute inset-0 h-full w-full select-none object-cover" />}
+            {s.coverUrl && <img src={s.coverUrl} alt="" draggable={false} loading={k < 2 ? "eager" : "lazy"} decoding="async" className="absolute inset-0 h-full w-full select-none object-cover" />}
             <div className="absolute inset-0 bg-gradient-to-t from-ms-bg via-ms-bg/55 to-transparent" />
             <div className="absolute inset-x-0 bottom-0 px-4 pb-10 sm:px-16 md:pb-12">
               <div className="flex flex-wrap items-center gap-3 text-xs text-ms-cream/80">
@@ -95,6 +96,7 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
       </div>
       {n > 1 && (
         <>
+          <div className="absolute right-3 top-3 z-20 rounded-full border border-ms-line bg-ms-bg/80 px-2.5 py-1 text-[11px] font-semibold text-ms-cream/90 sm:right-5 sm:top-4" aria-hidden="true">{i + 1}/{n}</div>
           <button type="button" aria-label="Sebelumnya" onClick={() => { sentuh(); ke(i - 1); }} className={`${bulat} left-3 sm:left-5`}>&lsaquo;</button>
           <button type="button" aria-label="Berikutnya" onClick={() => { sentuh(); ke(i + 1); }} className={`${bulat} right-3 sm:right-5`}>&rsaquo;</button>
           <div className="absolute bottom-4 right-4 z-20 flex items-center gap-3 sm:right-16">
@@ -105,12 +107,15 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
               {jeda ? "\u25B6" : "II"}
             </button>
             <div className="flex items-center gap-2 rounded-full border border-ms-line bg-ms-bg/80 px-3 py-2">
-              {slides.map((s, k) => (
-                <button
-                  key={s.slug} type="button" aria-label={`Slide ${k + 1}`} onClick={() => { sentuh(); ke(k); }}
-                  className={`h-1.5 rounded-full transition-all ${k === i ? "w-6 bg-ms-gold" : "w-1.5 bg-ms-cream/40"}`}
-                />
-              ))}
+              {slides.slice(mulai, mulai + 5).map((s, j) => {
+                const k = mulai + j;
+                return (
+                  <button
+                    key={s.slug} type="button" aria-label={`Slide ${k + 1}`} onClick={() => { sentuh(); ke(k); }}
+                    className={`h-1.5 rounded-full transition-all ${k === i ? "w-6 bg-ms-gold" : "w-1.5 bg-ms-cream/40"}`}
+                  />
+                );
+              })}
             </div>
           </div>
         </>

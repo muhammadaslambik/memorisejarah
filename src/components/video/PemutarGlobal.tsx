@@ -342,7 +342,7 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
   const tampilKtl = useCallback(() => {
     setKtl(true);
     if (timerKtl.current) clearTimeout(timerKtl.current);
-    timerKtl.current = setTimeout(() => setKtl(false), 3000);
+    timerKtl.current = setTimeout(() => setKtl(false), 2500);
   }, []);
   const tampilMini = useCallback((otomatisSembunyi = true) => {
     setKtlMini(true);
@@ -352,7 +352,14 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
   useEffect(() => () => {
     [timerKtl, timerCatat, timerTidurRef, timerMini].forEach((t) => { if (t.current) clearTimeout(t.current); });
   }, []);
-  const kontrolTampil = ktl || !main || !!atur || lainnya;
+  const kontrolTampil = ktl || !!atur || lainnya || (!main && (!pernahMain || info.playerState === 0));
+  // klik/ketuk di luar pemutar utama: tombol navigasi video langsung tersembunyi
+  useEffect(() => {
+    if (mini) return;
+    const luar = (e: Event) => { if (!kotak.current?.contains(e.target as Node)) setKtl(false); };
+    document.addEventListener("pointerdown", luar, true);
+    return () => document.removeEventListener("pointerdown", luar, true);
+  }, [mini]);
   const miniTampil = ktlMini || !main || !!atur;
 
   const jeda = () => perintah(main ? "pauseVideo" : "playVideo");
@@ -398,6 +405,22 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
   // Saat dijeda YouTube menampilkan judul, "More videos", dan logonya sendiri: ditutup dengan sampul (pemutar tidak menerima kursor sama sekali).
   const jedaTampil = info.playerState === 2 && !tembus;
   const [kilat, setKilat] = useState<{ n: number; jeda: boolean } | null>(null); // ikon putar/jeda sesaat di tengah layar saat diklik
+  // Bingkai YouTube dibuat lebih tinggi dari layar dan digeser ke atas, sehingga judul (atas) serta logo, tautan, dan "More videos" (bawah) tidak terlihat.
+  const bungkus = useRef<HTMLDivElement>(null);
+  const [pad, setPad] = useState(90);
+  useEffect(() => {
+    const el = bungkus.current;
+    if (!el) return;
+    const hitung = () => {
+      const w = el.clientWidth, h = el.clientHeight;
+      if (!h) return;
+      setPad(w / h > 1.85 ? 0 : Math.min(90, Math.round(h * 0.4))); // layar sangat lebar: tanpa potongan agar gambar tidak terpangkas
+    };
+    hitung();
+    const ro = new ResizeObserver(hitung);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [bar]);
 
   const lebarMini = "w-[min(24rem,calc(100vw-1.5rem))]";
   const kelasKotak = !mini
@@ -405,7 +428,7 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
     : bar
       ? `fixed bottom-3 right-3 z-30 ${lebarMini} overflow-hidden rounded-full border border-ms-line bg-ms-bg shadow-2xl`
       : `fixed bottom-3 right-3 z-30 ${lebarMini} overflow-hidden rounded-xl border border-ms-line bg-black shadow-2xl`;
-  const kelasVideo = penuh ? "absolute inset-0 bg-black" : !mini ? "absolute inset-0 bg-black" : bar ? "fixed -left-[9999px] top-0 h-[180px] w-[320px]" : "relative aspect-video w-full bg-black";
+  const kelasVideo = penuh ? "absolute inset-0 overflow-hidden bg-black" : !mini ? "absolute inset-0 overflow-hidden bg-black" : bar ? "fixed -left-[9999px] top-0 h-[180px] w-[320px] overflow-hidden" : "relative aspect-video w-full overflow-hidden bg-black";
   const tombolMini = "grid h-7 w-7 place-items-center rounded-full hover:bg-white/20";
 
   const panel = atur && (
@@ -421,7 +444,7 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
       onPointerMove={mini ? undefined : tampilKtl}
       onPointerEnter={(e) => { if (!mini) tampilKtl(); else if (!bar && e.pointerType === "mouse") tampilMini(false); }}
       onPointerLeave={(e) => {
-        if (!mini) { if (main) setKtl(false); }
+        if (!mini) setKtl(false);
         else if (!bar && e.pointerType === "mouse") tampilMini(true);
       }}
       className={kelasKotak}
@@ -441,12 +464,13 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
         </div>
       )}
 
-      <div key="video" className={kelasVideo}>
+      <div key="video" ref={bungkus} className={kelasVideo}>
         <iframe
           ref={bingkai}
           src={src}
           title={video.title}
-          className={`h-full w-full ${tembus ? "" : "pointer-events-none"}`}
+          className={`absolute left-0 w-full ${tembus ? "" : "pointer-events-none"}`}
+          style={{ top: -pad, height: `calc(100% + ${pad * 2}px)` }}
           allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
           referrerPolicy="strict-origin-when-cross-origin"
           onLoad={langganan}
@@ -465,7 +489,7 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
             aria-label={mini ? "Tampilkan kontrol" : main ? "Jeda" : "Putar"}
             onClick={() => {
               if (barusTutup.current) { barusTutup.current = false; return; }
-              if (mini) { if (ktlMini) setKtlMini(false); else tampilMini(true); } else { setKilat({ n: Date.now(), jeda: main }); jeda(); }
+              if (mini) { if (ktlMini) setKtlMini(false); else tampilMini(true); } else { setKilat({ n: Date.now(), jeda: main }); jeda(); tampilKtl(); }
             }}
             onDoubleClick={mini ? undefined : layarPenuh}
             className={`absolute inset-0 z-10 cursor-pointer ${tembus ? "pointer-events-none" : ""}`}

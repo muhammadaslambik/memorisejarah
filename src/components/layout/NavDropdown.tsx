@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { navItem, navMenuBox } from "./nav-style";
+import { useTutupLuar } from "@/lib/tutup-luar";
 
 export function NavDropdown({ label, href, children }: { label: string; href?: string; children: React.ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -12,6 +13,7 @@ export function NavDropdown({ label, href, children }: { label: string; href?: s
     if (r) setPos({ top: r.bottom, left: r.left });
   };
   const tutup = () => setPos(null);
+  useTutupLuar(pos !== null, [ref], tutup); // klik pertama di luar hanya menutup menu
 
   useEffect(() => {
     if (!pos) return;

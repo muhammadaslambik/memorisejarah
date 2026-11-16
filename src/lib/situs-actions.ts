@@ -31,6 +31,7 @@ export async function saveSitus(fd: FormData) {
     instagram, youtube, whatsapp, email,
     sambutan1: teks(fd, "sambutan1", 500),
     sambutan2: teks(fd, "sambutan2", 500),
+    heroJumlah: Math.min(100, Math.max(1, Math.round(Number(fd.get("heroJumlah"))) || 4)),
   };
   await setSetting("situs", hasil);
   revalidatePath("/", "layout");

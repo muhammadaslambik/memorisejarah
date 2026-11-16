@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { navItem, navSub } from "./nav-style";
+import { useTutupLuar } from "@/lib/tutup-luar";
 
 type Tautan = { href: string; label: string };
 type Kunci = "artikel" | "pustaka" | null;
@@ -18,13 +19,13 @@ export function NavSeluler({ artikel, pustaka }: { artikel: Tautan[]; pustaka: T
   const jalur = usePathname();
 
   useEffect(() => { setBuka(null); }, [jalur]);
+  // klik/ketukan pertama di luar menu hanya menutup menu (tidak ikut membuka tautan di bawahnya)
+  useTutupLuar(buka !== null, [akar], () => setBuka(null));
   useEffect(() => {
     if (!buka) return;
-    const luar = (e: Event) => { if (!akar.current?.contains(e.target as Node)) setBuka(null); };
     const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setBuka(null); };
-    document.addEventListener("pointerdown", luar);
     document.addEventListener("keydown", esc);
-    return () => { document.removeEventListener("pointerdown", luar); document.removeEventListener("keydown", esc); };
+    return () => document.removeEventListener("keydown", esc);
   }, [buka]);
 
   const tombol = (k: Exclude<Kunci, null>, label: string) => (

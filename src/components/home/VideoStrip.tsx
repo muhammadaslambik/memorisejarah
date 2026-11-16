@@ -16,7 +16,7 @@ export function VideoStrip({ items }: { items: V[] }) {
     <div className="relative">
       <div
         ref={ref}
-        className="flex snap-x gap-4 overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex snap-x gap-2.5 overflow-x-auto sm:gap-4 scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {items.map((v) => (
           <Link
@@ -29,7 +29,7 @@ export function VideoStrip({ items }: { items: V[] }) {
                 <span className="flex h-9 w-9 items-center justify-center rounded-full bg-ms-bg/80 text-sm text-ms-gold">&#9654;</span>
               </span>
             </div>
-            <div className="p-3"><h3 className="line-clamp-3 font-serif text-sm font-bold leading-snug group-hover:text-ms-gold">{v.title}</h3></div>
+            <div className="p-3"><h3 className="line-clamp-3 font-serif text-[13px] font-bold leading-snug sm:text-sm group-hover:text-ms-gold">{v.title}</h3></div>
           </Link>
         ))}
       </div>

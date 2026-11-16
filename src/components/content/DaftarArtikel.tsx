@@ -24,7 +24,7 @@ export function DaftarArtikel(props: {
           {cats.filter((c) => !cats.some((x) => x.parentId === c.id)).map((c) => <Link key={c.id} href={`/kategori/${c.slug}`} className={chip(aktif === c.slug)}>{c.name}</Link>)}
         </div>
         {rows.length > 0 ? (
-          <div className="mt-8 grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-5">
+          <div className="mt-8 grid grid-cols-2 gap-2.5 sm:gap-5 md:grid-cols-3 lg:grid-cols-5">
             {rows.map((p) => <PostCardMini key={p.id} p={p} kategori={p.categoryId ? nama.get(p.categoryId) : undefined} />)}
           </div>
         ) : (

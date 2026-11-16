@@ -18,7 +18,7 @@ export function VideoCard({ v }: { v: V }) {
       </div>
       <div className="p-5">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-ms-gold">{tanggal(v.publishedAt)}</p>
-        <h3 className="mt-2 font-serif text-lg font-bold leading-snug text-ms-cream group-hover:text-ms-gold">{v.title}</h3>
+        <h3 className="mt-2 font-serif text-base font-bold leading-snug text-ms-cream group-hover:text-ms-gold">{v.title}</h3>
       </div>
     </Link>
   );

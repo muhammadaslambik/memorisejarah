@@ -22,6 +22,13 @@ export default async function AdminSitus({ searchParams }: { searchParams: Promi
       {error && <p className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{errors[error] ?? "Terjadi kesalahan."}</p>}
       <form action={saveSitus} className="mt-6 space-y-5">
         <fieldset className="space-y-3 rounded-xl bg-white/70 p-5">
+          <legend className="px-1 text-sm font-medium">Hero Beranda</legend>
+          <label className="block text-sm">Jumlah artikel di hero (1 sampai 100)
+            <input name="heroJumlah" type="number" min={1} max={100} step={1} defaultValue={s.heroJumlah} className={input} />
+          </label>
+          <p className="a-muted text-xs">Artikel bertanda pilihan (bintang) didahulukan, lalu artikel terbaru. Penanda di hero tetap kecil dan menampilkan posisi, misalnya 3/50.</p>
+        </fieldset>
+        <fieldset className="space-y-3 rounded-xl bg-white/70 p-5">
           <legend className="px-1 text-sm font-medium">Sosial media dan kontak</legend>
           <label className="block text-sm">Instagram (@nama atau tautan)
             <input name="instagram" defaultValue={s.instagram} maxLength={200} className={input} />

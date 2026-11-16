@@ -101,7 +101,7 @@ export default async function DaftarArtikel({ searchParams }: { searchParams: Pr
                     ? <img src={kecil(p.coverUrl, 140)} alt="" loading="lazy" referrerPolicy="no-referrer" className="h-14 w-20 shrink-0 rounded-lg object-cover" />
                     : <span className="a-ico h-14 w-20 shrink-0 rounded-lg" style={{ ["--c" as string]: "var(--a-accent)" }}><IkonAdmin nama="artikel" /></span>}
                   <span className="min-w-0">
-                    <span className="block truncate font-semibold max-sm:line-clamp-2 max-sm:whitespace-normal max-sm:text-[13px] max-sm:leading-snug">{p.title}</span>
+                    <span className="block truncate font-semibold max-sm:line-clamp-2 max-sm:whitespace-normal max-sm:text-[12px] max-sm:leading-snug">{p.title}</span>
                     <span className="a-muted mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs">
                       <span className={`a-chip ${CHIP[p.status]}`}>{LABEL[p.status]}</span>
                       {p.categoryId && nama.get(p.categoryId) && <span>{nama.get(p.categoryId)}</span>}

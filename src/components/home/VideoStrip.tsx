@@ -16,7 +16,7 @@ export function VideoStrip({ items }: { items: V[] }) {
     <div className="relative">
       <div
         ref={ref}
-        className="flex snap-x gap-2.5 overflow-x-auto sm:gap-4 scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex snap-x gap-1.5 overflow-x-auto sm:gap-4 scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {items.map((v) => (
           <Link

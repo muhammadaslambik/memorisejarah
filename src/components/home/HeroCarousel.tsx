@@ -17,19 +17,51 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
   const reda = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mulai = Math.min(Math.max(0, n - 5), Math.max(0, i - 2)); // paling banyak 5 titik terlihat, ukuran titik tetap kecil
 
-  const ke = useCallback((k: number) => {
+  // Putaran tanpa ujung: setelah artikel terakhir ada salinan artikel pertama. Begitu salinan itu terlihat dan geseran berhenti,
+  // posisi dipindahkan diam-diam ke artikel pertama yang asli, sehingga pengguna merasa terus bergeser dari awal lagi.
+  const loop = n > 1;
+  const item = loop ? [...slides, slides[0]] : slides;
+  const settle = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const ditekan = useRef(false);
+
+  const lompat = useCallback((m: number) => {
     const el = jalur.current;
     if (!el) return;
-    const t = ((k % n) + n) % n;
-    el.scrollTo({ left: t * el.clientWidth, behavior: "smooth" });
-  }, [n]);
+    el.style.scrollSnapType = "none";
+    el.style.scrollBehavior = "auto";
+    el.scrollLeft = m * el.clientWidth;
+    requestAnimationFrame(() => { el.style.scrollSnapType = ""; el.style.scrollBehavior = ""; });
+  }, []);
+
+  const ke = useCallback((k: number) => {
+    const el = jalur.current;
+    if (!el || n < 1) return;
+    const w = el.clientWidth;
+    if (k >= n) { el.scrollTo({ left: n * w, behavior: "smooth" }); return; } // ke salinan, lalu dipindah ke awal
+    if (k < 0) {
+      if (loop) { lompat(n); requestAnimationFrame(() => el.scrollTo({ left: (n - 1) * w, behavior: "smooth" })); }
+      return;
+    }
+    el.scrollTo({ left: k * w, behavior: "smooth" });
+  }, [n, loop, lompat]);
 
   // posisi aktif mengikuti geseran (untuk titik penanda)
   const saatGeser = () => {
     const el = jalur.current;
     if (!el || el.clientWidth === 0) return;
-    setI(Math.min(n - 1, Math.max(0, Math.round(el.scrollLeft / el.clientWidth))));
+    const m = Math.round(el.scrollLeft / el.clientWidth);
+    setI(m >= n ? 0 : Math.max(0, m));
+    if (!loop) return;
+    if (settle.current) clearTimeout(settle.current);
+    const cek = () => {
+      const e2 = jalur.current;
+      if (!e2 || e2.clientWidth === 0) return;
+      if (ditekan.current) { settle.current = setTimeout(cek, 150); return; } // jari masih menahan: tunggu
+      if (Math.round(e2.scrollLeft / e2.clientWidth) >= n) lompat(0);
+    };
+    settle.current = setTimeout(cek, 160);
   };
+  useEffect(() => () => { if (settle.current) clearTimeout(settle.current); }, []);
 
   // setelah pengguna selesai berinteraksi, tunggu sebentar sebelum putar otomatis berlanjut
   const sentuh = () => {
@@ -67,22 +99,28 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
       <div
         ref={jalur}
         onScroll={saatGeser}
-        onTouchStart={sentuh}
+        onTouchStart={() => { ditekan.current = true; sentuh(); }}
+        onTouchEnd={() => { ditekan.current = false; }}
+        onTouchCancel={() => { ditekan.current = false; }}
         onWheel={sentuh}
-        onPointerDown={sentuh}
+        onPointerDown={() => { ditekan.current = true; sentuh(); }}
+        onPointerUp={() => { ditekan.current = false; }}
+        onPointerCancel={() => { ditekan.current = false; }}
         className="flex h-[340px] snap-x snap-mandatory overflow-x-auto overscroll-x-contain [scrollbar-width:none] sm:h-[400px] lg:h-[440px] [&::-webkit-scrollbar]:hidden"
         style={{ WebkitOverflowScrolling: "touch" }}
         aria-roledescription="karusel"
       >
-        {slides.map((s, k) => (
+        {item.map((s, k) => (
           <Link
-            key={s.slug}
+            key={`${k}-${s.slug}`}
             href={`/artikel/${s.slug}`}
             draggable={false}
-            aria-label={`${k + 1} dari ${n}: ${s.title}`}
+            tabIndex={k >= n ? -1 : undefined}
+            aria-hidden={k >= n ? true : undefined}
+            aria-label={`${(k % n) + 1} dari ${n}: ${s.title}`}
             className="group relative h-full w-full shrink-0 snap-center"
           >
-            {s.coverUrl && <img src={s.coverUrl} alt="" draggable={false} loading={k < 2 ? "eager" : "lazy"} decoding="async" className="absolute inset-0 h-full w-full select-none object-cover" />}
+            {s.coverUrl && <img src={s.coverUrl} alt="" draggable={false} loading={k < 2 || k >= n ? "eager" : "lazy"} decoding="async" className="absolute inset-0 h-full w-full select-none object-cover" />}
             <div className="absolute inset-0 bg-gradient-to-t from-ms-bg via-ms-bg/55 to-transparent" />
             <div className="absolute inset-x-0 bottom-0 px-4 pb-10 sm:px-16 md:pb-12">
               <div className="flex flex-wrap items-center gap-3 text-xs text-ms-cream/80">

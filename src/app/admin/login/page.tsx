@@ -6,24 +6,24 @@ import { PasswordInput } from "@/components/PasswordInput";
 
 export const dynamic = "force-dynamic";
 
-export default async function Login({ searchParams }: { searchParams: Promise<{ error?: string; ok?: string; alasan?: string; r?: string; h?: string; c?: string }> }) {
-  const { error, ok, alasan, r, h, c } = await searchParams;
+export default async function Login({ searchParams }: { searchParams: Promise<{ error?: string; ok?: string; alasan?: string; r?: string; h?: string; c?: string; n?: string; j?: string }> }) {
+  const { error, ok, alasan, r, h, c, n, j } = await searchParams;
   const canRegister = await registrationOpen();
   return (
     <form action={login} className="mx-auto mt-20 max-w-sm space-y-4 rounded-2xl border border-ms-line bg-ms-surface p-8 text-ms-cream shadow-xl">
       <h1 className="font-serif text-2xl">Masuk CMS</h1>
-      {alasan === "sesi" && <p className="text-sm text-amber-300">Sesi login tidak ditemukan (cookie hilang atau dihapus peramban). Silakan masuk lagi.</p>}
-      {alasan === "sesi" && h && <p className="text-[11px] text-white/50">Info teknis: alamat {h.replace(/[^a-z0-9.-]/gi, "").slice(0, 60)}, jumlah cookie terkirim {String(c ?? "").replace(/\D/g, "").slice(0, 3)}.</p>}
-      {alasan === "habis" && <p className="text-sm text-amber-300">Sesi login sudah berakhir. Silakan masuk lagi.</p>}
-      {alasan === "tidak-valid" && <p className="text-sm text-amber-300">Sesi login tidak valid (kunci sesi berubah atau cookie rusak). Silakan masuk lagi.</p>}
-      {alasan === "akun" && <p className="text-sm text-amber-300">Akun tidak ditemukan atau sedang dinonaktifkan. Silakan masuk lagi atau hubungi admin.</p>}
-      {ok === "terdaftar" && <p className="text-sm text-emerald-400">Pendaftaran berhasil. Silakan masuk.</p>}
-      {error === "locked" && <p className="text-sm text-rose-400">Terlalu banyak percobaan gagal. Coba lagi dalam 15 menit.</p>}
-      {error === "pending" && <p className="text-sm text-rose-400">Akun Anda masih menunggu persetujuan admin.</p>}
-      {error === "google-belum" && <p className="text-sm text-rose-400">Email Google itu belum terdaftar. Minta admin menambahkannya, atau daftar lebih dulu.</p>}
-      {error === "google-nonaktif" && <p className="text-sm text-rose-400">Akun untuk email itu sedang dinonaktifkan.</p>}
-      {error === "google-gagal" && <p className="text-sm text-rose-400">Masuk dengan Google gagal. Coba lagi.{r ? ` (kode: ${r.replace(/[^a-z-]/g, "").slice(0, 20)})` : ""}</p>}
-      {error === "1" && <p className="text-sm text-rose-400">Email atau password salah.</p>}
+      {alasan === "sesi" && <p className="text-sm text-ms-gold">Sesi login tidak ditemukan (cookie hilang atau dihapus peramban). Silakan masuk lagi.</p>}
+      {alasan === "sesi" && h && <p className="break-words text-[11px] text-ms-cream/70">Info teknis: alamat {h.replace(/[^a-z0-9.-]/gi, "").slice(0, 60)}, cookie terkirim {String(c ?? "").replace(/\D/g, "").slice(0, 3)}{n ? ` (${n.replace(/[^a-zA-Z0-9_,.-]/g, "").slice(0, 80)})` : ""}{j ? `, permintaan ${j.replace(/[^a-zA-Z0-9/_-]/g, "").slice(0, 40)}` : ""}.</p>}
+      {alasan === "habis" && <p className="text-sm text-ms-gold">Sesi login sudah berakhir. Silakan masuk lagi.</p>}
+      {alasan === "tidak-valid" && <p className="text-sm text-ms-gold">Sesi login tidak valid (kunci sesi berubah atau cookie rusak). Silakan masuk lagi.</p>}
+      {alasan === "akun" && <p className="text-sm text-ms-gold">Akun tidak ditemukan atau sedang dinonaktifkan. Silakan masuk lagi atau hubungi admin.</p>}
+      {ok === "terdaftar" && <p className="text-sm text-emerald-600">Pendaftaran berhasil. Silakan masuk.</p>}
+      {error === "locked" && <p className="text-sm text-rose-600">Terlalu banyak percobaan gagal. Coba lagi dalam 15 menit.</p>}
+      {error === "pending" && <p className="text-sm text-rose-600">Akun Anda masih menunggu persetujuan admin.</p>}
+      {error === "google-belum" && <p className="text-sm text-rose-600">Email Google itu belum terdaftar. Minta admin menambahkannya, atau daftar lebih dulu.</p>}
+      {error === "google-nonaktif" && <p className="text-sm text-rose-600">Akun untuk email itu sedang dinonaktifkan.</p>}
+      {error === "google-gagal" && <p className="text-sm text-rose-600">Masuk dengan Google gagal. Coba lagi.{r ? ` (kode: ${r.replace(/[^a-z-]/g, "").slice(0, 20)})` : ""}</p>}
+      {error === "1" && <p className="text-sm text-rose-600">Email atau password salah.</p>}
       <input name="email" type="email" placeholder="Email" required className="w-full rounded border border-ms-line bg-ms-bg p-2 text-ms-cream placeholder:text-ms-cream/40" />
       <PasswordInput name="password" placeholder="Password" className="rounded border border-ms-line bg-ms-bg p-2 text-ms-cream placeholder:text-ms-cream/40" />
       <button className="w-full rounded bg-ms-gold py-2 font-semibold text-ms-bg hover:opacity-90">Masuk</button>

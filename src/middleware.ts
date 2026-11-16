@@ -7,7 +7,11 @@ export async function middleware(req: NextRequest) {
   if (req.nextUrl.pathname.startsWith("/admin/login")) return NextResponse.next();
   const token = req.cookies.get("session")?.value;
   const ke = (alasan: string, info = "") => NextResponse.redirect(new URL(`/admin/login?alasan=${alasan}${info}`, req.url));
-  if (!token) return ke("sesi", `&h=${encodeURIComponent(req.nextUrl.hostname)}&c=${req.cookies.getAll().length}`);
+  if (!token) {
+    const semua = req.cookies.getAll();
+    const jenis = [req.headers.get("rsc") ? "rsc" : "nav", req.headers.get("sec-fetch-dest") || "-", req.headers.get("sec-fetch-mode") || "-", req.headers.get("sec-fetch-site") || "-"].join("/");
+    return ke("sesi", `&h=${encodeURIComponent(req.nextUrl.hostname)}&c=${semua.length}&n=${encodeURIComponent(semua.map((x) => x.name).join(",").slice(0, 80))}&j=${encodeURIComponent(jenis)}`);
+  }
   try {
     const { payload } = await jwtVerify(token, kunciSesi());
     const res = NextResponse.next();

@@ -8,7 +8,7 @@ import { VideoStrip } from "./VideoStrip";
 
 export function ProgramKosong({ jumlah = 5 }: { jumlah?: number }) {
   return (
-    <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
+    <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
       {Array.from({ length: jumlah }).map((_, i) => (
         <div key={i} className="overflow-hidden rounded-xl border border-dashed border-ms-line bg-ms-surface/50">
           <div className="flex aspect-video items-center justify-center bg-ms-bg text-ms-cream/25">
@@ -25,7 +25,7 @@ export async function ProgramBlok() {
   const agenda = await getAgenda();
   const semua = await db().select().from(videos).where(eq(videos.status, "published")).orderBy(desc(videos.publishedAt));
   return (
-    <div className="space-y-12">
+    <div className="space-y-7 sm:space-y-12">
       {agenda.map((a) => {
         const items = semua.filter((v) => v.programs.includes(a.slug));
         return (

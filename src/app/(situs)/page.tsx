@@ -53,7 +53,7 @@ export default async function Home() {
   }));
   const vidAtas = vids.slice(0, 3);
   const vidStrip = vids.slice(3);
-  const grid5 = "mt-6 grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5";
+  const grid5 = "mt-6 grid grid-cols-2 gap-1.5 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5";
 
   return (
     <div className="-mb-16 min-h-[70vh] bg-ms-bg pb-24 text-ms-cream">

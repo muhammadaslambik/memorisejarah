@@ -342,8 +342,9 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
   const tampilKtl = useCallback(() => {
     setKtl(true);
     if (timerKtl.current) clearTimeout(timerKtl.current);
-    timerKtl.current = setTimeout(() => setKtl(false), 2500);
-  }, []);
+    timerKtl.current = setTimeout(() => setKtl(false), sentuh ? 6000 : 2500); // di layar sentuh lebih lama (tidak ada kursor yang menjaga)
+  }, [sentuh]);
+  const ktlSaatTekan = useRef(false); // apakah kontrol sudah terlihat ketika layar mulai disentuh
   const tampilMini = useCallback((otomatisSembunyi = true) => {
     setKtlMini(true);
     if (timerMini.current) clearTimeout(timerMini.current);
@@ -352,7 +353,9 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
   useEffect(() => () => {
     [timerKtl, timerCatat, timerTidurRef, timerMini].forEach((t) => { if (t.current) clearTimeout(t.current); });
   }, []);
-  const kontrolTampil = ktl || !!atur || lainnya || (!main && (!pernahMain || info.playerState === 0));
+  const kontrolTampil = ktl || !!atur || lainnya || (!main && (!pernahMain || info.playerState === 0 || sentuh));
+  // begitu video mulai berputar, hitungan sembunyi otomatis dimulai (tanpa menunggu interaksi pertama)
+  useEffect(() => { if (main && !mini) tampilKtl(); }, [main, mini, tampilKtl]);
   // klik/ketuk di luar pemutar utama: tombol navigasi video langsung tersembunyi
   useEffect(() => {
     if (mini) return;
@@ -444,7 +447,8 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
       onPointerMove={mini ? undefined : tampilKtl}
       onPointerEnter={(e) => { if (!mini) tampilKtl(); else if (!bar && e.pointerType === "mouse") tampilMini(false); }}
       onPointerLeave={(e) => {
-        if (!mini) setKtl(false);
+        // di layar sentuh, pointerleave terpicu begitu jari diangkat: jangan sembunyikan kontrol karenanya
+        if (!mini) { if (e.pointerType === "mouse") setKtl(false); }
         else if (!bar && e.pointerType === "mouse") tampilMini(true);
       }}
       className={kelasKotak}
@@ -487,9 +491,13 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
           <button
             type="button"
             aria-label={mini ? "Tampilkan kontrol" : main ? "Jeda" : "Putar"}
+            onPointerDown={() => { ktlSaatTekan.current = kontrolTampil; }}
             onClick={() => {
               if (barusTutup.current) { barusTutup.current = false; return; }
-              if (mini) { if (ktlMini) setKtlMini(false); else tampilMini(true); } else { setKilat({ n: Date.now(), jeda: main }); jeda(); tampilKtl(); }
+              if (mini) { if (ktlMini) setKtlMini(false); else tampilMini(true); return; }
+              // layar sentuh: ketukan pertama hanya memunculkan tombol; ketukan berikutnya memutar/menjeda
+              if (sentuh && !ktlSaatTekan.current) { tampilKtl(); return; }
+              setKilat({ n: Date.now(), jeda: main }); jeda(); tampilKtl();
             }}
             onDoubleClick={mini ? undefined : layarPenuh}
             className={`absolute inset-0 z-10 cursor-pointer ${tembus ? "pointer-events-none" : ""}`}

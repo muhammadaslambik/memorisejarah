@@ -444,8 +444,8 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
   return (
     <div
       ref={kotak}
-      onPointerMove={mini ? undefined : tampilKtl}
-      onPointerEnter={(e) => { if (!mini) tampilKtl(); else if (!bar && e.pointerType === "mouse") tampilMini(false); }}
+      onPointerMove={mini ? undefined : (e) => { if (e.pointerType !== "touch") tampilKtl(); }}
+      onPointerEnter={(e) => { if (!mini) { if (e.pointerType !== "touch") tampilKtl(); } else if (!bar && e.pointerType === "mouse") tampilMini(false); }}
       onPointerLeave={(e) => {
         // di layar sentuh, pointerleave terpicu begitu jari diangkat: jangan sembunyikan kontrol karenanya
         if (!mini) { if (e.pointerType === "mouse") setKtl(false); }

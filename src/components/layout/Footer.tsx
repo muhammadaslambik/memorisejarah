@@ -31,7 +31,7 @@ export async function Footer() {
     <footer className="border-t border-ms-line bg-ms-bg text-ms-cream">
       <div className="mx-auto grid max-w-[90rem] gap-8 px-6 py-10 sm:gap-10 sm:py-12 md:grid-cols-2 md:px-10 lg:grid-cols-[1.5fr_1fr_1fr_1.2fr] lg:px-16">
         <div>
-          <Logo />
+          <Logo taglineSelalu />
           {s.sambutan1 && <p className="mt-4 max-w-sm text-sm text-ms-gold">{s.sambutan1}</p>}
           {s.sambutan2 && <p className="mt-3 max-w-sm text-sm text-ms-cream/60">{s.sambutan2}</p>}
         </div>

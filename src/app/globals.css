@@ -283,7 +283,8 @@ body { top: 0 !important; }
 @media (prefers-reduced-motion: reduce) { .ms-anim, .ms-anim::after { animation: none !important; opacity: 1 !important; transform: none !important; } }
 
 /* PAKET-21: grid 12 kolom Informasi Pilihan + pengaturan teks per blok */
-.ms-grid { display: grid; gap: 1.5rem; grid-template-columns: minmax(0, 1fr); }
+.ms-grid { display: grid; gap: 0.5rem; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 640px) { .ms-grid { gap: 0.75rem; } }
 .ms-blok { min-width: 0; }
 @media (min-width: 1024px) { .ms-grid { grid-template-columns: repeat(12, minmax(0, 1fr)); } .ms-blok { grid-column: span var(--span, 12); } }
 .ms-teks-paksa :is(h1, h2, h3, h4, p, span, a, li, label, input, textarea) { color: var(--ms-teks) !important; }

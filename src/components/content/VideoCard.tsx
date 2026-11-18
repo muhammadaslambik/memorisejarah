@@ -8,10 +8,10 @@ export function VideoCard({ v }: { v: V }) {
   return (
     <Link
       href={`/video/${v.slug}`}
-      className="group flex flex-col overflow-hidden rounded-xl border border-ms-line bg-ms-surface transition hover:-translate-y-1 hover:border-ms-gold/50"
+      className="group flex flex-col overflow-hidden rounded-xl border border-ms-line bg-ms-surface transition [@media(hover:hover)]:hover:-translate-y-1 hover:border-ms-gold/50"
     >
       <div className="relative aspect-video overflow-hidden bg-ms-bg">
-        <img src={`https://i.ytimg.com/vi/${v.youtubeId}/hqdefault.jpg`} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+        <img src={`https://i.ytimg.com/vi/${v.youtubeId}/hqdefault.jpg`} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover [@media(hover:hover)]:transition [@media(hover:hover)]:duration-500 [@media(hover:hover)]:group-hover:scale-105" />
         <span className="absolute inset-0 flex items-center justify-center">
           <span className="flex h-12 w-12 items-center justify-center rounded-full bg-ms-bg/80 text-ms-gold">&#9654;</span>
         </span>

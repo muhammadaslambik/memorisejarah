@@ -16,7 +16,7 @@ export function VideoStrip({ items }: { items: V[] }) {
     <div className="relative">
       <div
         ref={ref}
-        className="flex snap-x gap-1.5 overflow-x-auto sm:gap-4 scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex snap-x gap-1.5 overflow-x-auto overscroll-x-contain sm:gap-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {items.map((v) => (
           <Link
@@ -24,7 +24,7 @@ export function VideoStrip({ items }: { items: V[] }) {
             className="group min-w-0 shrink-0 basis-[70%] snap-start overflow-hidden rounded-xl border border-ms-line bg-ms-surface transition hover:border-ms-gold/50 sm:basis-[calc((100%-1rem)/2)] md:basis-[calc((100%-2rem)/3)] lg:basis-[calc((100%-4rem)/5)]"
           >
             <div className="relative aspect-video overflow-hidden bg-ms-bg">
-              <img src={`https://i.ytimg.com/vi/${v.youtubeId}/hqdefault.jpg`} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+              <img src={`https://i.ytimg.com/vi/${v.youtubeId}/hqdefault.jpg`} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover [@media(hover:hover)]:transition [@media(hover:hover)]:duration-500 [@media(hover:hover)]:group-hover:scale-105" />
               <span className="absolute inset-0 flex items-center justify-center">
                 <span className="flex h-9 w-9 items-center justify-center rounded-full bg-ms-bg/80 text-sm text-ms-gold">&#9654;</span>
               </span>

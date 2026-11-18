@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import { Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { KeteranganSeragam } from "@/components/KeteranganSeragam";
+import { JudulTab } from "@/components/JudulTab";
 
 const serif = Playfair_Display({ subsets: ["latin"], variable: "--font-serif" });
 const sans = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: { default: "Memori Sejarah", template: "%s | Memori Sejarah" },
+  title: { default: "Memori Sejarah | Tempat Mengingat Sejarah", template: "%s | Memori Sejarah" },
   description: "Menelusuri jejak masa lalu, merawat ingatan bangsa.",
   icons: { icon: "/brand/logo-memori-sejarah-kecil.png", apple: "/brand/logo-memori-sejarah-kecil.png" },
 };
@@ -19,7 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="id" className={`${serif.variable} ${sans.variable}`} suppressHydrationWarning>
       <head><script dangerouslySetInnerHTML={{ __html: SKRIP_TEMA }} /></head>
-      <body suppressHydrationWarning>{children}<KeteranganSeragam /></body>
+      <body suppressHydrationWarning>{children}<KeteranganSeragam /><JudulTab /></body>
     </html>
   );
 }

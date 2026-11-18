@@ -22,7 +22,7 @@ export default async function Gambar({ searchParams }: { searchParams: Promise<{
         <h1 className="font-serif text-2xl sm:text-4xl font-bold md:text-5xl">Gambar</h1>
         <p className="mt-3 max-w-2xl text-ms-cream/70">Foto, lukisan, dan arsip visual dari perjalanan sejarah.</p>
         {tampil.length > 0 ? (
-          <div className="mt-5 grid grid-cols-2 sm:mt-8 gap-1.5 sm:gap-5 md:grid-cols-3 lg:grid-cols-5">
+          <div className="mt-5 grid grid-cols-2 sm:mt-8 gap-1.5 max-sm:[&>*:last-child:nth-child(odd)]:col-span-2 sm:gap-5 md:grid-cols-3 lg:grid-cols-5">
             {tampil.map((g) => <GambarCard key={g.id} g={g} />)}
           </div>
         ) : (

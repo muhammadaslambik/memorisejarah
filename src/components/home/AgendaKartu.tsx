@@ -5,7 +5,7 @@ import { getAgenda } from "@/lib/pengaturan";
 export async function AgendaKartu() {
   const agenda = await getAgenda();
   return (
-    <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="mt-6 grid gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-4">
       {agenda.map((a) => (
         <Link
           key={a.slug} href={`/agenda/${a.slug}`}

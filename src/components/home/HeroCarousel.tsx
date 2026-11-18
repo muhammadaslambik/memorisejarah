@@ -3,7 +3,7 @@
 // Panah, titik, jeda, dan putar otomatis tetap ada.
 "use client";
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 export type Slide = { slug: string; title: string; coverUrl: string | null; kategori: string; tanggal: string; penulis: string };
 
@@ -17,10 +17,17 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
   const reda = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mulai = Math.min(Math.max(0, n - 5), Math.max(0, i - 2)); // paling banyak 5 titik terlihat, ukuran titik tetap kecil
 
-  // Putaran tanpa ujung: setelah artikel terakhir ada salinan artikel pertama. Begitu salinan itu terlihat dan geseran berhenti,
-  // posisi dipindahkan diam-diam ke artikel pertama yang asli, sehingga pengguna merasa terus bergeser dari awal lagi.
+  // Putaran tanpa ujung ke dua arah: ada salinan artikel terakhir di kiri dan salinan artikel pertama di kanan. Begitu salinan terlihat
+  // dan geseran berhenti, posisi dipindahkan diam-diam ke artikel aslinya, sehingga pengguna bisa menggeser terus tanpa ujung.
+  // Salinan kiri baru ditambahkan setelah halaman aktif di peramban (siap) agar tampilan awal dari server tetap artikel pertama.
   const loop = n > 1;
-  const item = loop ? [...slides, slides[0]] : slides;
+  const [siap, setSiap] = useState(false);
+  useEffect(() => { setSiap(true); }, []);
+  const o = loop && siap ? 1 : 0; // jumlah salinan di sisi kiri
+  const item = !loop ? slides : siap ? [slides[n - 1], ...slides, slides[0]] : [...slides, slides[0]];
+  const nyata = useCallback((m: number) => (m < o ? n - 1 : m >= n + o ? 0 : m - o), [n, o]);
+  const iRef = useRef(0);
+  useEffect(() => { iRef.current = i; }, [i]);
   const settle = useRef<ReturnType<typeof setTimeout> | null>(null);
   const ditekan = useRef(false);
 
@@ -32,32 +39,30 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
     el.scrollLeft = m * el.clientWidth;
     requestAnimationFrame(() => { el.style.scrollSnapType = ""; el.style.scrollBehavior = ""; });
   }, []);
+  // salinan kiri baru muncul: geser posisi satu slide ke kanan sebelum layar digambar, sehingga tampilan tidak berubah
+  useLayoutEffect(() => { if (loop && siap) lompat(iRef.current + 1); }, [loop, siap, lompat]);
 
   const ke = useCallback((k: number) => {
     const el = jalur.current;
     if (!el || n < 1) return;
-    const w = el.clientWidth;
-    if (k >= n) { el.scrollTo({ left: n * w, behavior: "smooth" }); return; } // ke salinan, lalu dipindah ke awal
-    if (k < 0) {
-      if (loop) { lompat(n); requestAnimationFrame(() => el.scrollTo({ left: (n - 1) * w, behavior: "smooth" })); }
-      return;
-    }
-    el.scrollTo({ left: k * w, behavior: "smooth" });
-  }, [n, loop, lompat]);
+    const m = k < 0 ? (o ? 0 : n - 1) : k >= n ? n + o : k + o; // di luar ujung: menuju salinan, lalu dipindah ke aslinya
+    el.scrollTo({ left: m * el.clientWidth, behavior: "smooth" });
+  }, [n, o]);
 
   // posisi aktif mengikuti geseran (untuk titik penanda)
   const saatGeser = () => {
     const el = jalur.current;
     if (!el || el.clientWidth === 0) return;
-    const m = Math.round(el.scrollLeft / el.clientWidth);
-    setI(m >= n ? 0 : Math.max(0, m));
+    setI(nyata(Math.round(el.scrollLeft / el.clientWidth)));
     if (!loop) return;
     if (settle.current) clearTimeout(settle.current);
     const cek = () => {
       const e2 = jalur.current;
       if (!e2 || e2.clientWidth === 0) return;
       if (ditekan.current) { settle.current = setTimeout(cek, 150); return; } // jari masih menahan: tunggu
-      if (Math.round(e2.scrollLeft / e2.clientWidth) >= n) lompat(0);
+      const m2 = Math.round(e2.scrollLeft / e2.clientWidth);
+      if (o === 1 && m2 === 0) lompat(n);
+      else if (m2 >= n + o) lompat(o);
     };
     settle.current = setTimeout(cek, 160);
   };
@@ -76,18 +81,18 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
     const t = setInterval(() => {
       const el = jalur.current;
       if (!el) return;
-      const sekarang = Math.round(el.scrollLeft / Math.max(1, el.clientWidth));
+      const sekarang = nyata(Math.round(el.scrollLeft / Math.max(1, el.clientWidth)));
       ke(sekarang + 1);
     }, 6000);
     return () => clearInterval(t);
-  }, [n, jeda, hover, disentuh, ke]);
+  }, [n, jeda, hover, disentuh, ke, nyata]);
 
   // ukuran jendela berubah: tetap pada slide yang sama
   useEffect(() => {
-    const ubah = () => { const el = jalur.current; if (el) el.scrollTo({ left: i * el.clientWidth }); };
+    const ubah = () => { const el = jalur.current; if (el) el.scrollTo({ left: (i + o) * el.clientWidth }); };
     window.addEventListener("resize", ubah);
     return () => window.removeEventListener("resize", ubah);
-  }, [i]);
+  }, [i, o]);
 
   const bulat = "absolute top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-ms-line bg-ms-bg/80 text-xl sm:text-2xl leading-none text-ms-cream transition hover:border-ms-gold hover:text-ms-gold max-sm:hidden";
   return (
@@ -110,17 +115,19 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
         style={{ WebkitOverflowScrolling: "touch" }}
         aria-roledescription="karusel"
       >
-        {item.map((s, k) => (
+        {item.map((s, k) => {
+          const salinan = loop && ((o === 1 && k === 0) || k === n + o);
+          return (
           <Link
-            key={`${k}-${s.slug}`}
+            key={salinan ? (k === 0 ? "klon-akhir" : "klon-awal") : s.slug}
             href={`/artikel/${s.slug}`}
             draggable={false}
-            tabIndex={k >= n ? -1 : undefined}
-            aria-hidden={k >= n ? true : undefined}
-            aria-label={`${(k % n) + 1} dari ${n}: ${s.title}`}
+            tabIndex={salinan ? -1 : undefined}
+            aria-hidden={salinan ? true : undefined}
+            aria-label={`${nyata(k) + 1} dari ${n}: ${s.title}`}
             className="group relative h-full w-full shrink-0 snap-center"
           >
-            {s.coverUrl && <img src={s.coverUrl} alt="" draggable={false} loading={k < 2 || k >= n ? "eager" : "lazy"} decoding="async" className="absolute inset-0 h-full w-full select-none object-cover" />}
+            {s.coverUrl && <img src={s.coverUrl} alt="" draggable={false} loading={k < 3 || salinan ? "eager" : "lazy"} decoding="async" className="absolute inset-0 h-full w-full select-none object-cover" />}
             <div className="absolute inset-0 bg-gradient-to-t from-ms-bg via-ms-bg/55 to-transparent" />
             <div className="absolute inset-x-0 bottom-0 px-4 pb-10 sm:px-16 md:pb-12">
               <div className="flex flex-wrap items-center gap-3 text-xs text-ms-cream/80">
@@ -130,7 +137,8 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
               <h2 className="mt-3 max-w-3xl line-clamp-3 font-serif text-xl font-bold leading-tight sm:text-2xl md:text-4xl">{s.title}</h2>
             </div>
           </Link>
-        ))}
+          );
+        })}
       </div>
       {n > 1 && (
         <>

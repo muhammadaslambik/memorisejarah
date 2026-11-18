@@ -7,6 +7,6 @@ export function Avatar({ nama, url, ukuran = 48 }: { nama: string; url: string |
     <img src={kecil(url, ukuran * 2)} alt="" width={ukuran} height={ukuran} loading="lazy" referrerPolicy="no-referrer"
       className="shrink-0 rounded-full object-cover" style={{ width: ukuran, height: ukuran }} />
   ) : (
-    <span className="grid shrink-0 place-items-center rounded-full bg-ms-gold/20 font-serif font-bold text-ms-gold" style={{ width: ukuran, height: ukuran, fontSize: ukuran / 2.8 }}>{awal}</span>
+    <span translate="no" className="notranslate grid shrink-0 place-items-center rounded-full bg-ms-gold/20 font-serif font-bold text-ms-gold" style={{ width: ukuran, height: ukuran, fontSize: ukuran / 2.8 }}>{awal}</span>
   );
 }

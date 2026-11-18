@@ -58,5 +58,5 @@ export async function InformasiTerbaru({ mode }: { mode: "jalur" | "grid" }) {
       </div>
     );
   }
-  return <div className="mt-6 grid gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">{items.map((x) => <Kartu key={x.id} x={x} kelas="" />)}</div>;
+  return <div className="mt-6 grid gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-3 xl:grid-cols-4">{items.map((x) => <Kartu key={x.id} x={x} kelas="" />)}</div>;
 }

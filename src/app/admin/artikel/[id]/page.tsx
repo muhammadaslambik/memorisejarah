@@ -24,9 +24,9 @@ export default async function EditPost({ params }: { params: Promise<{ id: strin
   const terpilih = new Set(isNew ? [] : (await db().select({ id: postCategories.categoryId }).from(postCategories).where(eq(postCategories.postId, Number(id)))).map((r) => r.id));
   return (
     <>
-    <form action={savePost} className="-mt-5 mx-auto max-w-4xl space-y-4 px-5 pb-10 pt-1">
+    <form action={savePost} className="-mt-5 mx-auto max-w-4xl space-y-4 px-5 pb-10 pt-1 max-sm:px-0">
       {/* tombol kembali kini berupa ikon di bilah alat editor */}
-      <h1 className="font-serif text-3xl leading-8">{isNew ? "Artikel Baru" : "Edit Artikel"}</h1>
+      <h1 className="font-serif text-3xl leading-8 max-sm:px-3">{isNew ? "Artikel Baru" : "Edit Artikel"}</h1>
       {p && <input type="hidden" name="id" value={p.id} />}
       {p && <PenjagaGambar postId={p.id} awal={[...urlIKDalam(p.content), p.coverUrl?.split("?")[0]].filter((u): u is string => !!u)} />}
       {p?.reviewNote && p.status === "draft" && (
@@ -53,9 +53,9 @@ export default async function EditPost({ params }: { params: Promise<{ id: strin
             {cats.filter((a) => a.parentId === null).map((a) => (
               <div key={a.id}>
                 {cats.some((c) => c.parentId === a.id) ? <p className="font-medium">{a.name}</p> : null}
-                <label className="flex items-center gap-2"><input type="checkbox" name="categoryIds" value={a.id} defaultChecked={terpilih.has(a.id)} /> {cats.some((c) => c.parentId === a.id) ? `${a.name} (umum)` : a.name}</label>
+                <div><label className="inline-flex cursor-pointer items-center gap-2"><input type="checkbox" name="categoryIds" value={a.id} defaultChecked={terpilih.has(a.id)} /> {cats.some((c) => c.parentId === a.id) ? `${a.name} (umum)` : a.name}</label></div>
                 {cats.filter((c) => c.parentId === a.id).map((c) => (
-                  <label key={c.id} className="ml-5 flex items-center gap-2"><input type="checkbox" name="categoryIds" value={c.id} defaultChecked={terpilih.has(c.id)} /> {c.name}</label>
+                  <div key={c.id} className="ml-5"><label className="inline-flex cursor-pointer items-center gap-2"><input type="checkbox" name="categoryIds" value={c.id} defaultChecked={terpilih.has(c.id)} /> {c.name}</label></div>
                 ))}
               </div>
             ))}
@@ -73,7 +73,7 @@ export default async function EditPost({ params }: { params: Promise<{ id: strin
           </select>
         )}
         {isReviewer(me.role) && (
-          <label className="flex items-center gap-2"><input type="checkbox" name="featured" defaultChecked={p?.featured} /> Pilihan (tampil di hero)</label>
+          <label className="inline-flex cursor-pointer items-center gap-2"><input type="checkbox" name="featured" defaultChecked={p?.featured} /> Pilihan (tampil di hero)</label>
         )}
         <button className="ml-auto rounded bg-charcoal px-6 py-2 text-cream hover:bg-gold-dark">Simpan</button>
       </div>

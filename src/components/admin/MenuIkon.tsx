@@ -1,7 +1,7 @@
 // PAKET-20: tombol berupa ikon yang membuka menu pilihan (dipakai bilah daftar Video/Gambar dan bilah alat editor).
 // Menu tertutup bila klik di luar, menekan Esc, atau memilih sebuah butir.
 "use client";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 
 export type Opsi = { label: string; ikon?: ReactNode; aktif?: boolean; n?: number; nonaktif?: boolean; klik: () => void };
 
@@ -12,6 +12,25 @@ export function MenuIkon({ judul, ikon, label, opsi, kanan, tanpaFokus, aktif }:
 }) {
   const [buka, setBuka] = useState(false);
   const akar = useRef<HTMLDivElement>(null);
+  const menu = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
+  // Menu digambar tetap (fixed) dan digeser agar selalu berada di dalam layar, juga di HP ketika tombol dekat tepi kanan
+  const hitung = useCallback(() => {
+    const b = akar.current?.getBoundingClientRect();
+    const m = menu.current?.getBoundingClientRect();
+    if (!b || !m) return;
+    const sisi = 8;
+    let left = kanan ? b.right - m.width : b.left;
+    left = Math.max(sisi, Math.min(left, window.innerWidth - m.width - sisi));
+    setPos({ left, top: b.bottom + 4 });
+  }, [kanan]);
+  useLayoutEffect(() => { if (buka) hitung(); else setPos(null); }, [buka, hitung]);
+  useEffect(() => {
+    if (!buka) return;
+    window.addEventListener("resize", hitung);
+    window.addEventListener("scroll", hitung, true);
+    return () => { window.removeEventListener("resize", hitung); window.removeEventListener("scroll", hitung, true); };
+  }, [buka, hitung]);
   useEffect(() => {
     if (!buka) return;
     const luar = (e: PointerEvent) => { if (!akar.current?.contains(e.target as Node)) setBuka(false); };
@@ -45,9 +64,10 @@ export function MenuIkon({ judul, ikon, label, opsi, kanan, tanpaFokus, aktif }:
       </button>
       {buka && (
         <div
+          ref={menu}
           role="menu"
-          className={`absolute top-full z-40 mt-1 max-h-[min(22rem,70vh)] min-w-44 max-w-[calc(100vw-1.5rem)] overflow-y-auto rounded-xl border p-1 shadow-xl ${kanan ? "right-0" : "left-0"}`}
-          style={{ background: "var(--a-card, #fff)", color: "var(--a-text, inherit)", borderColor: "var(--a-line, rgba(0,0,0,.15))" }}
+          className="fixed z-[60] max-h-[min(22rem,70vh)] min-w-44 max-w-[calc(100vw-1rem)] overflow-y-auto rounded-xl border p-1 shadow-xl"
+          style={{ left: pos?.left ?? 0, top: pos?.top ?? 0, visibility: pos ? "visible" : "hidden", background: "var(--a-card, #fff)", color: "var(--a-text, inherit)", borderColor: "var(--a-line, rgba(0,0,0,.15))" }}
         >
           {opsi.map((o, i) => (
             <button

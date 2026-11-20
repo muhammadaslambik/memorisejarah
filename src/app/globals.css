@@ -318,3 +318,12 @@ body { top: 0 !important; }
 .ms-kilat-ikon { animation: ms-kilat-ikon 0.4s ease-out forwards; }
 @media (prefers-reduced-motion: reduce) { .ms-kilat-ikon { animation-duration: 0.01s; } }
 
+/* PAKET-29: CMS di HP selebar layar. Kolom halaman hampir menyentuh tepi; judul dan teks lepas tetap diberi jarak. */
+@media (max-width: 639px) {
+  .adm main { padding-left: 0.25rem; padding-right: 0.25rem; }
+  .adm main > .mx-auto { padding-left: 0; padding-right: 0; }
+  .adm main > * > :is(h1, h2, p) { padding-left: 0.75rem; padding-right: 0.75rem; }
+  .adm main .a-bleed, .adm main .a-bleed-grid { margin-left: 0; margin-right: 0; }
+  .adm .a-sticky { margin-left: -0.25rem; margin-right: -0.25rem; padding-left: 0.25rem; padding-right: 0.25rem; }
+}
+

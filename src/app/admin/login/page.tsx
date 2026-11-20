@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { login } from "@/lib/actions";
 import { googleConfigured } from "@/lib/google";
 import { registrationOpen } from "@/lib/settings";
 import { PasswordInput } from "@/components/PasswordInput";
@@ -10,9 +9,10 @@ export default async function Login({ searchParams }: { searchParams: Promise<{ 
   const { error, ok, alasan, r, h, c, n, j } = await searchParams;
   const canRegister = await registrationOpen();
   return (
-    <form action={login} className="mx-auto mt-20 max-w-sm space-y-4 rounded-2xl border border-ms-line bg-ms-surface p-8 text-ms-cream shadow-xl">
+    <form action="/api/masuk" method="post" className="mx-auto mt-20 max-w-sm space-y-4 rounded-2xl border border-ms-line bg-ms-surface p-8 text-ms-cream shadow-xl">
       <h1 className="font-serif text-2xl">Masuk CMS</h1>
       {alasan === "sesi" && <p className="text-sm text-ms-gold">Sesi login tidak ditemukan (cookie hilang atau dihapus peramban). Silakan masuk lagi.</p>}
+      {alasan === "sesi" && j && /\/-\/-\/-$/.test(j) && <p className="text-sm text-ms-gold">Peramban Anda tidak mengirim penanda keamanan modern, sehingga kemungkinan memakai mode hemat data (misalnya Opera Mini). Mode itu tidak menyimpan sesi login. Matikan "Penghematan data" di pengaturan peramban, atau buka lewat Chrome.</p>}
       {alasan === "sesi" && h && <p className="break-words text-[11px] text-ms-cream/70">Info teknis: alamat {h.replace(/[^a-z0-9.-]/gi, "").slice(0, 60)}, cookie terkirim {String(c ?? "").replace(/\D/g, "").slice(0, 3)}{n ? ` (${n.replace(/[^a-zA-Z0-9_,.-]/g, "").slice(0, 80)})` : ""}{j ? `, permintaan ${j.replace(/[^a-zA-Z0-9/_-]/g, "").slice(0, 40)}` : ""}.</p>}
       {alasan === "habis" && <p className="text-sm text-ms-gold">Sesi login sudah berakhir. Silakan masuk lagi.</p>}
       {alasan === "tidak-valid" && <p className="text-sm text-ms-gold">Sesi login tidak valid (kunci sesi berubah atau cookie rusak). Silakan masuk lagi.</p>}

@@ -4,7 +4,7 @@ import { IkonAdmin } from "@/components/admin/ikon-admin";
 
 export function PageHeader({ ikon, judul, deskripsi, aksi }: { ikon: string; judul: string; deskripsi?: ReactNode; aksi?: ReactNode }) {
   return (
-    <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+    <div className="mb-6 flex flex-wrap items-center justify-between gap-4 max-sm:px-3">
       <div className="flex items-center gap-4">
         <span className="a-ico h-12 w-12 rounded-2xl" style={{ ["--c" as string]: "var(--a-accent)" }}><IkonAdmin nama={ikon} className="h-6 w-6" /></span>
         <div>

@@ -169,17 +169,20 @@ function PanelAtur({ sub, setSub, kecilUkuran, teks, onTeks, laju, onLaju, timer
   timer: number; onTimer: (m: number) => void; kual: string; onKual: (q: string) => void; labelKual: string;
 }) {
   const baris = "flex w-full items-center gap-3 px-3 text-left hover:bg-white/10 " + (kecilUkuran ? "py-1.5 text-xs" : "py-2.5 text-sm");
+  // PAKET-32: di mini player pilihan submenu dibuat 2 kolom dan lebih rapat agar semuanya muat tanpa digulir
+  const barisPilih = "flex w-full items-center text-left hover:bg-white/10 " + (kecilUkuran ? "gap-1.5 px-2 py-1 text-xs" : "gap-3 px-3 py-2.5 text-sm");
+  const dua = kecilUkuran && (sub === "timer" || sub === "kecepatan" || sub === "kualitas");
   const Ikon = ({ d }: { d: string }) => <svg {...g} className="h-5 w-5 shrink-0 opacity-90"><path d={d} /></svg>;
   const Centang = () => <svg {...g} className="ml-auto h-4 w-4 shrink-0"><path d="M5 12l5 5L20 7" /></svg>;
   const Panah = () => <svg {...g} className="h-4 w-4 shrink-0 opacity-70"><path d="M9 6l6 6-6 6" /></svg>;
   const judul: Record<Sub, string> = { utama: "", cc: "Subtitel/CC", timer: "Timer tidur", kecepatan: "Kecepatan pemutaran", kualitas: "Kualitas" };
   const Pilih = ({ ok, teksPilih, klik }: { ok: boolean; teksPilih: string; klik: () => void }) => (
-    <button type="button" onClick={klik} className={`${baris} ${ok ? "font-semibold" : ""}`}><span className="w-5 shrink-0" />{teksPilih}{ok && <Centang />}</button>
+    <button type="button" onClick={klik} className={`${barisPilih} ${ok ? "font-semibold" : ""}`}><span className={kecilUkuran ? "w-1 shrink-0" : "w-5 shrink-0"} />{teksPilih}{ok && <Centang />}</button>
   );
   return (
     <div
       data-atur
-      className={`absolute z-40 overflow-y-auto rounded-xl bg-[rgba(28,28,28,0.96)] py-1.5 text-white shadow-2xl [scrollbar-width:thin] ${kecilUkuran ? "inset-x-2 bottom-[5.5rem] top-2" : "bottom-16 right-3 w-[min(18rem,calc(100%-1.5rem))] max-h-[calc(100%-5rem)]"}`}
+      className={`pointer-events-auto absolute z-40 overflow-y-auto rounded-xl bg-[rgba(28,28,28,0.96)] py-1.5 text-white shadow-2xl [scrollbar-width:thin] ${kecilUkuran ? "inset-x-2 bottom-[3.5rem] top-1" : "bottom-16 right-3 w-[min(18rem,calc(100%-1.5rem))] max-h-[calc(100%-5rem)]"}`}
     >
       {sub === "utama" ? (
         <>
@@ -202,9 +205,11 @@ function PanelAtur({ sub, setSub, kecilUkuran, teks, onTeks, laju, onLaju, timer
             <svg {...g} className="h-4 w-4 shrink-0"><path d="M15 6l-6 6 6 6" /></svg>{judul[sub]}
           </button>
           {sub === "cc" && (<><Pilih ok={!teks} teksPilih="Nonaktif" klik={() => onTeks(false)} /><Pilih ok={teks} teksPilih="Indonesia (bila tersedia)" klik={() => onTeks(true)} /></>)}
-          {sub === "timer" && TIMER.map((m) => <Pilih key={m} ok={timer === m} teksPilih={m === 0 ? "Nonaktif" : `${m} menit`} klik={() => onTimer(m)} />)}
-          {sub === "kecepatan" && KECEPATAN.map((r) => <Pilih key={r} ok={laju === r} teksPilih={r === 1 ? "Normal" : `${r}x`} klik={() => onLaju(r)} />)}
-          {sub === "kualitas" && KUALITAS.map(([k, n]) => <Pilih key={k} ok={kual === k} teksPilih={n} klik={() => onKual(k)} />)}
+          <div className={dua ? "grid grid-cols-2" : ""}>
+            {sub === "timer" && TIMER.map((m) => <Pilih key={m} ok={timer === m} teksPilih={m === 0 ? "Nonaktif" : `${m} menit`} klik={() => onTimer(m)} />)}
+            {sub === "kecepatan" && KECEPATAN.map((r) => <Pilih key={r} ok={laju === r} teksPilih={r === 1 ? "Normal" : `${r}x`} klik={() => onLaju(r)} />)}
+            {sub === "kualitas" && KUALITAS.map(([k, n]) => <Pilih key={k} ok={kual === k} teksPilih={n} klik={() => onKual(k)} />)}
+          </div>
         </>
       )}
     </div>

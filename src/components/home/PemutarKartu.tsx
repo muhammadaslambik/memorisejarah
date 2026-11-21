@@ -145,7 +145,7 @@ function Putar({ ytId, judul, poster, adaSebelum, adaBerikut, onSebelum, onBerik
           <button type="button" onClick={klikSebelum} className={tombolTengah} title={(info.currentTime ?? 0) > 3 || !adaSebelum ? "Ulangi dari awal" : "Video sebelumnya"}>
             <svg {...g} className="h-4 w-4" fill="currentColor" stroke="none"><path d="M18 5l-9 7 9 7zM5 5h2v14H5z" /></svg>
           </button>
-          <button type="button" onClick={jeda} className="grid h-11 w-11 place-items-center rounded-full text-black hover:brightness-110" style={{ background: EMAS }} title={main ? "Jeda" : "Putar"}><IkonJeda main={main} c="h-5 w-5" /></button>
+          <button type="button" onClick={jeda} className="grid h-11 w-11 place-items-center rounded-full bg-black/55 text-white hover:bg-black/75" title={main ? "Jeda" : "Putar"}><IkonJeda main={main} c="h-5 w-5" /></button>
           <button type="button" disabled={!adaBerikut} onClick={onBerikut} className={tombolTengah} title={adaBerikut ? "Video berikutnya" : "Tidak ada video berikutnya"}>
             <svg {...g} className="h-4 w-4" fill="currentColor" stroke="none"><path d="M6 5l9 7-9 7zM17 5h2v14h-2z" /></svg>
           </button>
@@ -200,7 +200,7 @@ export function PemutarKartu({ ytId, poster, judul, label }: { ytId: string; pos
         <button type="button" onClick={mulai} aria-label={`Putar: ${judul}`} className="group/m relative block aspect-video w-full overflow-hidden bg-gradient-to-br from-red-900/70 to-ms-surface text-left">
           {poster && /* eslint-disable-next-line @next/next/no-img-element */ <img src={poster} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" className="h-full w-full object-cover" />}
           <span className="absolute inset-0 grid place-items-center">
-            <span className="grid h-14 w-14 place-items-center rounded-full text-ms-bg shadow-lg transition group-hover/m:scale-110" style={{ background: EMAS }}>
+            <span className="grid h-14 w-14 place-items-center rounded-full bg-black/60 text-white transition group-hover/m:scale-110 group-hover/m:bg-ms-gold group-hover/m:text-ms-bg">
               <svg viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6"><path d="M8 5v14l11-7z" /></svg>
             </span>
           </span>

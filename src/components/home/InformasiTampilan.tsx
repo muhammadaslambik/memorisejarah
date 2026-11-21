@@ -3,14 +3,18 @@
 // "tata" mengatur urutan, lebar, tinggi, bentuk, latar, warna/jenis/ukuran teks tiap blok; "bungkus" membungkus tiap blok (situs: animasi; CMS: pegangan geser/ubah ukuran).
 import type { CSSProperties, ReactNode } from "react";
 import type { Informasi } from "@/lib/pengaturan";
-import { RADIUS, cssLatar, type BlokId, type TataInformasi } from "@/lib/informasi-tata";
+import { RADIUS, cssLatar, idTampil, type BlokId, type BlokKustom, type TataInformasi } from "@/lib/informasi-tata";
+import { kecil } from "@/lib/gambar-url";
 
 export type Isi = (g: keyof Informasi, k: string, o?: { tebal?: boolean }) => ReactNode;
 export type Tombol = (g: "merah" | "hijau", kelas: string, akhiran?: ReactNode) => ReactNode;
-export type Bungkus = (id: BlokId, node: ReactNode) => ReactNode;
+export type Bungkus = (id: string, node: ReactNode) => ReactNode;
+// PAKET-30: isi blok baru. Situs: teks biasa; CMS: kolom isian yang mengubah isi blok langsung.
+export type IsiK = (b: BlokKustom, k: "label" | "judul" | "isi", o?: { tebal?: boolean }) => ReactNode;
+export type TombolK = (b: BlokKustom, kelas: string) => ReactNode;
 
-export function InformasiTampilan({ isi, tombol, tata, bungkus, editor, gridRef }: { isi: Isi; tombol: Tombol; tata: TataInformasi; bungkus: Bungkus; editor?: boolean; gridRef?: React.Ref<HTMLDivElement> }) {
-  const kartu = (id: BlokId, kelas: string, anak: ReactNode) => {
+export function InformasiTampilan({ isi, tombol, tata, bungkus, editor, gridRef, isiK, tombolK }: { isi: Isi; tombol: Tombol; tata: TataInformasi; bungkus: Bungkus; editor?: boolean; gridRef?: React.Ref<HTMLDivElement>; isiK: IsiK; tombolK: TombolK }) {
+  const kartu = (id: string, kelas: string, anak: ReactNode) => {
     const g = tata.gaya[id];
     const st: CSSProperties & Record<string, string | number | undefined> = {
       borderRadius: RADIUS[g.bentuk],
@@ -72,9 +76,61 @@ export function InformasiTampilan({ isi, tombol, tata, bungkus, editor, gridRef 
     )),
   };
 
+  // Blok baru (PAKET-30). Di situs, bagian yang kosong tidak digambar; di CMS selalu digambar supaya bisa diisi.
+  const ada = (b: BlokKustom, k: "label" | "judul" | "isi" | "tombol") => editor || b[k].trim() !== "";
+  const gambarK = (b: BlokKustom, kelas: string) => b.gambar
+    // eslint-disable-next-line @next/next/no-img-element
+    ? <img src={kecil(b.gambar, 900)} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" className={kelas} />
+    : editor ? <div className={`${kelas} grid place-items-center bg-black/20 text-xs opacity-70`}>Belum ada gambar (isi di panel kanan)</div> : null;
+  const kustom = (b: BlokKustom): ReactNode => {
+    const chip = ada(b, "label") && <span className="inline-block rounded-full border border-current/30 bg-white/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider opacity-90">{isiK(b, "label")}</span>;
+    const judul = (kelas: string) => ada(b, "judul") && <h3 className={kelas}>{isiK(b, "judul")}</h3>;
+    const teks = (kelas: string) => ada(b, "isi") && <p className={kelas}>{isiK(b, "isi", { tebal: true })}</p>;
+    const tmb = (kelas: string) => (editor || (b.tombol.trim() && b.href)) ? tombolK(b, kelas) : null;
+    if (b.model === "gambar") return kartu(b.id, "flex flex-col overflow-hidden border border-ms-line bg-ms-surface text-ms-cream", (
+      <>
+        {gambarK(b, "aspect-video w-full object-cover")}
+        <div className="flex flex-1 flex-col p-6">
+          {chip}
+          {judul("mt-3 font-serif text-xl font-bold leading-snug")}
+          {teks("mt-2 flex-1 text-sm text-ms-cream/75")}
+          {tmb("mt-5 inline-flex self-start rounded-full bg-ms-cream px-5 py-2.5 text-sm font-semibold text-ms-bg")}
+        </div>
+      </>
+    ));
+    if (b.model === "tombol") return kartu(b.id, "flex flex-col items-start justify-between gap-4 bg-gradient-to-br from-amber-700 to-amber-950 p-8 text-white sm:flex-row sm:items-center", (
+      <>
+        <div className="min-w-0 flex-1">
+          {chip}
+          {judul("mt-3 font-serif text-2xl font-bold leading-tight sm:text-3xl")}
+          {teks("mt-2 max-w-xl text-sm text-white/85")}
+        </div>
+        {tmb("inline-flex shrink-0 rounded-full bg-ms-cream px-6 py-3 text-sm font-semibold text-ms-bg")}
+      </>
+    ));
+    if (b.model === "kutipan") return kartu(b.id, "bg-ms-cream p-8 text-ms-bg", (
+      <>
+        <span aria-hidden className="block font-serif text-5xl leading-none opacity-40">&ldquo;</span>
+        {teks("font-serif text-xl italic leading-snug sm:text-2xl")}
+        {judul("mt-4 text-sm font-semibold text-ms-bg/70")}
+      </>
+    ));
+    return kartu(b.id, "flex flex-col border border-ms-line bg-ms-surface p-6 text-ms-cream", (
+      <>
+        {chip}
+        {judul("mt-3 font-serif text-xl font-bold leading-snug")}
+        {teks("mt-2 flex-1 text-sm text-ms-cream/75")}
+        {tmb("mt-5 inline-flex self-start rounded-full bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-emerald-950")}
+      </>
+    ));
+  };
+
   return (
     <div className="ms-grid" ref={gridRef}>
-      {tata.urutan.filter((id) => editor || !tata.gaya[id].sembunyi).map((id) => bungkus(id, blok[id]))}
+      {idTampil(tata, editor).map((id) => {
+        const b = tata.kustom.find((k) => k.id === id);
+        return b ? bungkus(id, kustom(b)) : id in blok ? bungkus(id, blok[id as BlokId]) : null;
+      })}
     </div>
   );
 }

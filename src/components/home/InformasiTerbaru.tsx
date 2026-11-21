@@ -9,6 +9,7 @@ import { embedDariUrl } from "@/lib/embed-video";
 import { AnimasiMasuk } from "@/components/AnimasiMasuk";
 import { JalurGeser } from "./JalurGeser";
 import { MediaKartu } from "./MediaKartu";
+import { GrupPemutarInfo } from "./PemutarKartu";
 
 type Item = typeof infoItems.$inferSelect;
 
@@ -54,9 +55,11 @@ export async function InformasiTerbaru({ mode }: { mode: "jalur" | "grid" }) {
   if (mode === "jalur") {
     return (
       <div className="mt-6">
-        <JalurGeser>{items.map((x) => <Kartu key={x.id} x={x} kelas="min-w-0 shrink-0 basis-[78%] snap-start sm:basis-[calc((100%-1rem)/2)] lg:basis-[calc((100%-3rem)/4)]" />)}</JalurGeser>
+        <GrupPemutarInfo>
+          <JalurGeser>{items.map((x) => <Kartu key={x.id} x={x} kelas="min-w-0 shrink-0 basis-[78%] snap-start sm:basis-[calc((100%-1rem)/2)] lg:basis-[calc((100%-3rem)/4)]" />)}</JalurGeser>
+        </GrupPemutarInfo>
       </div>
     );
   }
-  return <div className="mt-6 grid gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-3 xl:grid-cols-4">{items.map((x) => <Kartu key={x.id} x={x} kelas="" />)}</div>;
+  return <GrupPemutarInfo><div className="mt-6 grid gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-3 xl:grid-cols-4">{items.map((x) => <Kartu key={x.id} x={x} kelas="" />)}</div></GrupPemutarInfo>;
 }

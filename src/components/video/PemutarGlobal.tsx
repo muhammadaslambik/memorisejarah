@@ -16,6 +16,7 @@ type Info = { playerState?: number; currentTime?: number; duration?: number; vol
 type Konteks = {
   pasang: (v: VideoMini, lain: VideoMini[], el: HTMLElement) => void;
   lepas: (el: HTMLElement) => void;
+  tutup: () => void; // PAKET-31: dipakai kartu video Informasi agar tidak ada dua video bersuara bersamaan
 };
 type Aktif = { aktifId: string | null; mini: boolean; kembaliKeSlot: () => void };
 const Ctx = createContext<Konteks | null>(null);
@@ -70,7 +71,8 @@ export function PemutarProvider({ children }: { children: React.ReactNode }) {
     setSlot((s) => (s === el ? null : s));
     setSlotVideo(null);
   }, []);
-  const konteks = useMemo(() => ({ pasang, lepas }), [pasang, lepas]);
+  const tutup = useCallback(() => { setVideo(null); setMini(false); }, []);
+  const konteks = useMemo(() => ({ pasang, lepas, tutup }), [pasang, lepas, tutup]);
 
   useEffect(() => { setPaksa(false); }, [video?.youtubeId]);
   useEffect(() => {
@@ -490,11 +492,12 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
         {!bar && (
           <button
             type="button"
-            aria-label={mini ? "Tampilkan kontrol" : main ? "Jeda" : "Putar"}
-            onPointerDown={() => { ktlSaatTekan.current = kontrolTampil; }}
+            aria-label={main ? "Jeda" : "Putar"}
+            onPointerDown={() => { ktlSaatTekan.current = mini ? miniTampil : kontrolTampil; }}
             onClick={() => {
               if (barusTutup.current) { barusTutup.current = false; return; }
-              if (mini) { if (ktlMini) setKtlMini(false); else tampilMini(true); return; }
+              // PAKET-31: mini player juga memutar/menjeda saat layarnya diklik (layar sentuh: ketukan pertama hanya memunculkan tombol)
+              if (mini) { if (sentuh && !ktlSaatTekan.current) { tampilMini(true); return; } jeda(); tampilMini(true); return; }
               // layar sentuh: ketukan pertama hanya memunculkan tombol; ketukan berikutnya memutar/menjeda
               if (sentuh && !ktlSaatTekan.current) { tampilKtl(); return; }
               setKilat({ n: Date.now(), jeda: main }); jeda(); tampilKtl();

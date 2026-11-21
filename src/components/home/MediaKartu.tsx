@@ -3,6 +3,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import type { Embed } from "@/lib/embed-video";
+import { PemutarKartu } from "./PemutarKartu";
 
 export function MediaKartu({ embed, gambar, judul }: { embed: Embed; gambar: string; judul: string }) {
   const [buka, setBuka] = useState(false);
@@ -14,6 +15,8 @@ export function MediaKartu({ embed, gambar, judul }: { embed: Embed; gambar: str
     return () => document.removeEventListener("keydown", esc);
   }, [buka, embed.tinggi]);
 
+  // PAKET-31: YouTube memakai pemutar emas bergaya mini player (kontrol di dalam video, sebelumnya/berikutnya antarkartu)
+  if (embed.jenis === "youtube" && embed.ytId) return <PemutarKartu ytId={embed.ytId} poster={poster} judul={judul} label={embed.label} />;
   if (embed.jenis === "tautan") {
     return (
       <a href={embed.src} target="_blank" rel="noopener noreferrer" className="relative flex aspect-video w-full items-center justify-center bg-gradient-to-br from-red-900/70 to-ms-surface" aria-label={`Buka video: ${judul}`}>

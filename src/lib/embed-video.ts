@@ -1,7 +1,7 @@
 // PAKET-21: mengenali tautan video dari berbagai situs dan mengubahnya menjadi alamat sematan (embed). Hanya https.
 // Dipakai di server (menampilkan kartu) dan di CMS (pratinjau). Situs yang tidak dikenal hanya dibuka sebagai tautan biasa.
 export type JenisEmbed = "youtube" | "vimeo" | "instagram" | "tiktok" | "twitter" | "facebook" | "berkas" | "tautan";
-export type Embed = { jenis: JenisEmbed; label: string; src: string; poster: string; tinggi: boolean };
+export type Embed = { jenis: JenisEmbed; label: string; src: string; poster: string; tinggi: boolean; ytId?: string };
 
 const NAMA: Record<JenisEmbed, string> = { youtube: "YouTube", vimeo: "Vimeo", instagram: "Instagram", tiktok: "TikTok", twitter: "X (Twitter)", facebook: "Facebook", berkas: "Berkas video", tautan: "Tautan video" };
 
@@ -15,7 +15,7 @@ export function embedDariUrl(mentah: string): Embed | null {
 
   if (h === "youtu.be" || h === "youtube.com" || h === "youtube-nocookie.com" || h === "music.youtube.com") {
     const id = h === "youtu.be" ? p.split("/")[1] : (u.searchParams.get("v") ?? p.match(/^\/(?:shorts|embed|live|v)\/([\w-]{11})/)?.[1]);
-    if (id && /^[\w-]{11}$/.test(id)) return buat("youtube", `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&playsinline=1`, `https://i.ytimg.com/vi/${id}/hqdefault.jpg`);
+    if (id && /^[\w-]{11}$/.test(id)) return { ...buat("youtube", `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&playsinline=1`, `https://i.ytimg.com/vi/${id}/hqdefault.jpg`), ytId: id };
   }
   if (h === "vimeo.com") {
     const id = p.match(/\/(\d{5,})/)?.[1];

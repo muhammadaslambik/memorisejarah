@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { getPustaka } from "@/lib/pengaturan";
 import { PustakaViewer } from "@/components/content/PustakaViewer";
+import { driveSiap } from "@/lib/drive";
 
 export const metadata = { title: "Pustaka" };
 
@@ -15,7 +16,7 @@ export default async function Pustaka({ searchParams }: { searchParams: Promise<
         <p className="mt-3 max-w-2xl text-ms-cream/70">
           Karya sejarah memerlukan referensi yang akurat dan dapat dipertanggungjawabkan. Berikut koleksi sumber yang kami kumpulkan.
         </p>
-        <div className="mt-8"><PustakaViewer folders={pustaka} awal={f ?? ""} /></div>
+        <div className="mt-8"><PustakaViewer folders={pustaka} awal={f ?? ""} drive={driveSiap()} /></div>
         <p className="mt-10 text-sm text-ms-cream/70">
           Mencari foto dan lukisan yang tayang di situs ini? <Link href="/gambar" className="text-ms-gold">Buka Galeri Gambar &rarr;</Link>
         </p>

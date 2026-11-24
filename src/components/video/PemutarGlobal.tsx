@@ -352,6 +352,7 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
     timerKtl.current = setTimeout(() => setKtl(false), sentuh ? 6000 : 2500); // di layar sentuh lebih lama (tidak ada kursor yang menjaga)
   }, [sentuh]);
   const ktlSaatTekan = useRef(false); // apakah kontrol sudah terlihat ketika layar mulai disentuh
+  const tipeTekan = useRef(""); // jenis penunjuk pada penekanan terakhir (mouse/pen/touch)
   const tampilMini = useCallback((otomatisSembunyi = true) => {
     setKtlMini(true);
     if (timerMini.current) clearTimeout(timerMini.current);
@@ -372,7 +373,8 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
   }, [mini]);
   const miniTampil = ktlMini || !main || !!atur;
 
-  const jeda = () => perintah(main ? "pauseVideo" : "playVideo");
+  // PAKET-33: status langsung dibalik tanpa menunggu balasan YouTube, jadi klik beruntun tetap bergantian putar/jeda dengan benar
+  const jeda = () => { perintah(main ? "pauseVideo" : "playVideo"); setInfo((p) => ({ ...p, playerState: main ? 2 : 1 })); };
   const cari = (d: number) => { perintah("seekTo", [d, true]); setInfo((p) => ({ ...p, currentTime: d })); };
   const atasVolume = (v: number) => { perintah("setVolume", [v]); perintah(v === 0 ? "mute" : "unMute"); setInfo((p) => ({ ...p, volume: v, muted: v === 0 })); };
   const bisu = () => { const m = !!info.muted; perintah(m ? "unMute" : "mute"); setInfo((p) => ({ ...p, muted: !m })); };
@@ -415,6 +417,35 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
   // Saat dijeda YouTube menampilkan judul, "More videos", dan logonya sendiri: ditutup dengan sampul (pemutar tidak menerima kursor sama sekali).
   const jedaTampil = info.playerState === 2 && !tembus;
   const [kilat, setKilat] = useState<{ n: number; jeda: boolean } | null>(null); // ikon putar/jeda sesaat di tengah layar saat diklik
+  // ref yang stabil (bukan fungsi baru tiap render) agar animasi hanya berjalan sekali per klik, bukan diulang tiap pemutar memperbarui waktu
+  const animasiKilat = useCallback((el: HTMLSpanElement | null) => {
+    if (!el) return;
+    if (typeof el.animate !== "function" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) { el.style.opacity = "0"; return; }
+    el.animate([{ opacity: 0.9, transform: "scale(1)" }, { opacity: 0, transform: "scale(1.7)" }], { duration: 550, easing: "ease-out", fill: "forwards" });
+  }, []);
+  const alihkan = () => { setKilat({ n: Date.now(), jeda: main }); jeda(); tampilKtl(); };
+  // PAKET-33: pintasan papan ketik seperti YouTube (hanya pemutar utama di halaman video): Spasi/K putar-jeda, F layar penuh, M bisu, panah kiri/kanan maju-mundur 5 dtk, J/L 10 dtk
+  const tombolRef = useRef<(e: KeyboardEvent) => void>(undefined);
+  tombolRef.current = (e) => {
+    if (mini || bar || tembus || e.ctrlKey || e.metaKey || e.altKey) return;
+    const t = e.target as HTMLElement | null;
+    if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+    const lompat = (d: number) => { cari(Math.min(Math.max(0, pos + d), dur > 0 ? dur : pos + d)); tampilKtl(); };
+    const k = e.key.toLowerCase();
+    if (k === " ") { if (t && t !== document.body && !kotak.current?.contains(t)) return; if (t && /^(BUTTON|A)$/.test(t.tagName)) return; e.preventDefault(); alihkan(); }
+    else if (k === "k") { e.preventDefault(); alihkan(); }
+    else if (k === "f") { e.preventDefault(); layarPenuh(); }
+    else if (k === "m") { e.preventDefault(); bisu(); tampilKtl(); }
+    else if (k === "arrowleft") { e.preventDefault(); lompat(-5); }
+    else if (k === "arrowright") { e.preventDefault(); lompat(5); }
+    else if (k === "j") { e.preventDefault(); lompat(-10); }
+    else if (k === "l") { e.preventDefault(); lompat(10); }
+  };
+  useEffect(() => {
+    const saat = (e: KeyboardEvent) => tombolRef.current?.(e);
+    window.addEventListener("keydown", saat);
+    return () => window.removeEventListener("keydown", saat);
+  }, []);
   // Bingkai YouTube dibuat lebih tinggi dari layar dan digeser ke atas, sehingga judul (atas) serta logo, tautan, dan "More videos" (bawah) tidak terlihat.
   const bungkus = useRef<HTMLDivElement>(null);
   const [pad, setPad] = useState(90);
@@ -498,24 +529,28 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
           <button
             type="button"
             aria-label={main ? "Jeda" : "Putar"}
-            onPointerDown={() => { ktlSaatTekan.current = mini ? miniTampil : kontrolTampil; }}
+            onPointerDown={(e) => { ktlSaatTekan.current = mini ? miniTampil : kontrolTampil; tipeTekan.current = e.pointerType; }}
             onClick={() => {
               if (barusTutup.current) { barusTutup.current = false; return; }
-              // PAKET-31: mini player juga memutar/menjeda saat layarnya diklik (layar sentuh: ketukan pertama hanya memunculkan tombol)
-              if (mini) { if (sentuh && !ktlSaatTekan.current) { tampilMini(true); return; } jeda(); tampilMini(true); return; }
-              // layar sentuh: ketukan pertama hanya memunculkan tombol; ketukan berikutnya memutar/menjeda
-              if (sentuh && !ktlSaatTekan.current) { tampilKtl(); return; }
-              setKilat({ n: Date.now(), jeda: main }); jeda(); tampilKtl();
+              // PAKET-33: seperti YouTube, klik mouse/pena langsung memutar atau menjeda; hanya jari (touch) yang ketukan pertamanya memunculkan tombol dulu.
+              // Dibedakan per kejadian (bukan per perangkat) agar laptop layar sentuh yang dipakai dengan mouse tidak salah dikira ponsel.
+              const jari = tipeTekan.current === "touch";
+              tipeTekan.current = "";
+              if (mini) { if (jari && !ktlSaatTekan.current) { tampilMini(true); return; } jeda(); tampilMini(true); return; }
+              if (jari && !ktlSaatTekan.current) { tampilKtl(); return; }
+              alihkan();
             }}
             onDoubleClick={mini ? undefined : layarPenuh}
-            className={`absolute inset-0 z-10 cursor-pointer ${tembus ? "pointer-events-none" : ""}`}
+            className={`absolute inset-0 z-10 ${main && !kontrolTampil && !mini ? "cursor-none" : "cursor-pointer"} ${tembus ? "pointer-events-none" : ""}`}
           />
         )}
 
         {/* ikon putar/jeda sesaat (cepat) saat layar diklik di halaman video */}
         {kilat && !mini && (
           <div key={kilat.n} className="pointer-events-none absolute inset-0 z-[15] grid place-items-center" aria-hidden="true">
-            <span className="ms-kilat-ikon grid h-16 w-16 place-items-center rounded-full bg-black/60 text-white"><IkonJeda main={kilat.jeda} c="h-8 w-8" /></span>
+            <span
+              ref={animasiKilat}
+              className="grid h-[4.25rem] w-[4.25rem] place-items-center rounded-full bg-black/60 text-white"><IkonJeda main={kilat.jeda} c="h-9 w-9" /></span>
           </div>
         )}
 

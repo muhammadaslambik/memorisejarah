@@ -262,7 +262,11 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
     return `https://www.youtube-nocookie.com/embed/${video.youtubeId}?autoplay=1&controls=0&fs=0&rel=0&modestbranding=1&iv_load_policy=3&enablejsapi=1&playsinline=1&start=${mulai}${teks ? "&cc_load_policy=1&cc_lang_pref=id&hl=id" : ""}${asal}`;
   }, [video.youtubeId, mulai, teks]);
 
+  const sudahDijawab = useRef(false); // apakah YouTube sudah mengirim status pemutar
+  // PAKET-35: penghitung untuk mode diagnosa (tambahkan ?debug=1 pada alamat halaman)
+  const diag = useRef({ pesan: 0, tekan: 0, klik: 0, cmd: "-" });
   const perintah = useCallback((func: string, args: unknown[] = []) => {
+    diag.current.cmd = func;
     bingkai.current?.contentWindow?.postMessage(JSON.stringify({ event: "command", func, args }), "*");
   }, []);
 
@@ -299,8 +303,10 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
       let d: Pesan | null = null;
       try { d = typeof e.data === "string" ? (JSON.parse(e.data) as Pesan) : (e.data as Pesan); } catch { return; }
       if (!d) return;
-      if (d.event === "onStateChange" && typeof d.info === "number") setInfo((p) => ({ ...p, playerState: d!.info as number }));
-      else if (d.event === "infoDelivery" && d.info && typeof d.info === "object") setInfo((p) => ({ ...p, ...(d!.info as Info) }));
+      diag.current.pesan++;
+      if (d.event === "onStateChange" && typeof d.info === "number") { sudahDijawab.current = true; setInfo((p) => ({ ...p, playerState: d!.info as number })); }
+      else if (d.event === "infoDelivery" && d.info && typeof d.info === "object") { sudahDijawab.current = true; setInfo((p) => ({ ...p, ...(d!.info as Info) })); }
+      else if (d.event === "onReady") langgananRef.current?.(); // pemutar YouTube baru siap: sapa lagi agar pasti terdaftar
     };
     window.addEventListener("message", saat);
     return () => window.removeEventListener("message", saat);
@@ -311,10 +317,22 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
     w.postMessage(JSON.stringify({ event: "listening", id: 1, channel: "widget" }), "*");
     w.postMessage(JSON.stringify({ event: "command", func: "addEventListener", args: ["onStateChange"] }), "*");
   }, []);
+  const langgananRef = useRef(langganan);
+  langgananRef.current = langganan;
+  // PAKET-35: sapaan ke pemutar YouTube diulang tiap 0,35 dtk sampai YouTube menjawab (maks. ±40 dtk). Sebelumnya hanya 3 kali dalam 3,5 dtk pertama, sehingga di peramban yang
+  // lebih lambat (ekstensi, banyak tab) sapaan bisa terlewat dan pemutar tidak pernah tahu video sedang berjalan, sehingga klik putar/jeda terasa tidak berfungsi.
   useEffect(() => {
-    const t = [600, 1800, 3500].map((ms) => setTimeout(langganan, ms));
-    return () => t.forEach(clearTimeout);
+    sudahDijawab.current = false;
+    langganan();
+    let n = 0;
+    const id = setInterval(() => { if (sudahDijawab.current || ++n > 115) { clearInterval(id); return; } langganan(); }, 350);
+    return () => clearInterval(id);
   }, [langganan, src]);
+  // mode diagnosa: tampilkan status pemutar di pojok layar bila alamat memuat ?debug=1
+  const [debug, setDebug] = useState(false);
+  const [, tik] = useState(0);
+  useEffect(() => { try { setDebug(new URLSearchParams(window.location.search).has("debug")); } catch { /* abaikan */ } }, []);
+  useEffect(() => { if (!debug) return; const i = setInterval(() => tik((n) => n + 1), 500); return () => clearInterval(i); }, [debug]);
 
   useEffect(() => { try { setAuto(localStorage.getItem(KUNCI_AUTO) !== "0"); } catch { /* abaikan */ } }, []);
   // putar otomatis: di halaman video pindah ke halaman video berikutnya; sebagai mini player cukup memutar video berikutnya di tempat
@@ -527,7 +545,9 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
           <button
             type="button"
             aria-label={main ? "Jeda" : "Putar"}
+            onPointerDown={() => { diag.current.tekan++; }}
             onClick={() => {
+              diag.current.klik++;
               if (barusTutup.current) { barusTutup.current = false; return; }
               // PAKET-33/34: klik atau ketuk layar langsung memutar/menjeda (mouse, pena, maupun jari di ponsel), sambil memunculkan tombol sesaat.
               if (mini) { jeda(); tampilMini(true); return; }
@@ -539,6 +559,11 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
         )}
 
         {/* ikon putar/jeda sesaat (cepat) saat layar diklik di halaman video */}
+        {debug && (
+          <div className="pointer-events-none absolute left-1 top-1 z-50 rounded bg-black/80 px-1.5 py-0.5 font-mono text-[10px] leading-tight text-lime-300">
+            state={info.playerState ?? "?"} · jawab={sudahDijawab.current ? "ya" : "belum"} · pesan={diag.current.pesan} · tekan={diag.current.tekan} · klik={diag.current.klik} · cmd={diag.current.cmd}
+          </div>
+        )}
         {kilat && !mini && (
           <div key={kilat.n} className="pointer-events-none absolute inset-0 z-[15] grid place-items-center" aria-hidden="true">
             <span

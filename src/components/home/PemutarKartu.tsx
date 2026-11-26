@@ -50,6 +50,7 @@ function Putar({ ytId, judul, poster, adaSebelum, adaBerikut, onSebelum, onBerik
   const bingkai = useRef<HTMLIFrameElement>(null);
   const kotak = useRef<HTMLDivElement>(null);
   const timerKtl = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sudahDijawab = useRef(false); // apakah YouTube sudah mengirim status pemutar
   const [info, setInfo] = useState<Info>({});
   const [ktl, setKtl] = useState(false);
   const [pernahMain, setPernahMain] = useState(false);
@@ -77,8 +78,8 @@ function Putar({ ytId, judul, poster, adaSebelum, adaBerikut, onSebelum, onBerik
       let d: Pesan | null = null;
       try { d = typeof e.data === "string" ? (JSON.parse(e.data) as Pesan) : (e.data as Pesan); } catch { return; }
       if (!d) return;
-      if (d.event === "onStateChange" && typeof d.info === "number") setInfo((p) => ({ ...p, playerState: d!.info as number }));
-      else if (d.event === "infoDelivery" && d.info && typeof d.info === "object") setInfo((p) => ({ ...p, ...(d!.info as Info) }));
+      if (d.event === "onStateChange" && typeof d.info === "number") { sudahDijawab.current = true; setInfo((p) => ({ ...p, playerState: d!.info as number })); }
+      else if (d.event === "infoDelivery" && d.info && typeof d.info === "object") { sudahDijawab.current = true; setInfo((p) => ({ ...p, ...(d!.info as Info) })); }
     };
     window.addEventListener("message", saat);
     return () => window.removeEventListener("message", saat);
@@ -89,9 +90,12 @@ function Putar({ ytId, judul, poster, adaSebelum, adaBerikut, onSebelum, onBerik
     w.postMessage(JSON.stringify({ event: "listening", id: 1, channel: "widget" }), "*");
     w.postMessage(JSON.stringify({ event: "command", func: "addEventListener", args: ["onStateChange"] }), "*");
   }, []);
+  // sapaan diulang sampai YouTube menjawab (di peramban yang lebih lambat, sapaan 3 kali di 3,5 dtk pertama bisa terlewat)
   useEffect(() => {
-    const t = [600, 1800, 3500].map((ms) => setTimeout(langganan, ms));
-    return () => t.forEach(clearTimeout);
+    sudahDijawab.current = false;
+    let n = 0;
+    const id = setInterval(() => { if (sudahDijawab.current || ++n > 115) { clearInterval(id); return; } langganan(); }, 350);
+    return () => clearInterval(id);
   }, [langganan, src]);
   useEffect(() => { try { setAuto(localStorage.getItem(KUNCI_AUTO) !== "0"); } catch { /* abaikan */ } }, []);
   useEffect(() => () => { if (timerKtl.current) clearTimeout(timerKtl.current); }, []);

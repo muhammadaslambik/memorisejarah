@@ -244,10 +244,18 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
   const [auto, setAuto] = useState(true);
   const [penuh, setPenuh] = useState(false);
 
-  const main = info.playerState === 1 || info.playerState === 3;
+  // PAKET-36: bila status putar/jeda dari YouTube belum diketahui (peramban yang memulai video sebelum kita menyapa), status DIDUGA dari pergerakan waktu video.
+  // Waktu yang terus bertambah berarti video berjalan. Begitu YouTube mengirim status resmi (atau Anda klik), status resmi dipakai.
+  const ultimaWaktu = useRef(-1);
+  const terakhirMaju = useRef(0);
+  const dugaMain = () => (info.playerState !== undefined ? info.playerState === 1 || info.playerState === 3 : Date.now() - terakhirMaju.current < 1500);
+  const main = dugaMain();
+  const [, tikStatus] = useState(0);
+  useEffect(() => { if (info.playerState !== undefined) return; const i = setInterval(() => tikStatus((n) => n + 1), 500); return () => clearInterval(i); }, [info.playerState]);
   const sentuh = usePerangkatSentuh();
   const [pernahMain, setPernahMain] = useState(false);
-  useEffect(() => { if (info.playerState === 1) setPernahMain(true); }, [info.playerState]);
+  // "pernah berjalan": status resmi 1, atau (bila status resmi belum diketahui) waktu video terlihat bergerak
+  useEffect(() => { if (info.playerState === 1 || (info.playerState === undefined && main)) setPernahMain(true); }, [info.playerState, main]);
   // Ponsel: peramban hanya mau memutar bila ketukan jatuh LANGSUNG pada pemutar YouTube. Sebelum video pernah berjalan, lapisan klik dan kontrol kita
   // dibuat tembus ketuk supaya ketukan pertama mengenai tombol putar YouTube; setelah itu kontrol kita bekerja seperti biasa.
   const tembus = sentuh && !pernahMain;
@@ -305,7 +313,13 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
       if (!d) return;
       diag.current.pesan++;
       if (d.event === "onStateChange" && typeof d.info === "number") { sudahDijawab.current = true; setInfo((p) => ({ ...p, playerState: d!.info as number })); }
-      else if (d.event === "infoDelivery" && d.info && typeof d.info === "object") { sudahDijawab.current = true; setInfo((p) => ({ ...p, ...(d!.info as Info) })); }
+      else if ((d.event === "infoDelivery" || d.event === "initialDelivery") && d.info && typeof d.info === "object") {
+        // initialDelivery memuat status awal lengkap (termasuk playerState); infoDelivery biasanya hanya memuat yang berubah
+        const i = d.info as Info;
+        if (typeof i.currentTime === "number") { if (Math.abs(i.currentTime - ultimaWaktu.current) > 0.01) terakhirMaju.current = Date.now(); ultimaWaktu.current = i.currentTime; }
+        if (typeof i.playerState === "number") sudahDijawab.current = true;
+        setInfo((p) => ({ ...p, ...i }));
+      }
       else if (d.event === "onReady") langgananRef.current?.(); // pemutar YouTube baru siap: sapa lagi agar pasti terdaftar
     };
     window.addEventListener("message", saat);
@@ -328,6 +342,12 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
     const id = setInterval(() => { if (sudahDijawab.current || ++n > 115) { clearInterval(id); return; } langganan(); }, 350);
     return () => clearInterval(id);
   }, [langganan, src]);
+  // PAKET-36: sapaan ringan tiap 2 dtk selama pemutar hidup. Tiap sapaan membuat YouTube mengirim ulang status lengkap, sehingga status yang meleset (mis. setelah perintah yang gagal atau
+  // setelah pemutar sempat tersembunyi) pulih sendiri dalam beberapa detik.
+  useEffect(() => {
+    const id = setInterval(() => { bingkai.current?.contentWindow?.postMessage(JSON.stringify({ event: "listening", id: 1, channel: "widget" }), "*"); }, 2000);
+    return () => clearInterval(id);
+  }, [src]);
   // mode diagnosa: tampilkan status pemutar di pojok layar bila alamat memuat ?debug=1
   const [debug, setDebug] = useState(false);
   const [, tik] = useState(0);
@@ -390,7 +410,7 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
   const miniTampil = ktlMini || !main || !!atur;
 
   // PAKET-33: status langsung dibalik tanpa menunggu balasan YouTube, jadi klik beruntun tetap bergantian putar/jeda dengan benar
-  const jeda = () => { perintah(main ? "pauseVideo" : "playVideo"); setInfo((p) => ({ ...p, playerState: main ? 2 : 1 })); };
+  const jeda = () => { const sedangMain = dugaMain(); perintah(sedangMain ? "pauseVideo" : "playVideo"); setInfo((p) => ({ ...p, playerState: sedangMain ? 2 : 1 })); };
   const cari = (d: number) => { perintah("seekTo", [d, true]); setInfo((p) => ({ ...p, currentTime: d })); };
   const atasVolume = (v: number) => { perintah("setVolume", [v]); perintah(v === 0 ? "mute" : "unMute"); setInfo((p) => ({ ...p, volume: v, muted: v === 0 })); };
   const bisu = () => { const m = !!info.muted; perintah(m ? "unMute" : "mute"); setInfo((p) => ({ ...p, muted: !m })); };
@@ -439,7 +459,7 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
     if (typeof el.animate !== "function" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) { el.style.opacity = "0"; return; }
     el.animate([{ opacity: 0.9, transform: "scale(1)" }, { opacity: 0, transform: "scale(1.7)" }], { duration: 550, easing: "ease-out", fill: "forwards" });
   }, []);
-  const alihkan = () => { setKilat({ n: Date.now(), jeda: main }); jeda(); tampilKtl(); };
+  const alihkan = () => { setKilat({ n: Date.now(), jeda: dugaMain() }); jeda(); tampilKtl(); };
   // PAKET-33: pintasan papan ketik seperti YouTube (hanya pemutar utama di halaman video): Spasi/K putar-jeda, F layar penuh, M bisu, panah kiri/kanan maju-mundur 5 dtk, J/L 10 dtk
   const tombolRef = useRef<(e: KeyboardEvent) => void>(undefined);
   tombolRef.current = (e) => {
@@ -561,7 +581,7 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
         {/* ikon putar/jeda sesaat (cepat) saat layar diklik di halaman video */}
         {debug && (
           <div className="pointer-events-none absolute left-1 top-1 z-50 rounded bg-black/80 px-1.5 py-0.5 font-mono text-[10px] leading-tight text-lime-300">
-            state={info.playerState ?? "?"} · jawab={sudahDijawab.current ? "ya" : "belum"} · pesan={diag.current.pesan} · tekan={diag.current.tekan} · klik={diag.current.klik} · cmd={diag.current.cmd}
+            state={info.playerState ?? "?"} · main={main ? "ya" : "tidak"} · jawab={sudahDijawab.current ? "ya" : "belum"} · pesan={diag.current.pesan} · tekan={diag.current.tekan} · klik={diag.current.klik} · cmd={diag.current.cmd}
           </div>
         )}
         {kilat && !mini && (
@@ -575,7 +595,7 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
         {/* kontrol mini player di dalam video */}
         {mini && !bar && (
           <div key="kontrolMini" className={`pointer-events-none absolute inset-0 z-20 flex flex-col justify-between text-white transition-opacity duration-200 ${miniTampil && !tembus ? "opacity-100" : "opacity-0"}`}>
-            <div className={`flex items-center gap-0.5 bg-gradient-to-b from-black/80 to-transparent px-2 pb-5 pt-1.5 ${miniTampil && !tembus ? "pointer-events-auto" : ""}`}>
+            <div className={`flex items-center gap-0.5 bg-gradient-to-b from-black/80 to-transparent px-2 pb-5 pt-1.5 ${miniTampil && !tembus ? "[&_a]:pointer-events-auto [&_button]:pointer-events-auto [&_input]:pointer-events-auto" : ""}`}>
               <Link href={`/video/${video.slug}`} className="min-w-0 flex-1 truncate px-1 text-xs font-semibold hover:text-[#d9a441]" title={video.title}>{video.title}</Link>
               <button type="button" onClick={kembali} className={tombolMini} title="Kembali ke halaman video">
                 <svg {...g} className="h-4 w-4"><path d="M14 4h6v6M20 4l-8 8M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4" /></svg>
@@ -587,7 +607,7 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
                 <svg {...g} className="h-4 w-4"><path d="M6 6l12 12M18 6L6 18" /></svg>
               </button>
             </div>
-            <div className={`flex items-center justify-center gap-2 ${miniTampil && !tembus ? "pointer-events-auto" : ""}`}>
+            <div className={`flex items-center justify-center gap-2 ${miniTampil && !tembus ? "[&_a]:pointer-events-auto [&_button]:pointer-events-auto [&_input]:pointer-events-auto" : ""}`}>
               <button type="button" onClick={klikSebelumnya} className="grid h-10 w-10 place-items-center rounded-full bg-black/55 hover:bg-black/75" title={(info.currentTime ?? 0) > 3 || !adaSebelumnya ? "Ulangi dari awal" : "Video sebelumnya"}>
                 <svg {...g} className="h-5 w-5" fill="currentColor" stroke="none"><path d="M18 5l-9 7 9 7zM5 5h2v14H5z" /></svg>
               </button>
@@ -596,7 +616,7 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
                 <svg {...g} className="h-5 w-5" fill="currentColor" stroke="none"><path d="M6 5l9 7-9 7zM17 5h2v14h-2z" /></svg>
               </button>
             </div>
-            <div className={`bg-gradient-to-t from-black/85 to-transparent px-2 pb-1 pt-4 ${miniTampil && !tembus ? "pointer-events-auto" : ""}`}>
+            <div className={`bg-gradient-to-t from-black/85 to-transparent px-2 pb-1 pt-4 ${miniTampil && !tembus ? "[&_a]:pointer-events-auto [&_button]:pointer-events-auto [&_input]:pointer-events-auto" : ""}`}>
               <Bilah pos={pos} dur={dur} muat={muat} onCari={cari} />
               <div className="-mt-1 flex items-center gap-0.5">
                 <span className="mr-auto text-[11px] tabular-nums text-white">{waktu(pos)} / {waktu(dur)}</span>
@@ -618,7 +638,7 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
 
         {/* kontrol penuh (di halaman video) */}
         {!mini && (
-          <div className={`absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/80 to-transparent px-3 pb-2 pt-10 text-white transition-opacity duration-200 ${kontrolTampil && !tembus ? "opacity-100" : "pointer-events-none opacity-0"}`}>
+          <div className={`absolute inset-x-0 bottom-0 z-20 pointer-events-none bg-gradient-to-t from-black/80 to-transparent px-3 pb-2 pt-10 text-white transition-opacity duration-200 ${kontrolTampil && !tembus ? "opacity-100 [&_a]:pointer-events-auto [&_button]:pointer-events-auto [&_input]:pointer-events-auto" : "opacity-0"}`}>
             <div className="mb-1"><Bilah pos={pos} dur={dur} muat={muat} onCari={cari} /></div>
             <div className="flex items-center gap-0.5 sm:gap-1">
               <button type="button" onClick={() => { if ((info.currentTime ?? 0) > 3 || !adaSebelumnya) { cari(0); return; } const p = onSebelumnyaHalaman(); if (p) router.push(`/video/${p.slug}`); }} className={tombolKtl} title={(info.currentTime ?? 0) > 3 || !adaSebelumnya ? "Ulangi dari awal" : "Video sebelumnya"}>

@@ -57,13 +57,19 @@ function Putar({ ytId, judul, poster, adaSebelum, adaBerikut, onSebelum, onBerik
   const [auto, setAuto] = useState(true);
   const sentuh = usePerangkatSentuh();
 
-  const main = info.playerState === 1 || info.playerState === 3;
+  // status putar/jeda: bila YouTube belum mengirim status resmi, diduga dari pergerakan waktu video (lihat PemutarGlobal)
+  const ultimaWaktu = useRef(-1);
+  const terakhirMaju = useRef(0);
+  const dugaMain = () => (info.playerState !== undefined ? info.playerState === 1 || info.playerState === 3 : Date.now() - terakhirMaju.current < 1500);
+  const main = dugaMain();
+  const [, tikStatus] = useState(0);
+  useEffect(() => { if (info.playerState !== undefined) return; const i = setInterval(() => tikStatus((n) => n + 1), 500); return () => clearInterval(i); }, [info.playerState]);
   const selesai = info.playerState === 0;
   // Ponsel: ketukan pertama harus jatuh langsung pada pemutar YouTube agar peramban mau memutar; kontrol kita tembus ketuk sampai video pernah berjalan.
   const tembus = sentuh && !pernahMain;
   const jedaTampil = info.playerState === 2 && !tembus;
   const tampil = (ktl || !main) && !tembus;
-  useEffect(() => { if (info.playerState === 1) setPernahMain(true); }, [info.playerState]);
+  useEffect(() => { if (info.playerState === 1 || (info.playerState === undefined && main)) setPernahMain(true); }, [info.playerState, main]);
 
   const src = useMemo(() => {
     const asal = typeof window !== "undefined" ? `&origin=${encodeURIComponent(window.location.origin)}` : "";
@@ -79,7 +85,12 @@ function Putar({ ytId, judul, poster, adaSebelum, adaBerikut, onSebelum, onBerik
       try { d = typeof e.data === "string" ? (JSON.parse(e.data) as Pesan) : (e.data as Pesan); } catch { return; }
       if (!d) return;
       if (d.event === "onStateChange" && typeof d.info === "number") { sudahDijawab.current = true; setInfo((p) => ({ ...p, playerState: d!.info as number })); }
-      else if (d.event === "infoDelivery" && d.info && typeof d.info === "object") { sudahDijawab.current = true; setInfo((p) => ({ ...p, ...(d!.info as Info) })); }
+      else if ((d.event === "infoDelivery" || d.event === "initialDelivery") && d.info && typeof d.info === "object") {
+        const i = d.info as Info;
+        if (typeof i.currentTime === "number") { if (Math.abs(i.currentTime - ultimaWaktu.current) > 0.01) terakhirMaju.current = Date.now(); ultimaWaktu.current = i.currentTime; }
+        if (typeof i.playerState === "number") sudahDijawab.current = true;
+        setInfo((p) => ({ ...p, ...i }));
+      }
     };
     window.addEventListener("message", saat);
     return () => window.removeEventListener("message", saat);
@@ -90,6 +101,11 @@ function Putar({ ytId, judul, poster, adaSebelum, adaBerikut, onSebelum, onBerik
     w.postMessage(JSON.stringify({ event: "listening", id: 1, channel: "widget" }), "*");
     w.postMessage(JSON.stringify({ event: "command", func: "addEventListener", args: ["onStateChange"] }), "*");
   }, []);
+  // sapaan ringan tiap 2 dtk menyegarkan status resmi dan menyembuhkan status yang meleset
+  useEffect(() => {
+    const id = setInterval(() => { bingkai.current?.contentWindow?.postMessage(JSON.stringify({ event: "listening", id: 1, channel: "widget" }), "*"); }, 2000);
+    return () => clearInterval(id);
+  }, [src]);
   // sapaan diulang sampai YouTube menjawab (di peramban yang lebih lambat, sapaan 3 kali di 3,5 dtk pertama bisa terlewat)
   useEffect(() => {
     sudahDijawab.current = false;
@@ -109,7 +125,7 @@ function Putar({ ytId, judul, poster, adaSebelum, adaBerikut, onSebelum, onBerik
     timerKtl.current = setTimeout(() => setKtl(false), sentuh ? 5000 : 3000);
   }, [sentuh]);
   // status langsung dibalik tanpa menunggu balasan YouTube, jadi ketukan beruntun tetap bergantian putar/jeda dengan benar
-  const jeda = () => { perintah(main ? "pauseVideo" : "playVideo"); setInfo((p) => ({ ...p, playerState: main ? 2 : 1 })); };
+  const jeda = () => { const sedangMain = dugaMain(); perintah(sedangMain ? "pauseVideo" : "playVideo"); setInfo((p) => ({ ...p, playerState: sedangMain ? 2 : 1 })); };
   const cari = (d: number) => { perintah("seekTo", [d, true]); setInfo((p) => ({ ...p, currentTime: d })); };
   const bisu = () => { const m = !!info.muted; perintah(m ? "unMute" : "mute"); setInfo((p) => ({ ...p, muted: !m })); };
   const ubahAuto = () => { const b = !auto; setAuto(b); try { localStorage.setItem(KUNCI_AUTO, b ? "1" : "0"); } catch { /* abaikan */ } };

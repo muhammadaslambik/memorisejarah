@@ -50,7 +50,6 @@ function Putar({ ytId, judul, poster, adaSebelum, adaBerikut, onSebelum, onBerik
   const bingkai = useRef<HTMLIFrameElement>(null);
   const kotak = useRef<HTMLDivElement>(null);
   const timerKtl = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const ktlSaatTekan = useRef(false);
   const [info, setInfo] = useState<Info>({});
   const [ktl, setKtl] = useState(false);
   const [pernahMain, setPernahMain] = useState(false);
@@ -105,7 +104,8 @@ function Putar({ ytId, judul, poster, adaSebelum, adaBerikut, onSebelum, onBerik
     if (timerKtl.current) clearTimeout(timerKtl.current);
     timerKtl.current = setTimeout(() => setKtl(false), sentuh ? 5000 : 3000);
   }, [sentuh]);
-  const jeda = () => perintah(main ? "pauseVideo" : "playVideo");
+  // status langsung dibalik tanpa menunggu balasan YouTube, jadi ketukan beruntun tetap bergantian putar/jeda dengan benar
+  const jeda = () => { perintah(main ? "pauseVideo" : "playVideo"); setInfo((p) => ({ ...p, playerState: main ? 2 : 1 })); };
   const cari = (d: number) => { perintah("seekTo", [d, true]); setInfo((p) => ({ ...p, currentTime: d })); };
   const bisu = () => { const m = !!info.muted; perintah(m ? "unMute" : "mute"); setInfo((p) => ({ ...p, muted: !m })); };
   const ubahAuto = () => { const b = !auto; setAuto(b); try { localStorage.setItem(KUNCI_AUTO, b ? "1" : "0"); } catch { /* abaikan */ } };
@@ -131,10 +131,9 @@ function Putar({ ytId, judul, poster, adaSebelum, adaBerikut, onSebelum, onBerik
           {poster && /* eslint-disable-next-line @next/next/no-img-element */ <img src={poster} alt="" referrerPolicy="no-referrer" className={`h-full w-full object-cover ${selesai ? "opacity-50" : "opacity-90"}`} />}
         </div>
       )}
-      {/* klik layar = putar/jeda (layar sentuh: ketukan pertama hanya memunculkan tombol) */}
+      {/* klik atau ketuk layar = putar/jeda (PAKET-34: juga di ponsel) */}
       <button type="button" aria-label={main ? "Jeda" : "Putar"}
-        onPointerDown={() => { ktlSaatTekan.current = tampil; }}
-        onClick={() => { if (sentuh && !ktlSaatTekan.current) { tampilKtl(); return; } jeda(); tampilKtl(); }}
+        onClick={() => { jeda(); tampilKtl(); }}
         className={`absolute inset-0 z-10 cursor-pointer ${tembus ? "pointer-events-none" : ""}`} />
       <div className={`pointer-events-none absolute inset-0 z-20 flex flex-col justify-between text-white transition-opacity duration-200 ${tampil ? "opacity-100" : "opacity-0"}`}>
         <div className={`flex items-center gap-1 bg-gradient-to-b from-black/80 to-transparent px-2 pb-4 pt-1.5 ${lapis}`}>

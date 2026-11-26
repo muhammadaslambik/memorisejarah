@@ -351,8 +351,6 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
     if (timerKtl.current) clearTimeout(timerKtl.current);
     timerKtl.current = setTimeout(() => setKtl(false), sentuh ? 6000 : 2500); // di layar sentuh lebih lama (tidak ada kursor yang menjaga)
   }, [sentuh]);
-  const ktlSaatTekan = useRef(false); // apakah kontrol sudah terlihat ketika layar mulai disentuh
-  const tipeTekan = useRef(""); // jenis penunjuk pada penekanan terakhir (mouse/pen/touch)
   const tampilMini = useCallback((otomatisSembunyi = true) => {
     setKtlMini(true);
     if (timerMini.current) clearTimeout(timerMini.current);
@@ -529,15 +527,10 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
           <button
             type="button"
             aria-label={main ? "Jeda" : "Putar"}
-            onPointerDown={(e) => { ktlSaatTekan.current = mini ? miniTampil : kontrolTampil; tipeTekan.current = e.pointerType; }}
             onClick={() => {
               if (barusTutup.current) { barusTutup.current = false; return; }
-              // PAKET-33: seperti YouTube, klik mouse/pena langsung memutar atau menjeda; hanya jari (touch) yang ketukan pertamanya memunculkan tombol dulu.
-              // Dibedakan per kejadian (bukan per perangkat) agar laptop layar sentuh yang dipakai dengan mouse tidak salah dikira ponsel.
-              const jari = tipeTekan.current === "touch";
-              tipeTekan.current = "";
-              if (mini) { if (jari && !ktlSaatTekan.current) { tampilMini(true); return; } jeda(); tampilMini(true); return; }
-              if (jari && !ktlSaatTekan.current) { tampilKtl(); return; }
+              // PAKET-33/34: klik atau ketuk layar langsung memutar/menjeda (mouse, pena, maupun jari di ponsel), sambil memunculkan tombol sesaat.
+              if (mini) { jeda(); tampilMini(true); return; }
               alihkan();
             }}
             onDoubleClick={mini ? undefined : layarPenuh}

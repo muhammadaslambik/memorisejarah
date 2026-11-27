@@ -216,7 +216,7 @@ function PanelAtur({ sub, setSub, kecilUkuran, teks, onTeks, laju, onLaju, timer
   );
 }
 
-function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, bar, setBar, adaSebelumnya, onSebelumnya, onSebelumnyaHalaman, onMini, onTutup, onMuat }: {
+function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, bar: barTersimpan, setBar, adaSebelumnya, onSebelumnya, onSebelumnyaHalaman, onMini, onTutup, onMuat }: {
   video: VideoMini; lain: VideoMini[]; slot: HTMLElement | null; sama: boolean; teater: boolean; setTeater: (f: (b: boolean) => boolean) => void;
   paksa: boolean; setPaksa: (b: boolean) => void; bar: boolean; setBar: (b: boolean) => void; adaSebelumnya: boolean; onSebelumnya: () => void; onSebelumnyaHalaman: () => VideoMini | null; onMini: (b: boolean) => void; onTutup: () => void; onMuat: (v: VideoMini) => void;
 }) {
@@ -262,6 +262,9 @@ function Pemutar({ video, lain, slot, sama, teater, setTeater, paksa, setPaksa, 
   // mini player: di luar halaman video, saat slot tergulir keluar layar, dibuka manual, atau saat yang diputar bukan video halaman ini.
   // Tetap mini walaupun dijeda: tidak hilang dan tidak berpindah sendiri ke halaman video.
   const mini = !slot || paksa || !terlihat || !sama;
+  // PAKET-37: "mode pil" (mini player diperkecil) tersimpan di peramban dan HANYA berlaku saat pemutar sedang mini. Sebelumnya pilihan tersimpan itu ikut membuang lapisan klik layar
+  // dan pintasan papan ketik di halaman video, sehingga klik layar utama mati selamanya di profil peramban yang pernah memperkecil mini player (di InPrivate normal karena penyimpanannya kosong).
+  const bar = mini && barTersimpan;
   const berikut = lain[0];
   useEffect(() => { onMini(mini); }, [mini, onMini]);
 

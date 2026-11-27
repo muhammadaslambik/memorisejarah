@@ -1,12 +1,12 @@
 // PAKET-3A/15M: halaman tonton video bergaya YouTube: pemutar langsung berputar, tombol Bagikan, deskripsi, daftar Video Lainnya di kanan,
 // lalu bagian program (Diskusi Sejarah, Podcast, Jejak Memori Sejarah, Film Dokumenter). Tanpa bilah samping; header tetap header Memori Sejarah.
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { tanggalLengkap } from "@/lib/tanggal";
 import { and, desc, eq, ne } from "drizzle-orm";
 import { db, videos } from "@/db";
 import { ProgramBlok } from "@/components/home/ProgramBlok";
 import { PemutarMenonton } from "@/components/video/PemutarMenonton";
+import { VideoLainnyaSamping } from "@/components/video/VideoLainnyaSamping";
 import { VideoStrip } from "@/components/home/VideoStrip";
 import { BagikanVideo } from "@/components/video/BagikanVideo";
 import { DeskripsiVideo } from "@/components/video/DeskripsiVideo";
@@ -41,24 +41,9 @@ export default async function VideoPage({ params }: { params: Promise<{ slug: st
         </article>
 
         {lain.length > 0 && (
-          <aside aria-label="Video lainnya" className="tonton-samping min-w-0">
-            <h2 className="font-serif text-lg font-bold">Video Lainnya</h2>
-            <ul className="mt-3 space-y-3">
-              {lain.slice(0, 20).map((x) => (
-                <li key={x.id}>
-                  <Link href={`/video/${x.slug}`} className="group flex gap-3">
-                    <span className="relative block aspect-video w-40 shrink-0 overflow-hidden rounded-lg bg-ms-surface sm:w-44">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={`https://i.ytimg.com/vi/${x.youtubeId}/mqdefault.jpg`} alt="" loading="lazy" className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
-                    </span>
-                    <span className="min-w-0">
-                      <span className="line-clamp-3 block text-sm font-semibold leading-snug group-hover:text-ms-gold">{x.title}</span>
-                      <span className="mt-1 block text-xs text-ms-cream/60">{tanggalLengkap(x.publishedAt)}</span>
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
+          // PAKET-38: tinggi kolom ini dikunci sama dengan kolom kiri (pemutar + judul + deskripsi); video yang tidak muat tersedia lewat tombol "Tampilkan video lainnya"
+          <aside aria-label="Video lainnya" className="tonton-samping relative min-w-0">
+            <VideoLainnyaSamping items={lain.map((x) => ({ slug: x.slug, title: x.title, youtubeId: x.youtubeId, tanggal: tanggalLengkap(x.publishedAt) }))} />
           </aside>
         )}
       </div>

@@ -11,7 +11,8 @@ export type ItemSamping = { slug: string; title: string; youtubeId: string; tang
 
 const RINGKAS_HP = 5;     // jumlah video mode ringkas di layar sempit
 const MAKS_RENDER = 14;   // jumlah video yang digambar pada mode ringkas layar lebar (cukup untuk kolom yang tinggi)
-const JARAK_AMAN = 10;    // jarak minimal antara video dan tombol (px)
+const GAP_TOMBOL = 8;      // jarak antara isi daftar dan tombol yang menempel (px)
+const PEEK_MIN = 16;      // PAKET-40: bila video berikutnya tidak muat utuh, ia tetap tampil sebagian (terpotong dengan pudar) asalkan setidaknya sekian px bagian atasnya terlihat
 
 const Panah = ({ atas }: { atas: boolean }) => (
   <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d={atas ? "M6 15l6-6 6 6" : "M6 9l6 6 6-6"} /></svg>
@@ -46,13 +47,23 @@ export function VideoLainnyaSamping({ items }: { items: ItemSamping[] }) {
       const u = ul.getBoundingClientRect();
       const t = tombol.current?.getBoundingClientRect();
       const batasKolom = u.bottom + 0.5;
-      const batasTombol = !luas && t ? t.top - JARAK_AMAN : Infinity;
+      const batas = Math.min(batasKolom, !luas && t ? t.top - GAP_TOMBOL : Infinity); // garis di bawahnya isi daftar tidak boleh terlihat (dasar kolom atau puncak tombol yang menempel)
       let muat = 0;
       Array.from(ul.children).forEach((li, i) => {
-        const r = li.getBoundingClientRect();
-        const utuh = r.bottom <= batasKolom;
-        (li as HTMLElement).dataset.tampak = luas || (utuh && r.bottom <= batasTombol) ? "1" : "0";
-        if (utuh) muat = i + 1;
+        const el = li as HTMLElement;
+        const r = el.getBoundingClientRect();
+        if (r.bottom <= batasKolom) muat = i + 1;
+        let tampak = true;
+        let pudar = "";
+        if (!luas && r.bottom > batas) {
+          // tidak muat utuh: tampilkan bagian atasnya saja (pudar di garis potong) bila cukup terlihat, supaya tidak ada ruang kosong di atas tombol
+          const lihat = batas - r.top;
+          if (lihat >= PEEK_MIN) pudar = `linear-gradient(to bottom, #000 ${Math.max(0, lihat - Math.min(28, lihat * 0.6))}px, transparent ${lihat}px)`;
+          else tampak = false;
+        }
+        el.dataset.tampak = tampak ? "1" : "0";
+        el.style.setProperty("mask-image", pudar || "none");
+        el.style.setProperty("-webkit-mask-image", pudar || "none");
       });
       if (!luas) setMuatTetap((m) => (m === muat ? m : muat));
     };

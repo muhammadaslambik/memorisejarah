@@ -17,6 +17,8 @@ const PEEK_MIN = 16;      // PAKET-40: bila video berikutnya tidak muat utuh, ia
 const Panah = ({ atas }: { atas: boolean }) => (
   <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d={atas ? "M6 15l6-6 6 6" : "M6 9l6 6 6-6"} /></svg>
 );
+// pudar halus di tepi bawah kotak gulir, supaya potongan video tidak terpotong keras tepat di atas tombol
+const PUDAR_BAWAH = "[-webkit-mask-image:linear-gradient(to_bottom,#000_calc(100%-28px),transparent)] [mask-image:linear-gradient(to_bottom,#000_calc(100%-28px),transparent)]";
 const GULIR = "[scrollbar-color:rgba(217,164,65,.5)_transparent] [scrollbar-width:thin]";
 
 export function VideoLainnyaSamping({ items }: { items: ItemSamping[] }) {
@@ -25,6 +27,7 @@ export function VideoLainnyaSamping({ items }: { items: ItemSamping[] }) {
   const [luas, setLuas] = useState(false);     // mode diperluas (bisa digulir)
   const [muatTetap, setMuatTetap] = useState(0); // jumlah video yang muat utuh di kolom (layar lebar, mode ringkas)
   const daftar = useRef<HTMLUListElement>(null);
+  const badan = useRef<HTMLDivElement>(null);
   const tombol = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -55,7 +58,8 @@ export function VideoLainnyaSamping({ items }: { items: ItemSamping[] }) {
         if (r.bottom <= batasKolom) muat = i + 1;
         let tampak = true;
         let pudar = "";
-        if (!luas && r.bottom > batas) {
+        if (luas) { el.dataset.tampak = "1"; el.style.setProperty("mask-image", "none"); el.style.setProperty("-webkit-mask-image", "none"); return; }
+        if (r.bottom > batas) {
           // tidak muat utuh: tampilkan bagian atasnya saja (pudar di garis potong) bila cukup terlihat, supaya tidak ada ruang kosong di atas tombol
           const lihat = batas - r.top;
           if (lihat >= PEEK_MIN) pudar = `linear-gradient(to bottom, #000 ${Math.max(0, lihat - Math.min(28, lihat * 0.6))}px, transparent ${lihat}px)`;
@@ -65,7 +69,17 @@ export function VideoLainnyaSamping({ items }: { items: ItemSamping[] }) {
         el.style.setProperty("mask-image", pudar || "none");
         el.style.setProperty("-webkit-mask-image", pudar || "none");
       });
-      if (!luas) setMuatTetap((m) => (m === muat ? m : muat));
+      if (!luas) { ul.style.height = ""; ul.style.flex = ""; setMuatTetap((m) => (m === muat ? m : muat)); }
+      else {
+        // PAKET-41: mode luas: kotak yang bisa digulir berhenti tepat di atas tombol yang menempel, jadi tidak ada video yang "bocor" di bawah tombol (area di bawahnya kosong berwarna situs)
+        const dasarBadan = badan.current?.getBoundingClientRect().bottom ?? u.bottom;
+        const tinggiTombol = t?.height ?? 32;
+        const hMaks = dasarBadan - u.top - (tinggiTombol + 12);
+        const hTombol = t ? t.top - GAP_TOMBOL - u.top : hMaks;
+        const h = Math.max(96, Math.min(hMaks, hTombol));
+        ul.style.flex = "none";
+        ul.style.height = `${Math.round(h)}px`;
+      }
     };
     const jadwal = () => { if (!rafId) rafId = requestAnimationFrame(terapkan); };
     terapkan();
@@ -99,14 +113,14 @@ export function VideoLainnyaSamping({ items }: { items: ItemSamping[] }) {
 
   const kelasDaftar = !siap
     ? "max-lg:[&>li:nth-child(n+6)]:hidden lg:min-h-0 lg:flex-1 lg:overflow-clip"   // sebelum JavaScript siap
-    : lg ? (luas ? `min-h-0 flex-1 overflow-y-auto pr-1 ${GULIR}` : "min-h-0 flex-1 overflow-clip")
+    : lg ? (luas ? `shrink-0 overflow-y-auto pr-1 ${GULIR} ${PUDAR_BAWAH}` : "min-h-0 flex-1 overflow-clip")
     : luas ? `max-h-[32rem] overflow-y-auto pr-1 ${GULIR}` : "";
 
   return (
     <div className="flex flex-col lg:absolute lg:inset-0">
       <h2 className="shrink-0 font-serif text-lg font-bold">Video Lainnya</h2>
       {/* PENTING: tidak boleh ada overflow hidden/auto pada wadah di atas tombol, karena akan mematikan sifat menempel (sticky) */}
-      <div className="mt-3 flex min-h-0 flex-1 flex-col">
+      <div ref={badan} className="mt-3 flex min-h-0 flex-1 flex-col">
         <ul ref={daftar} className={`space-y-3 ${kelasDaftar}`} aria-label="Daftar video lainnya">
           {tampil.map((x) => (
             <li key={x.slug} className="transition-[opacity,visibility] duration-200 data-[tampak='0']:invisible data-[tampak='0']:opacity-0">
@@ -124,7 +138,7 @@ export function VideoLainnyaSamping({ items }: { items: ItemSamping[] }) {
           ))}
         </ul>
         {mode && (
-          <div ref={tombol} className="mt-3 shrink-0 lg:sticky lg:bottom-4 lg:z-10">
+          <div ref={tombol} className={`mt-3 shrink-0 lg:sticky lg:bottom-4 lg:z-10 ${luas ? "lg:mt-auto" : ""}`}>
             <button
               type="button"
               onClick={() => setLuas((v) => !v)}

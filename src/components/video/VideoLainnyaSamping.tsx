@@ -145,7 +145,11 @@ export function VideoLainnyaSamping({ items }: { items: ItemSamping[] }) {
               aria-expanded={luas}
               className="flex h-8 w-full items-center justify-center gap-1.5 rounded-full border border-ms-line bg-ms-bg px-4 text-xs font-semibold text-ms-cream/85 shadow-[0_0_0_6px_rgb(var(--ms-bg))] transition hover:border-ms-gold hover:text-ms-gold"
             >
-              {mode === "lebih" ? <>Tampilkan video lainnya ({sisa}) <Panah atas={false} /></> : <>Tampilkan lebih sedikit <Panah atas /></>}
+              {/* satu elemen berkunci: saat label berubah, React mengganti elemennya utuh (aman untuk Google Translate yang membungkus teks dengan <font>) */}
+              <span key={`${mode}-${sisa}`} className="inline-flex items-center gap-1.5">
+                <span>{mode === "lebih" ? `Tampilkan video lainnya (${sisa})` : "Tampilkan lebih sedikit"}</span>
+                <Panah atas={mode === "kurang"} />
+              </span>
             </button>
           </div>
         )}

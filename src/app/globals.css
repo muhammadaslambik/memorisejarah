@@ -183,6 +183,11 @@ body { top: 0 !important; }
 /* PAKET-39: ikon bulat Google Translate (logo dengan cincin biru) yang melayang di pojok kiri atas saat halaman diterjemahkan, serta popup "teks asli" bawaan Google. Hanya mesin terjemahannya yang dipakai. */
 .VIpgJd-ZVi9od-aZ2wEe-wOHMyf, .VIpgJd-ZVi9od-aZ2wEe-OiiCO, .VIpgJd-ZVi9od-aZ2wEe, .VIpgJd-ZVi9od-l4eHX-hSRGPd, .VIpgJd-yAWNEb-L7lbkb, .VIpgJd-yAWNEb-hvhgNd,
 div[class*="VIpgJd-"], iframe[class*="VIpgJd-"], body > .skiptranslate { display: none !important; visibility: hidden !important; width: 0 !important; height: 0 !important; opacity: 0 !important; pointer-events: none !important; }
+/* PAKET-42: sorotan teks saat mode terjemahan. Google memberi latar biru muda dan bayangan pada teks yang disorot kursor (kelas VIpgJd-yAWNEb-VIpgJd-fmcmS-sn54Q pada <font>),
+   sehingga teks krem situs tertutup dan tak terbaca. Semua sorotan itu dimatikan. */
+.VIpgJd-yAWNEb-VIpgJd-fmcmS-sn54Q, font[class*="VIpgJd-"], font font, .goog-text-highlight {
+  background: none !important; background-color: transparent !important; box-shadow: none !important; position: static !important; outline: none !important;
+}
 
 /* PAKET-12E: gambar di artikel (ukuran, rata, teks di atas gambar). Berlaku di halaman publik dan di editor CMS. */
 figure[data-w] { max-width: 100%; margin-left: auto; margin-right: auto; }

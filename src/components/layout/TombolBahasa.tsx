@@ -3,6 +3,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useTutupLuar } from "@/lib/tutup-luar";
+import { pasangPengamanTerjemah } from "@/lib/aman-terjemah";
 
 const BAHASA = [
   { kode: "id", nama: "Bahasa Indonesia" },
@@ -40,6 +41,7 @@ const hapusKuki = () => {
 
 const muatWidget = () => {
   if (document.getElementById("ms-gt")) return;
+  pasangPengamanTerjemah(); // cegah halaman runtuh ketika React mengubah teks yang sudah dibungkus Google Translate
   const w = window as W;
   const wadah = document.createElement("div");
   wadah.id = "google_translate_element";
